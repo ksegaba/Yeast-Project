@@ -1,0 +1,1434 @@
+/mnt/home/seguraab/.bashrc: line 54: unexpected EOF while looking for matching `"'
+/mnt/home/seguraab/.bashrc: line 56: syntax error: unexpected end of file
+
+ 
+
+/var/lib/slurmd/job43519252/slurm_script: line 48: python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_1000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_1000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_1500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_1500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_2000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_2000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_2500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_2500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_3000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_3000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_3500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_3500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_4000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_4000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_4500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_4500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_5000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_5000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_5500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_5500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_6000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_6000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_6500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_6500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_7000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_7000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_7500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_7500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_8000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_8000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_8500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_8500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_9000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_9000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_9500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_9500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_10000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_10000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_10500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_10500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_11000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_11000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_11500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_11500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_12000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_12000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_12500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_12500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_13000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_13000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_13500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_13500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_14000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_14000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_14500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_14500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_15000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_15000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_15500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_15500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_16000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_16000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_16500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_16500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_17000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_17000 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_17500 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_17500 -plots t
+python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_YPXYLOSE.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_18000 -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save YPXYLOSE_rf_18000 -plots t
+: File name too long
+Using subset of features from: /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_18500
+Model built using 750 instances
+Removing test instances to apply model on later...
+Snapshot of data being used:
+            Y  chromosome6_206905  ...  chromosome2_555369  chromosome4_1193193
+ID                                 ...                                         
+AAC  0.067611                   1  ...                   1                    1
+AAD  0.386090                   1  ...                   1                    1
+AAN  0.051651                   1  ...                   1                    1
+AAP  0.447971                   1  ...                   1                    1
+ABD  0.455974                   1  ...                   1                   -1
+
+[5 rows x 5 columns]
+
+
+===>  Grid search started  <===
+Round 1 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 2 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 3 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 4 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 5 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 6 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 7 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 8 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 9 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 10 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+                                     mean_test_score
+max_depth max_features n_estimators                 
+10.0      log2         500.0               -0.014700
+5.0       log2         1000.0              -0.014719
+                       500.0               -0.014733
+10.0      log2         1000.0              -0.014735
+5.0       sqrt         500.0               -0.014738
+Parameter sweep time: 78514.553672 seconds
+Parameters selected: max_depth=10.0, max_features=log2, n_estimators=500.0
+Grid search done. Time: 78517.089768 s
+
+
+===>  ML Pipeline started  <===
+Running 1 of 1
+ML Pipeline time: 11.328230 seconds
+
+Generating prediction plot
+
+
+===>  ML Results  <===
+
+Validation Set Scores:
+Metric	Mean	std	SE
+
+Metric	Mean	std	SE
+MSE	0.014755174297710809	0.0	0.0
+EVS	0.11569557696670074	0.0	0.0
+R2	0.11508037154466144	0.0	0.0
+PCC	0.35115979401585085	0.0	0.0
+
+
+
+Test Set Scores:
+Metric	Mean	std	SE
+
+MSE	0.012255285151565968	0.0	0.0
+EVS	0.1980881065035529	0.0	0.0
+R2	0.18910532640051403	0.0	0.0
+PCC	0.4478030143272067	0.0	0.0
+
+
+finished!
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Using subset of features from: /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_19000
+Model built using 750 instances
+Removing test instances to apply model on later...
+Snapshot of data being used:
+            Y  chromosome11_549990  ...  chromosome2_376405  chromosome10_395307
+ID                                  ...                                         
+AAC  0.067611                    1  ...                   1                    1
+AAD  0.386090                    1  ...                   1                    1
+AAN  0.051651                    1  ...                   1                    1
+AAP  0.447971                    1  ...                   1                    1
+ABD  0.455974                    1  ...                   1                    1
+
+[5 rows x 5 columns]
+
+
+===>  Grid search started  <===
+Round 1 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 2 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 3 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 4 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 5 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 6 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 7 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 8 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 9 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 10 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+                                     mean_test_score
+max_depth max_features n_estimators                 
+5.0       sqrt         1000.0              -0.014711
+          log2         500.0               -0.014715
+                       1000.0              -0.014724
+10.0      log2         1000.0              -0.014732
+5.0       sqrt         500.0               -0.014735
+Parameter sweep time: 80914.713537 seconds
+Parameters selected: max_depth=5.0, max_features=sqrt, n_estimators=1000.0
+Grid search done. Time: 80916.111146 s
+
+
+===>  ML Pipeline started  <===
+Running 1 of 1
+ML Pipeline time: 26.566858 seconds
+
+Generating prediction plot
+
+
+===>  ML Results  <===
+
+Validation Set Scores:
+Metric	Mean	std	SE
+
+Metric	Mean	std	SE
+MSE	0.014753735507332985	0.0	0.0
+EVS	0.11556245135829646	0.0	0.0
+R2	0.11516666085720217	0.0	0.0
+PCC	0.34130099803332886	0.0	0.0
+
+
+
+Test Set Scores:
+Metric	Mean	std	SE
+
+MSE	0.012022771376048305	0.0	0.0
+EVS	0.20819219741785389	0.0	0.0
+R2	0.20449005060513092	0.0	0.0
+PCC	0.4594470010844039	0.0	0.0
+
+
+finished!
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Using subset of features from: /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_19500
+Model built using 750 instances
+Removing test instances to apply model on later...
+Snapshot of data being used:
+            Y  chromosome9_360955  ...  chromosome2_158953  chromosome4_1320873
+ID                                 ...                                         
+AAC  0.067611                   1  ...                  -1                    1
+AAD  0.386090                   1  ...                  -1                    1
+AAN  0.051651                   1  ...                  -1                    1
+AAP  0.447971                   1  ...                  -1                    1
+ABD  0.455974                   1  ...                  -1                    1
+
+[5 rows x 5 columns]
+
+
+===>  Grid search started  <===
+Round 1 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 2 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 3 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 4 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 5 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 6 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 7 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 8 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 9 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 10 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+                                     mean_test_score
+max_depth max_features n_estimators                 
+5.0       log2         500.0               -0.014715
+                       1000.0              -0.014715
+          sqrt         500.0               -0.014745
+                       1000.0              -0.014757
+10.0      log2         500.0               -0.014773
+Parameter sweep time: 85626.727262 seconds
+Parameters selected: max_depth=5.0, max_features=log2, n_estimators=500.0
+Grid search done. Time: 85628.457560 s
+
+
+===>  ML Pipeline started  <===
+Running 1 of 1
+ML Pipeline time: 9.625800 seconds
+
+Generating prediction plot
+
+
+===>  ML Results  <===
+
+Validation Set Scores:
+Metric	Mean	std	SE
+
+Metric	Mean	std	SE
+MSE	0.014736121104654604	0.0	0.0
+EVS	0.11652275810042356	0.0	0.0
+R2	0.11622305845435121	0.0	0.0
+PCC	0.3413565276256972	0.0	0.0
+
+
+
+Test Set Scores:
+Metric	Mean	std	SE
+
+MSE	0.012222695399518403	0.0	0.0
+EVS	0.19511571175095255	0.0	0.0
+R2	0.19126169045263253	0.0	0.0
+PCC	0.44933868225936113	0.0	0.0
+
+
+finished!
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Using subset of features from: /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_20000
+Model built using 750 instances
+Removing test instances to apply model on later...
+Snapshot of data being used:
+            Y  chromosome6_208120  ...  chromosome8_466361  chromosome11_581566
+ID                                 ...                                         
+AAC  0.067611                   1  ...                  -1                    1
+AAD  0.386090                   1  ...                  -1                    1
+AAN  0.051651                   1  ...                  -1                    1
+AAP  0.447971                   1  ...                  -1                    1
+ABD  0.455974                   1  ...                  -1                   -1
+
+[5 rows x 5 columns]
+
+
+===>  Grid search started  <===
+Round 1 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 2 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 3 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 4 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 5 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 6 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 7 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 8 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 9 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 10 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+                                     mean_test_score
+max_depth max_features n_estimators                 
+5.0       sqrt         500.0               -0.014754
+          log2         1000.0              -0.014754
+                       500.0               -0.014770
+          sqrt         1000.0              -0.014777
+          log2         100.0               -0.014783
+Parameter sweep time: 87901.755703 seconds
+Parameters selected: max_depth=5.0, max_features=sqrt, n_estimators=500.0
+Grid search done. Time: 87904.122503 s
+
+
+===>  ML Pipeline started  <===
+Running 1 of 1
+ML Pipeline time: 16.084879 seconds
+
+Generating prediction plot
+
+
+===>  ML Results  <===
+
+Validation Set Scores:
+Metric	Mean	std	SE
+
+Metric	Mean	std	SE
+MSE	0.014803853553613931	0.0	0.0
+EVS	0.11257504336823654	0.0	0.0
+R2	0.1121609055879661	0.0	0.0
+PCC	0.3369897933359971	0.0	0.0
+
+
+
+Test Set Scores:
+Metric	Mean	std	SE
+
+MSE	0.012119059712855448	0.0	0.0
+EVS	0.20234754311181347	0.0	0.0
+R2	0.19811894634431426	0.0	0.0
+PCC	0.4522179246250441	0.0	0.0
+
+
+finished!
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Using subset of features from: /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_20500
+Model built using 750 instances
+Removing test instances to apply model on later...
+Snapshot of data being used:
+            Y  chromosome6_207059  ...  chromosome6_43198  chromosome11_600144
+ID                                 ...                                        
+AAC  0.067611                   1  ...                 -1                    1
+AAD  0.386090                   1  ...                 -1                    1
+AAN  0.051651                   1  ...                 -1                    1
+AAP  0.447971                   1  ...                 -1                    1
+ABD  0.455974                   1  ...                 -1                   -1
+
+[5 rows x 5 columns]
+
+
+===>  Grid search started  <===
+Round 1 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 2 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 3 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 4 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 5 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 6 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 7 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 8 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 9 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 10 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+                                     mean_test_score
+max_depth max_features n_estimators                 
+5.0       log2         1000.0              -0.014750
+          sqrt         1000.0              -0.014750
+10.0      log2         1000.0              -0.014755
+                       500.0               -0.014759
+          sqrt         500.0               -0.014764
+Parameter sweep time: 91831.416987 seconds
+Parameters selected: max_depth=5.0, max_features=log2, n_estimators=1000.0
+Grid search done. Time: 91832.831099 s
+
+
+===>  ML Pipeline started  <===
+Running 1 of 1
+ML Pipeline time: 15.920962 seconds
+
+Generating prediction plot
+
+
+===>  ML Results  <===
+
+Validation Set Scores:
+Metric	Mean	std	SE
+
+Metric	Mean	std	SE
+MSE	0.01479350629481224	0.0	0.0
+EVS	0.11303075275223107	0.0	0.0
+R2	0.11278146704183811	0.0	0.0
+PCC	0.336213235011935	0.0	0.0
+
+
+
+Test Set Scores:
+Metric	Mean	std	SE
+
+MSE	0.01216522397086982	0.0	0.0
+EVS	0.19874830972908053	0.0	0.0
+R2	0.19506439881877236	0.0	0.0
+PCC	0.4559542611479008	0.0	0.0
+
+
+finished!
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Using subset of features from: /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_21000
+Model built using 750 instances
+Removing test instances to apply model on later...
+Snapshot of data being used:
+            Y  chromosome5_169740  ...  chromosome2_219197  chromosome4_499860
+ID                                 ...                                        
+AAC  0.067611                   1  ...                   1                   1
+AAD  0.386090                   1  ...                   1                   1
+AAN  0.051651                   1  ...                   1                   1
+AAP  0.447971                   1  ...                   1                   1
+ABD  0.455974                   1  ...                   1                   1
+
+[5 rows x 5 columns]
+
+
+===>  Grid search started  <===
+Round 1 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 2 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 3 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 4 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 5 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 6 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 7 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 8 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 9 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 10 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+                                     mean_test_score
+max_depth max_features n_estimators                 
+5.0       sqrt         1000.0              -0.014764
+          log2         500.0               -0.014766
+          sqrt         500.0               -0.014768
+          log2         1000.0              -0.014769
+          sqrt         100.0               -0.014769
+Parameter sweep time: 91836.567927 seconds
+Parameters selected: max_depth=5.0, max_features=sqrt, n_estimators=1000.0
+Grid search done. Time: 91837.955237 s
+
+
+===>  ML Pipeline started  <===
+Running 1 of 1
+ML Pipeline time: 28.227405 seconds
+
+Generating prediction plot
+
+
+===>  ML Results  <===
+
+Validation Set Scores:
+Metric	Mean	std	SE
+
+Metric	Mean	std	SE
+MSE	0.014687358867677068	0.0	0.0
+EVS	0.11946106807541501	0.0	0.0
+R2	0.11914750107754046	0.0	0.0
+PCC	0.34623235868788577	0.0	0.0
+
+
+
+Test Set Scores:
+Metric	Mean	std	SE
+
+MSE	0.012104507058032229	0.0	0.0
+EVS	0.2034849288134858	0.0	0.0
+R2	0.19908185093094255	0.0	0.0
+PCC	0.45351481610488426	0.0	0.0
+
+
+finished!
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Using subset of features from: /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_YPXYLOSE_top_21500
+Model built using 750 instances
+Removing test instances to apply model on later...
+Snapshot of data being used:
+            Y  chromosome11_608415  ...  chromosome10_395307  chromosome12_35569
+ID                                  ...                                         
+AAC  0.067611                    1  ...                    1                   0
+AAD  0.386090                    1  ...                    1                   1
+AAN  0.051651                    1  ...                    1                   0
+AAP  0.447971                    1  ...                    1                   1
+ABD  0.455974                    1  ...                    1                   1
+
+[5 rows x 5 columns]
+
+
+===>  Grid search started  <===
+Round 1 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 2 of 10
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+/opt/software/Python/3.6.4-foss-2018a/lib/python3.6/site-packages/sklearn/externals/joblib/externals/cloudpickle/cloudpickle.py:47: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+  import imp
+Round 3 of 10
+slurmstepd: error: *** JOB 43519252 ON csp-020 CANCELLED AT 2022-01-16T20:13:53 DUE TO TIME LIMIT ***

@@ -1,0 +1,7 @@
+# Ignore the following directories
+Data/
+External_software/
+.ipynb_checkpoints/
+.vscode/
+yeast_RF_results/
+yeast_rrBLUP_results/
