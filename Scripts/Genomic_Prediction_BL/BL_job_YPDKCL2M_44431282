@@ -1,0 +1,226 @@
+
+ 
+
+Warning message:
+package ‘BGLR’ was built under R version 4.0.3 
+[1] "Reading in data..."
+    chromosome1_1065 chromosome1_2789 chromosome1_2958 chromosome1_3053
+AAC                1                1                1                1
+AAD               -1               -1                1               -1
+AAL                0                1                1                1
+AAN                1                1                1                1
+AAP                1                1                1                1
+    chromosome1_3207
+AAC                1
+AAD                1
+AAL                1
+AAN                1
+AAP                1
+Read 125 items
+[1] "Modeling trait YPDKCL2M..."
+[1] "CV repetition number 1"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.234392"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.088517"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.090312"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.078112"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.106437"
+[1] "Calculating performance..."
+[1] "CV repetition number 2"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.085765"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.078871"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.069238"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.067301"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.070812"
+[1] "Calculating performance..."
+[1] "CV repetition number 3"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.082800"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.078335"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.068421"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.042455"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.048004"
+[1] "Calculating performance..."
+[1] "CV repetition number 4"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.061426"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.035591"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.031406"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.058973"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.053349"
+[1] "Calculating performance..."
+[1] "CV repetition number 5"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.051017"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.055387"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.049633"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.118241"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.135663"
+[1] "Calculating performance..."
+[1] "CV repetition number 6"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.145146"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.142172"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.124701"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.135296"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.110875"
+[1] "Calculating performance..."
+[1] "CV repetition number 7"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.127610"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.102590"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.089664"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.118698"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.120236"
+[1] "Calculating performance..."
+[1] "CV repetition number 8"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.129020"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.147477"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.157984"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.075130"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.095158"
+[1] "Calculating performance..."
+[1] "CV repetition number 9"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.083413"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.091304"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.079409"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.091172"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.108081"
+[1] "Calculating performance..."
+[1] "CV repetition number 10"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.110749"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.082166"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.080036"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.106684"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: -10.161399"
+[1] "Calculating performance..."
+[1] "Complete."
+[1] "Total elapsed time: -8.412882"
+[1] "Saving results files..."
+Error in dimnames(x) <- dn : 
+  length of 'dimnames' [2] not equal to array extent
+Calls: colnames<-
+Execution halted
+JobId=44431282 JobName=BL_job_YPDKCL2M
+   UserId=seguraab(6007160) GroupId=plb(2022) MCS_label=N/A
+   Priority=988 Nice=0 Account=general QOS=seguraab
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=08:27:49 TimeLimit=12:00:00 TimeMin=N/A
+   SubmitTime=2022-01-23T14:02:16 EligibleTime=2022-01-23T14:02:16
+   AccrueTime=2022-01-23T14:02:16
+   StartTime=2022-01-23T14:59:22 EndTime=2022-01-24T02:59:22 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-01-23T14:59:21
+   Partition=general-long AllocNode:Sid=dev-intel16-k80.i:25203
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=skl-102
+   BatchHost=skl-102
+   NumNodes=1 NumCPUs=2 NumTasks=1 CPUs/Task=2 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=2,mem=36G,node=1,billing=5603
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=2 MinMemoryNode=36G MinTmpDiskNode=0
+   Features=[intel14|intel16|intel18|amr|nvf|nal|nif] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/mnt/home/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/SNPs_as_Feat/BL/BL_job_submission_YPDKCL2M.slurm
+   WorkDir=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BL
+   Comment=stdout=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BL/%x_44431282 
+   StdErr=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BL/BL_job_YPDKCL2M_44431282
+   StdIn=/dev/null
+   StdOut=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BL/BL_job_YPDKCL2M_44431282
+   Power=
+   NtasksPerTRES:0
+
