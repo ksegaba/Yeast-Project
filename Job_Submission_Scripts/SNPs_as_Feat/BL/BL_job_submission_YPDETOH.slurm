@@ -1,5 +1,5 @@
 #!/bin/sh --login                 
-#SBATCH --time=12:00:00                 
+#SBATCH --time=15:00:00                 
 #SBATCH --ntasks=1                 
 #SBATCH --cpus-per-task=2                 
 #SBATCH --mem=36G                 

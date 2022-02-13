@@ -1,0 +1,557 @@
+
+ 
+
+YPACETATE baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPACETATE"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDCAFEIN40 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDCAFEIN40"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDHU baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDHU"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPETHANOL baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPETHANOL"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPD14 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPD14"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDCAFEIN50 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDCAFEIN50"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDKCL2M baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDKCL2M"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPGALACTOSE baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPGALACTOSE"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPD40 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPD40"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDCHX05 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDCHX05"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDLICL250MM baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDLICL250MM"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPGLYCEROL baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPGLYCEROL"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPD42 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPD42"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDCHX1 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDCHX1"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDMV baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDMV"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPRIBOSE baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPRIBOSE"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPD6AU baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPD6AU"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDCUSO410MM baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDCUSO410MM"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDNACL15M baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDNACL15M"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPSORBITOL baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPSORBITOL"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDANISO10 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDANISO10"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDDMSO baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDDMSO"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDNACL1M baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDNACL1M"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPXYLOSE baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPXYLOSE"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDANISO20 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDANISO20"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDETOH baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDETOH"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDNYSTATIN baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDNYSTATIN"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDANISO50 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDANISO50"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDFLUCONAZOLE baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDFLUCONAZOLE"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDSDS baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDSDS"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDBENOMYL200 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDBENOMYL200"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDFORMAMIDE4 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDFORMAMIDE4"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDSODIUMMETAARSENITE baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDSODIUMMETAARSENITE"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDBENOMYL500 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDBENOMYL500"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+YPDFORMAMIDE5 baseline ORF rrBLUP model
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+Read 125 items
+[1] "YPDFORMAMIDE5"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+JobId=45359414 JobName=rrBLUP_ORFs_step14_baseline
+   UserId=seguraab(6007160) GroupId=plb(2022) MCS_label=N/A
+   Priority=6372 Nice=0 Account=general QOS=seguraab
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:18:58 TimeLimit=04:00:00 TimeMin=N/A
+   SubmitTime=2022-02-08T15:27:51 EligibleTime=2022-02-08T15:27:51
+   AccrueTime=2022-02-08T15:27:51
+   StartTime=2022-02-08T15:41:50 EndTime=2022-02-08T19:41:50 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-02-08T15:41:50
+   Partition=general-short AllocNode:Sid=dev-intel14:22365
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=css-003
+   BatchHost=css-003
+   NumNodes=1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,mem=100G,node=1,billing=15564
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=100G MinTmpDiskNode=0
+   Features=[intel14|intel16|intel18|amr|nvf|nal|nif] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/ORFs_as_Feat/rrBLUP_ORFs.slurm
+   WorkDir=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/ORFs_as_Feat
+   Comment=stdout=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/ORFs_as_Feat/%x_45359414 
+   StdErr=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/ORFs_as_Feat/rrBLUP_ORFs_step14_baseline_45359414
+   StdIn=/dev/null
+   StdOut=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/ORFs_as_Feat/rrBLUP_ORFs_step14_baseline_45359414
+   Power=
+   NtasksPerTRES:0
+

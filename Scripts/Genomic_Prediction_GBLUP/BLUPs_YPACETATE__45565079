@@ -1,0 +1,107 @@
+
+ 
+
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+[1] "Reading in data..."
+    chromosome1_1065 chromosome1_2789 chromosome1_2958 chromosome1_3053
+AAC                1                1                1                1
+AAD               -1               -1                1               -1
+AAL                0                1                1                1
+AAN                1                1                1                1
+AAP                1                1                1                1
+    chromosome1_3207
+AAC                1
+AAD                1
+AAL                1
+AAN                1
+AAP                1
+Read 125 items
+[1] "Calculating covariance matrix..."
+[1] "Performing GBLUP..."
+[1] "Modeling trait YPACETATE..."
+[1] "CV repetition number 1"
+[1] "CV fold number 1"
+Error in mixed.solve(y = Y[training, i], K = G[training, ]) : 
+  ncol(K) == m is not TRUE
+Calls: run_model -> mixed.solve -> stopifnot
+Execution halted
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+[1] "Reading in data..."
+         X1.EC1118_1F14_0012g X2.EC1118_1F14_0023g X3.EC1118_1F14_0034g
+BFC                         0                    0                    0
+SACE_YAM                    0                    0                    0
+BKI                         0                    0                    0
+BNV                         0                    0                    0
+BPB                         0                    0                    0
+         X4.EC1118_1F14_0045g X5.EC1118_1F14_0056g
+BFC                         0                    0
+SACE_YAM                    0                    0
+BKI                         0                    0
+BNV                         0                    0
+BPB                         0                    0
+Read 125 items
+[1] "Calculating covariance matrix..."
+[1] "Performing OBLUP..."
+[1] "Modeling trait YPACETATE..."
+[1] "CV repetition number 1"
+[1] "CV fold number 1"
+Error in mixed.solve(y = Y[training, i], K = G[training, ]) : 
+  ncol(K) == m is not TRUE
+Calls: run_model -> mixed.solve -> stopifnot
+Execution halted
+Warning message:
+package ‘rrBLUP’ was built under R version 4.0.3 
+[1] "Reading in data..."
+         X1.EC1118_1F14_0012g X2.EC1118_1F14_0023g X3.EC1118_1F14_0034g
+BFC                         0                    0                    0
+SACE_YAM                    0                    0                    0
+BKI                         0                    0                    0
+BNV                         0                    0                    0
+BPB                         0                    0                    0
+         X4.EC1118_1F14_0045g X5.EC1118_1F14_0056g
+BFC                         0                    0
+SACE_YAM                    0                    0
+BKI                         0                    0
+BNV                         0                    0
+BPB                         0                    0
+Read 125 items
+[1] "Calculating covariance matrix..."
+[1] "Performing CBLUP..."
+[1] "Modeling trait YPACETATE..."
+[1] "CV repetition number 1"
+[1] "CV fold number 1"
+Error in mixed.solve(y = Y[training, i], K = G[training, ]) : 
+  ncol(K) == m is not TRUE
+Calls: run_model -> mixed.solve -> stopifnot
+Execution halted
+JobId=45565079 JobName=BLUPs_YPACETATE_
+   UserId=seguraab(6007160) GroupId=plb(2022) MCS_label=N/A
+   Priority=2148 Nice=0 Account=general QOS=seguraab
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:01:52 TimeLimit=04:00:00 TimeMin=N/A
+   SubmitTime=2022-02-12T17:09:34 EligibleTime=2022-02-12T17:09:34
+   AccrueTime=2022-02-12T17:09:34
+   StartTime=2022-02-12T17:10:10 EndTime=2022-02-12T21:10:10 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-02-12T17:10:10
+   Partition=general-short AllocNode:Sid=dev-intel14:4627
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=csp-019
+   BatchHost=csp-019
+   NumNodes=1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,mem=100G,node=1,billing=15564
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=100G MinTmpDiskNode=0
+   Features=[intel14|intel16|intel18|amr|nvf|nal|nif] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_GBLUP/job_submission.slurm
+   WorkDir=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_GBLUP
+   Comment=stdout=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_GBLUP/%x_45565079 
+   StdErr=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_GBLUP/BLUPs_YPACETATE__45565079
+   StdIn=/dev/null
+   StdOut=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_GBLUP/BLUPs_YPACETATE__45565079
+   Power=
+   NtasksPerTRES:0
+
