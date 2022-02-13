@@ -31,8 +31,16 @@ __Literature__
 |All_pathways_S._cerevisiae_S288c.txt               |Pathways and which yeast (S288C) genes are in them                                  |
 |                                                   |                                                                                    |
 |__Scripts__                                        |                                                                                    |
-|DL_Genomic_Prediction/                             |Initial attempt to build a neural network                                           |
-|Genomic_Prediction_rrBLUP/                         |Code I made or edited from Peipei's rrBLUP code in Genomic_prediction_in_Switchgrass|
+|All_Algorithms/                                    |Figures containing performance comparisons for all models                           |
+|Data_Processing/                                   |Scripts for preprocessing genotype and phenotype matrices                           |
+|Data_Vis/                                          |Scripts for visualizing genotype and phenotype matrices                             |
+|Genetic_Interactions/                              |Scripts for preprocessing genetic interaction matrix                                |
+|Genomic_Prediction_BayesC/                         |BayesC scripts                                                                      |
+|Genomic_Prediction_BL/                             |Bayesian LASSO scripts                                                              |
+|Genomic_Prediction_GBLUP/                          |GBLUP, OBLUP, and CBLUP scripts                                                     |
+|Genomic_Prediction_GCN/                            |Initial attempt at building a graph convolutional neural network                    |
+|Genomic_Prediction_RF/                             |Random forest and results analysis scripts
+|Genomic_Prediction_rrBLUP/                         |Scripts I wrote or edited from Peipei's rrBLUP code in Genomic_prediction_in_Switchgrass|
 |06_classify_SNPs_switchgrass.py                    |Peipei Wang's original code for classifying Switchgrass SNPs                        |
 |06_classify_SNPs_yeast.ipynb                       |Jupyter notebook for development purposes                                           |
 |06_classify_SNPs_yeast.py                          |Adapted from Peipei's code to classify Yeast SNPs                                   |
@@ -52,6 +60,9 @@ __Literature__
 |GWAS_NN                                            |Code for "Gene-Gene Interaction Detection with Deep Learning"                       |
 |ML-Pipeline/                                       |Shiu Lab Machine Learning Pipeline (RF code)                                        |
 |phase.2.1.1.linux                                  |PHASE source code https://stephenslab.uchicago.edu/software.html                    |
+|tasseladmin-tassel-5-standalone-8b0f83692ccb       |TASSEL5 for kinship and linkage disequilibrium analysis                             |
 
-See [2021_Lab_Notebook](https://docs.google.com/document/d/16pWLJoNUdrJx2gudEZUvN1ArLeKEfzN8NybQsQqfP6A/edit#) for troubleshooting and script/file usage workflow. The google drive path to the file is `Segura Abá_ShiuLab/Projects/Yeast GI Network/`.
-
+Google Docs with information about all scripts and their development:
+The google drive path to the file is `Segura Abá_ShiuLab/Projects/Yeast GI Network/`.
+- [2021_Lab_Notebook](https://docs.google.com/document/d/16pWLJoNUdrJx2gudEZUvN1ArLeKEfzN8NybQsQqfP6A/edit#) 
+- [2022_Lab_Notebook](https://docs.google.com/document/d/1aUd3k6bq0C7dGq2EUltONa7x2MRFOlhzxdJTPKoCPU0/edit?skip_itp2_check=true#)
