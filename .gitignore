@@ -5,6 +5,3 @@ External_software/
 .vscode/
 yeast_RF_results/
 yeast_rrBLUP_results/
-
-# Ignore the following files
-*.pdf
