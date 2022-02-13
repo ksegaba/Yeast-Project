@@ -19,6 +19,19 @@ Outputs:
     - Script to generate feature selection files containing a subset of features
     - Script to run RF on each of the feature selection files.
 
+Commands:
+path1=/mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline
+path2=/mnt/scratch/seguraab/yeast_project/yeast_rf_results
+path3=/mnt/scratch/seguraab/yeast_project/yeast_rf_results
+save=/mnt/home/seguraab/Shiu_Lab/Project/Job_Submission_Scripts
+python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -trait ${trait} -start 500 -stop 50000 -step 500 -runFS n -runRF y
+
+TRAITS=( YPDKCL2M YPGALACTOSE YPD40 YPDCHX05 YPDLICL250MM YPGLYCEROL YPD42 YPDCHX1 YPDMV YPRIBOSE YPD6AU YPDCUSO410MM YPDNACL15M YPSORBITOL YPDANISO10 YPDNACL1M YPXYLOSE YPDANISO20 YPDETOH YPDSDS YPDSODIUMMETAARSENITE YPDNYSTATIN YPDFLUCONAZOLE YPACETATE YPDCAFEIN40 YPDHU YPETHANOL YPD14 YPDCAFEIN50 YPDDMSO YPDANISO50  YPDBENOMYL200 YPDFORMAMIDE4 YPDBENOMYL500 YPDFORMAMIDE5 )
+for trait in ${TRAITS[*]} # for each trait (condition) 
+do
+sbatch RF_FS_job_${trait}.slurm
+done
+
 Kenia Segura Abá
 12/01/2021
 """

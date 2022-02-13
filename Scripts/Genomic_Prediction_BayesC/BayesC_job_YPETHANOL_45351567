@@ -1,0 +1,222 @@
+
+ 
+
+[1] "Reading in data..."
+    chromosome1_1065 chromosome1_2789 chromosome1_2958 chromosome1_3053
+AAC                1                1                1                1
+AAD               -1               -1                1               -1
+AAL                0                1                1                1
+AAN                1                1                1                1
+AAP                1                1                1                1
+    chromosome1_3207
+AAC                1
+AAD                1
+AAL                1
+AAN                1
+AAP                1
+Read 125 items
+[1] "Modeling trait YPETHANOL..."
+[1] "CV repetition number 1"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.432693"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.134371"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.569387"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: 11.105345"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: 12.389980"
+[1] "Calculating performance..."
+[1] "CV repetition number 2"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.829814"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.009493"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.391192"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.269134"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.080824"
+[1] "Calculating performance..."
+[1] "CV repetition number 3"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.006581"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.253294"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.390795"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.164141"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.519435"
+[1] "Calculating performance..."
+[1] "CV repetition number 4"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.001102"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.449951"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.166910"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.341457"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.516201"
+[1] "Calculating performance..."
+[1] "CV repetition number 5"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.594705"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.584245"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.364529"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.278030"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.453527"
+[1] "Calculating performance..."
+[1] "CV repetition number 6"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.023770"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.654121"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.772373"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.653516"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.672430"
+[1] "Calculating performance..."
+[1] "CV repetition number 7"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.025151"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.515719"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.714304"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.431063"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.333652"
+[1] "Calculating performance..."
+[1] "CV repetition number 8"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.670057"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.506901"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.682838"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: 9.974062"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.463084"
+[1] "Calculating performance..."
+[1] "CV repetition number 9"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.068815"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.633841"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.448855"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.609022"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.528005"
+[1] "Calculating performance..."
+[1] "CV repetition number 10"
+[1] "CV fold number 1"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.715192"
+[1] "CV fold number 2"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.560328"
+[1] "CV fold number 3"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.336568"
+[1] "CV fold number 4"
+[1] "Saving model..."
+[1] "Model elapsed time: 9.597122"
+[1] "CV fold number 5"
+[1] "Saving model..."
+[1] "Model elapsed time: 10.523932"
+[1] "Calculating performance..."
+[1] "Complete."
+Error in sprintf("Total elapsed time: %f", end.time - start.time) : 
+  object 'start.time' not found
+Calls: print -> sprintf
+Execution halted
+JobId=45351567 JobName=BayesC_job_YPETHANOL
+   UserId=seguraab(6007160) GroupId=plb(2022) MCS_label=N/A
+   Priority=32879 Nice=0 Account=general QOS=seguraab
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=08:46:44 TimeLimit=15:00:00 TimeMin=N/A
+   SubmitTime=2022-02-08T13:34:15 EligibleTime=2022-02-08T13:34:15
+   AccrueTime=2022-02-08T13:34:15
+   StartTime=2022-02-08T13:39:21 EndTime=2022-02-09T04:39:21 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2022-02-08T13:39:21
+   Partition=general-long AllocNode:Sid=dev-intel14:22365
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=lac-378
+   BatchHost=lac-378
+   NumNodes=1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,mem=36G,node=1,billing=5603
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=36G MinTmpDiskNode=0
+   Features=[intel14|intel16|intel18|amr|nvf|nal|nif] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/mnt/home/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/SNPs_as_Feat/BayesC/BayesC_job_submission_YPETHANOL.slurm
+   WorkDir=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BayesC
+   Comment=stdout=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BayesC/%x_45351567 
+   StdErr=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BayesC/BayesC_job_YPETHANOL_45351567
+   StdIn=/dev/null
+   StdOut=/mnt/ufs18/home-056/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BayesC/BayesC_job_YPETHANOL_45351567
+   Power=
+   NtasksPerTRES:0
+

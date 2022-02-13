@@ -132,17 +132,17 @@ for (i in 1:length(Y)) { # loop through selected trait(s)
             yNA[validation] <- NA # mask validation sample values
             yNA[test] <- NA # mask test sample values
             
-            # Build Bayesian LASSO model (uncensored)
-            start <- Sys.time() # start time
-            ETA <- list(list(X=X, model="BL")) # input genotype data and model type
-            model <- BGLR(y=yNA, ETA=ETA, verbose=FALSE, nIter=12000, burnIn=2000) # takes about 13 minutes
+            # Build Bayesian LASSO model
+            start <- Sys.time()
+            ETA <- list(list(X=X, model="BL", saveEffects=TRUE)) # input genotype data and model type
+            model <- BGLR(y=yNA, ETA=ETA, verbose=FALSE, nIter=12000, burnIn=2000, saveAt = paste("BL_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), "_", sep="")) # takes about 13 minutes
             print("Saving model...")
             saveRDS(model, file=paste("BL_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".RDS", sep=""))
             end <- Sys.time() # end time
             print(sprintf("Model elapsed time: %f", end-start))
             
             # Extract results from model
-            Coeff <- rbind(Coeff, model$ETA[[1]]$b) # feature coefficients
+            Coeff <- rbind(Coeff, model$ETA[[1]]$b) # feature coefficients (is it d?)
             #~~~~~~~# Need to figure out what other model paramters I need to save
             yhat$yhat[validation] <- model$yHat[validation] # predicted labels for validation set
             yhat$yhat_sd[validation] <- model$SD.yHat[validation] # standard deviation of predicted labels
