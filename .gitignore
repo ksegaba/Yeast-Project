@@ -6,3 +6,14 @@ External_software/
 yeast_RF_results/
 yeast_rrBLUP_results/
 Scripts/Genomic_Prediction_rrBLUP/Figures
+
+# Files to ignore
+Scripts/Genomic_Prediction_BayesC/*.bin
+Scripts/Genomic_Prediction_BayesC/*.dat
+Scripts/Genomic_Prediction_BayesC/*.pdf
+Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.out
+Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.slurm
+Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.sb
+Job_Submission_Scripts/SNPs_as_Feat/*.out
+Job_Submission_Scripts/SNPs_as_Feat/*.slurm
+Job_Submission_Scripts/SNPs_as_Feat/*.sb
