@@ -7,6 +7,9 @@
 # Model: y = Xb + Zu + e
 # y is a phenotype vector, b is a fixed effect estimate vector, u is random breeding value vector
 # X, Z are incidence matrices for fixed and random effects, respectively, e is residuals vector
+# Model Output: Vu (additive genetic variance), Ve (residual variance), beta (intercept),
+#               u (additive genetic values)
+# Other stats: Vu/(Vu+Ve) as genomic heritability, Ve/Vu as lambda (ratio of variance components)
 # 
 # Arguments:
 #   [1] X_file:     genotype matrix (default), orf presence/absence matrix, or orf copy number matrix
@@ -20,11 +23,17 @@
 #   [9] save_name:  output file save name
 #   [10] orf:       y/n if X_file is orf presence/absence matrix
 #   [11] cno:       y/n if X_file is orf copy number matrix
+#   [12] snp:       y/n if X_file is snp genotype matrix
+#   [13] cv:        y/n if cross-validation
 # 
 # Output:
-#   [1] Feature coefficients file
-#   [2] R-squared values for each cross-validation repetition and of test set
-#   [3] Predicted values for each cross-validation repetition and of test set
+#   [1] Breeding values (BV)
+#   [2] Genomic heritability estimates (h2)
+#   [3] Additive genetic variances (Va)
+#   [4] Residual variances (Ve)
+#   [5] Intercepts (Beta)
+#   [3] R-squared values for each cross-validation repetition and of test set (R2)
+#   [4] Predicted values for each cross-validation repetition and of test set 
 #
 # Modified by: Kenia Segura Abá
 ##################################################################################################
@@ -38,8 +47,8 @@ set.seed(42) # for reproducibility
 
 # Read in arguments
 args = commandArgs(trailingOnly=TRUE)
-if (length(args) < 11) {
-    stop("Need 12 arguments: X_file Y_file feat_file test_file trait cvf_file fold number save_name", call.=FALSE)
+if (length(args) < 12) {
+    stop("Need 13 arguments: X_file Y_file feat_file test_file trait cvf_file fold number save_name orf cno snp cv", call.=FALSE)
 } else {
     X_file <- args[1]
     Y_file <- args[2]
@@ -52,25 +61,28 @@ if (length(args) < 11) {
     save_name <- args[9]
     orf <- args[10]
     cno <- args[11]
+    snp <- args[12]
+    cv <- args[13]
 }
 
 # Arguments for debugging
 #setwd("/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_GBLUP")
 #X_file <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv"
 #Y_file <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv"
-#feat_file <- "/mnt/scratch/seguraab/yeast_project/yeast_rrBLUP_results/Markers_top2000.txt"
+#feat_file <- "all"
 #trait <- "YPDCAFEIN40"
 #test_file <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt"
 #cv <- 5
 #number <- 10
 #cvf_file <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/CVFs.csv"
 #save_name <- "rrBLUP_geno_Markers_top2000"
+#i=1;j=1;k=1
 
 # Read in data
 # if file is larger than 10Mb, using fread to read the file
 print("Reading in data...")
 if (feat_file != "all") {
-    print("Pulling features to use...")
+    message("Pulling features to use...")
     FEAT <- scan(feat_file, what="character") # determine which features are included
     X <- fread(X_file, select=c("ID", FEAT), showProgress=TRUE) # subset genotype data 
     X <- as.matrix(X, rownames=1, colnames=1)
@@ -82,58 +94,48 @@ if (feat_file != "all") {
 }
 
 Y <- read.csv(Y_file, row.names=1) 
-Test <- scan(test_file, what='character')
-cvs <- read.csv(cvf_file, row.names=1)
 
-# Process cross-validation file
-cvs_all <- merge(Y,cvs,by="row.names",all.x=TRUE)
-rownames(cvs_all) <- cvs_all$Row.names
-cvs_all <- cvs_all[,(dim(Y)[2]+2):ncol(cvs_all)]
-cvs_all[is.na(cvs_all)] = 0
+if (cv == "y"){
+    Test <- scan(test_file, what='character')
+    cvs <- read.csv(cvf_file, row.names=1)
 
-# make sure X and Y have the same order of rows as cvs_all
-X <- X[rownames(cvs_all),]
-Y <- Y[rownames(cvs_all),]
+    # Process cross-validation file
+    cvs_all <- merge(Y,cvs,by="row.names",all.x=TRUE)
+    rownames(cvs_all) <- cvs_all$Row.names
+    cvs_all <- cvs_all[,(dim(Y)[2]+2):ncol(cvs_all)]
+    cvs_all[is.na(cvs_all)] = 0
+
+    # make sure X and Y have the same order of rows as cvs_all
+    X <- X[rownames(cvs_all),]
+    Y <- Y[rownames(cvs_all),]
+}
 
 # Trait or traits to be modelled
 if (trait == 'all') {
-  print('Modeling all traits')
+  message('Modeling all traits')
 } else {
   Y <- Y[trait]
 }
 
 # Function to perform G/O/CBLUP within a cross-validation scheme
-run_model <- function(G){
-    start.time <- Sys.time() # start time
-    PCC_cv <- c() # CV Pearson Correlation Coefficient (PCC)
-    PCC_test <- c() # Test set PCC
-    R2_cv <- c() # CV performance R-squared
-    R2_test <- c() # Test set performance R-squared
-    Predict_validation <- c() # Predicted label for CV
-    Predict_test <- c() # Predicted label for test set
+run_model <- function(G){ 
     for(i in 1:length(Y)){
-        print(sprintf("Modeling trait %s...", names(Y)[i]))
-        corr_CV <- c() # PCC of cross-validation
-        corr_test <- c() # PCC of test set
-        Accuracy_CV <- c() # R-sq of cross-validation (performance)
-        Accuracy_test <- c() # R-sq of test set (performance)
-        Coef <- c() # feature coefficients
-        Error <- c() # residual error term (Ve) per trait
-        Beta <- c() # fixed effects (β) per trait
-        pred_val <- c() # predicted value of validation
-        pred_test <- c() # predicted value of test set
+        message(sprintf("Modeling trait %s...", names(Y)[i]))
+        BV <- c() # breeding values
+        Va <- c() # additive genetic variance term (Vu) per trait
+        Ve <- c() # residual variance term (Ve) per trait
+        Heritability <- c() # genomic heritability estimate
+        Beta <- c() # intercepts (b) per trait
         for(k in 1:number){
-            print(sprintf("CV repetition number %i", k))
+            message(sprintf("CV repetition number %i", k))
             tst <- cvs_all[,k] # column from cvs_all that specifies sample folds for this repetition
-            Coeff <- c() # model coefficients for this repetition
-            Errors <- c() # residual error term (Ve) per j-cv repetition
-            Betas <- c() # fixed effects (β) per j-cv repetition
-            y_test <- c() # predicted values of test set
-            yhat <- data.frame(cbind(Y, yhat = 0)) # dataframe to hold predicted values
-		    yhat$yhat <- as.numeric(yhat$yhat)
-		    row.names(yhat) <- row.names(Y)
+            Bv <- c() # breeding values for this repetition
+            va <- c() # additive genetic variance term (Vu) per j-cv repetition
+            ve <- c() # residual variance term (Ve) per j-cv repetition
+            Heritabilities <- c()  # genomic heritability estimate
+            Betas <- c() # intercepts (b) per j-cv repetition
             for(j in 1:cv){
-                print(sprintf("CV fold number %i", j))
+                message(sprintf("CV fold number %i", j))
                 validation <- which(tst==j) # validation set for this fold
                 training <- which(tst!=j & tst!=0) # training set is all other data excluding test set
                 test <- which(tst==0) # testing set
@@ -142,104 +144,138 @@ run_model <- function(G){
                 yNA[test] <- NA # mask test sample values
 
                 # Build G/O/CBLUP model
-                start <- Sys.time()
-                fit <- mixed.solve(y=Y[training,i], K=G[training,])
-                end <- Sys.time() # end time
-                print(sprintf("Model elapsed time: %f", end-start))
+                system.time(fit <- mixed.solve(y=Y[training,i], K=G[training,training]))
                 
                 # Extract results from model
-                Coeff <- rbind(Coeff,fit$u) # feature coefficients
-                effect_size <- as.matrix(fit$u)
-                Errors <- rbind(Errors, fit$Ve) # residual error term (Ve) per cv fold
-                Betas <- rbind(Betas, fit$beta) # fixed effects term (β) per cv fold
-                yhat$yhat[validation] <- (as.matrix(G[validation,]) %*% effect_size)[,1] + c(fit$beta) # predicted labels for validation set
-                yhat$yhat[test] <- (as.matrix(G[test,]) %*% effect_size)[,1] + c(fit$beta) # predicted labels for test set
-                y_test <- cbind(y_test, yhat$yhat) # collect predicted labels
+                Heritabilities <- rbind(Heritabilities, fit$Vu / (fit$Vu + fit$Ve)) # genomic heritability estimate
+                Bv <- rbind(Bv,fit$u) # breeding values
+                va <- rbind(va, fit$Vu) # additive genetic variance term (Vu) per cv fold
+                ve <- rbind(ve, fit$Ve) # residual variance term (Ve) per cv fold
+                Betas <- rbind(Betas, fit$beta) # intercept term (b) per cv fold
             }
-            # Performance measures per repetition
-            print("Calculating performance...")
-            corr_cv <- cor(yhat[which(tst!=0),i], yhat$yhat[which(tst!=0)]) # PCC of validation column
-            corr_CV <- c(corr_CV, corr_cv)
-            Accuracy_CV <- c(Accuracy_CV,corr_cv^2) # R-sq of validation
-
-            y_test <- cbind(y_test,rowMeans(y_test)) # mean predicted values
-            corr_Test <- cor(yhat[which(tst==0),i], y_test[which(tst==0),ncol(y_test)]) # PCC of test
-            corr_test <- c(corr_test, corr_Test)
-            Accuracy_test <- c(Accuracy_test,corr_Test^2) # R-sq of test
-
-            Coef <- rbind(Coef,colMeans(Coeff)) # mean feature coefficients
-            Error <- rbind(Error, colMeans(Errors)) # mean residual errors across folds
-            Beta <- rbind(Beta, colMeans(Betas)) # mean fixed effects across folds
-            pred_val <- cbind(pred_val,yhat$yhat[which(tst!=0)]) # predicted values of validation set
-            pred_test <- cbind(pred_test,y_test[which(tst==0),ncol(y_test)]) # predicted values of test set
+            Heritability <- rbind(Heritability, colMeans(Heritabilities)) # genomic heritabilities
+            BV <- rbind(BV,colMeans(Bv)) # mean breeding values
+            Va <- rbind(Va,colMeans(va)) # additive genetic variances
+            Ve <- rbind(Ve, colMeans(ve)) # mean residual variances across folds
+            Beta <- rbind(Beta, colMeans(Betas)) # mean intercept across folds
         }
-        # Overall performance
-        PCC_cv <- cbind(PCC_cv, corr_CV) # cross-validation PCC
-        PCC_test <- cbind(PCC_test, corr_test) # test set PCC
-        R2_cv <- cbind(R2_cv,Accuracy_CV) # cross-validation R-sq
-        R2_test <- cbind(R2_test,Accuracy_test) # test set R-sq
-        write.csv(Coef,paste('Coef_',save_name,'_',names(Y)[i],'.csv',sep=''),row.names=FALSE,quote=FALSE) # Coefficients
-        write.csv(Error,paste('Error_',save_name,'_',names(Y)[i],'.csv',sep=''),row.names=FALSE,quote=FALSE) # Save model average residual errors across folds
-        write.csv(Beta,paste('Beta_',save_name,'_',names(Y)[i],'.csv',sep=''),row.names=FALSE,quote=FALSE) # Save model average fixed effects across folds
-        colnames(pred_val) <- paste(names(Y)[i], "_", 1:number, sep="") # columns for predicted values for each repetition
-        Predict_validation <- cbind(Predict_validation, pred_val) # validation predicted values
-        colnames(pred_test) <- paste(names(Y)[i], "_", 1:number, sep="") # columns for predicted values for each repetition
-        Predict_test <- cbind(Predict_test, pred_test) # test set predicted values
+        # Write model parameters to file
+        write.csv(Heritability,paste('h2_',save_name,'_',names(Y)[i],'.csv',sep=''),row.names=FALSE,quote=FALSE) # Genomic heritabilities
+        write.csv(BV,paste('BV_',save_name,'_',names(Y)[i],'.csv',sep=''),row.names=FALSE,quote=FALSE) # Breeding values
+        write.csv(Va,paste('Va_',save_name,'_',names(Y)[i],'.csv',sep=''),row.names=FALSE,quote=FALSE) # Additive genetic variances
+        write.csv(Ve,paste('Ve_',save_name,'_',names(Y)[i],'.csv',sep=''),row.names=FALSE,quote=FALSE) # Save model average residual variances across folds
+        write.csv(Beta,paste('Beta_',save_name,'_',names(Y)[i],'.csv',sep=''),row.names=FALSE,quote=FALSE) # Save model average intercept across folds
     }
-    print("Complete.")
-    end.time <- Sys.time() # end time
-    print(sprintf("Total elapsed time: %f", end.time-start.time))
-
-    # Save results to files
-    colnames(PCC_cv) <- names(Y)
-    colnames(PCC_test) <- names(Y)
-    write.csv(PCC_cv,paste('PCC_cv_results_',save_name,'_',trait,'.csv',sep=''),row.names=FALSE,quote=FALSE)
-    write.csv(PCC_test,paste('PCC_test_results_',save_name,'_',trait,'.csv',sep=''),row.names=FALSE,quote=FALSE)
-    colnames(R2_cv) <- names(Y)
-    colnames(R2_test) <- names(Y)
-    write.csv(R2_cv,paste('R2_cv_results_',save_name,'_',trait,'.csv',sep=''),row.names=FALSE,quote=FALSE)
-    write.csv(R2_test,paste('R2_test_results_',save_name,'_',trait,'.csv',sep=''),row.names=FALSE,quote=FALSE)
-    rownames(Predict_validation) <- rownames(G)[which(tst!=0)]
-    write.csv(Predict_validation,paste('Predict_value_cv_',save_name,'_',trait,'.csv',sep=''),row.names=TRUE,quote=FALSE)
-    rownames(Predict_test) <- rownames(G)[test]
-    write.csv(Predict_test,paste('Predict_value_test_',save_name,'_',trait,'.csv',sep=''),row.names=TRUE,quote=FALSE)
+    message("Complete.")
 }
 
+#y=Y[,trait]; W=X; maf=0.05
+# Function to perform G/O/CBLUP (I may not need this function, and just add the fit mixed.solve line to the cv=='n' in the next section below.
+g_blup <- function(W, y, maf=0.05, recode=FALSE){
+    # Source: http://morotalab.org/apsc5984-2020/day29/day29a.html
+    # Input: genotype matrix W, phenotype matrix y, minor allele frequency threshold, recode
+    # Consideration: Does genotype encoding in W matter? W/out standardizing yes, w/standardizing the Vu, Ve, b, u barely change, but the heritability estimate does quite a bit.
+    # # Try: -1, 0, 1 and 0, 1, 2
+    if (recode == TRUE){
+        W[W==1] <- 2 # recode genotype matrix
+        W[W==0] <- 1
+        W[W==-1] <- 0
+        #write.csv(W, "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno_012.csv", quote=FALSE, row.names=FALSE)
+    }
+    # Genomic covariance matrix G
+    p <- colMeans(W)/2 # allele frequencies
+    maf2 <- pmin(p, 1-p)
+    index <- which(maf2 < maf) 
+    W2 <- W[,-index] # remove genotypes with maf2 < maf
+    p2 <- p[-index]
+    W2 <- scale(W2, center=TRUE, scale=TRUE)
+    G <- tcrossprod(W2)/(2 * sum(p2 * (1-p2))) # according to Li and Simianer 2018
+    fit <- mixed.solve(y = y, K = G)
+    return(fit)
+}
+
+# Collect results
+file <- "RESULTS_BLUPs.csv"
+if (!file.exists(file)) {
+    cat("Model", "Trait", "PCC", "R-sq", "Intercept", "Vu", "Ve", "lambda", "heritability\n", file=file, append=FALSE, sep=",")
+} else { message("RESULTS_BLUPs.csv exists") }
+
 # Calculate covariance matrix and run the G/O/CBLUP
-print("Calculating covariance matrix...")
-if (orf == "y" & cno == "n") { # covariance of ORF presence/absence
-    print("Performing OBLUP...")
+if (orf == "y") { # covariance of ORF presence/absence
+    print("Calculating ORF covariance matrix...")
     # OBLUP: O = WW'/sum(q(1-q)) 
     # W is ORF matrix centered as (0-q) and (1-q) for each entry
     q <- colSums(X)/nrow(X) # q is the frequency of each orf
     Q <- matrix(rep(q, nrow(X)), ncol=ncol(X), nrow=nrow(X), byrow=TRUE)
     rownames(Q) <- rownames(X) ; colnames(Q) <- colnames(X)
-    W <- X - Q # W matrix
+    W <- X - Q # W matrix DO I NEED TO SCALE AND CENTER?
+    W <- scale(W, center = TRUE, scale = FALSE) # standardize mean 0
     sumq <- sum(q*(1-q)) # scaling factor
     O <- (W %*% t(W))/sumq
+    
+    message("Performing OBLUP...")
     # Perform OBLUP
-    run_model(O)
-} else if (cno == "y" & orf == "n") { # covariance of ORF copy number
-    print("Performing CBLUP...")
+    if (cv == "y") {
+        system.time(run_model(O))
+    } else {
+        for (i in 1:length(Y)){
+            system.time(fit <- mixed.solve(y = Y[,i], K = O))
+            print("Saving results...")
+            # Append results to file
+            pcc <- cor(Y[,i], fit$u)
+            cat("OBLUP,", file=file, append=TRUE, sep="")
+            cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
+            cat(pcc, ",", file=file, append=TRUE, sep="")
+            cat(pcc^2, ",", file=file, append=TRUE, sep="")
+            cat(fit$beta, ",", file=file, append=TRUE, sep="")
+            cat(fit$Vu, ",", file=file, append=TRUE, sep="")
+            cat(fit$Ve, ",", file=file, append=TRUE, sep="")
+            cat(fit$Ve/fit$Vu, ",", file=file, append=TRUE, sep="")
+            cat(fit$Vu / (fit$Vu + fit$Ve), "\n", file=file, append=TRUE, sep="")
+            # Save breeding values
+            write.csv(fit$u, paste(names(Y)[i], "OBLUP.csv", sep="_"))
+        }
+    }
+} else if (cno == "y") { # covariance of ORF copy number
+    print("Calculating ORF Copy Number covariance matrix...")
     # CBLUP: C = SS'/f
     # S is copy number matrix with (b-u) entries where b is the copy number
     u <- colMeans(X) # u is mean copy number
     U <- matrix(rep(u, nrow(X)), ncol=ncol(X), nrow=nrow(X), byrow=TRUE)
     rownames(U) <- rownames(X) ; colnames(U) <- colnames(X)
-    S <- X - U # S matrix
+    S <- X - U # S matrix DO I NEED TO SCALE AND CENTER?
+    S <- scale(S, center = TRUE, scale = FALSE) # standardize  mean 0
     f <- median(diag(S %*% t(S))) # f is the median of the diagonal of SS'
     C <- (S %*% t(S))/f # copy number
+    print("Performing CBLUP...")
     # Perform CBLUP
-    run_model(C)
-} else { # covariance of genotypes
-    print("Performing GBLUP...")
+    if (cv == "y") {
+        print("Cross-validation...")
+        system.time(run_model(C))
+    } else {
+        for (i in 1:length(Y)){
+            system.time(fit <- mixed.solve(y = Y[,i], K = C))
+            print("Saving results...")
+            # Append results to file
+            pcc <- cor(Y[,i], fit$u)
+            cat("CBLUP,", file=file, append=TRUE, sep="")
+            cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
+            cat(pcc, ",", file=file, append=TRUE, sep="")
+            cat(pcc^2, ",", file=file, append=TRUE, sep="")
+            cat(fit$beta, ",", file=file, append=TRUE, sep="")
+            cat(fit$Vu, ",", file=file, append=TRUE, sep="")
+            cat(fit$Ve, ",", file=file, append=TRUE, sep="")
+            cat(fit$Ve/fit$Vu, ",", file=file, append=TRUE, sep="")
+            cat(fit$Vu / (fit$Vu + fit$Ve), "\n", file=file, append=TRUE, sep="")
+            # Save breeding values
+            write.csv(fit$u, paste(names(Y)[i], "CBLUP.csv", sep="_"))
+        }
+    }
+} else if (snp == "y") { # covariance of genotypes
+    print("Calculating SNP covariance matrix...")
     # GBLUP: G = (ZZ')/(2*sum(p*(1-p))); VanRaden et al. 2008
     # Z is the MAF adjusted marker matrix with (0-2p), (1-2p), (2-2p) entries
     # genotypes are 0, 1, 2 for -1, 0, 1, respectively
-    X[X==1] <- 2 # recode genotype matrix
-    X[X==0] <- 1
-    X[X==-1] <- 0
-    write.csv(X, "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno_012.csv", quote=FALSE, row.names=FALSE)
     p <- colMeans(X)/2 # minor allele frequencies of each SNP
     # var(binomial) = n*theta(1-theta) ==> var(SNP) = 2p(1-p)
     sum2pq <- 2*sum(p*(1-p)) # scaling factor
@@ -247,15 +283,63 @@ if (orf == "y" & cno == "n") { # covariance of ORF presence/absence
     P <- matrix(rep(2*p, nrow(X)), ncol=ncol(X), nrow=nrow(X), byrow=TRUE)
     rownames(P) <- rownames(X) ; colnames(P) <- colnames(X)
     Z <- X - P # Z matrix 
+    Zs <- scale(Z, center = TRUE, scale = TRUE) # standardize mean 0
     # calculate covariance matrix G
-    G <- (Z %*% t(Z)) / sum2pq
+    G <- (Zs %*% t(Zs)) / sum2pq
+    for (i in 1:length(Y)){
+        system.time(fit <- mixed.solve(y = Y[,], K = G)) # GBLUP on -1,0,1 matrix
+        print("-1,0,1 encoding")
+        print(cor(Y[,i], fit$u))
+        print(cor(Y[,i], fit$u)^2)
+    }
+    W=X
+    W[W==1] <- 2 # recode genotype matrix
+    W[W==0] <- 1
+    W[W==-1] <- 0
+    p <- colMeans(W)/2 # minor allele frequencies of each SNP
+    # var(binomial) = n*theta(1-theta) ==> var(SNP) = 2p(1-p)
+    sum2pq <- 2*sum(p*(1-p)) # scaling factor
+    # Center X by mean allele frequencies
+    P <- matrix(rep(2*p, nrow(W)), ncol=ncol(W), nrow=nrow(W), byrow=TRUE)
+    rownames(P) <- rownames(W) ; colnames(P) <- colnames(W)
+    Z <- X - P # Z matrix 
+    Zs <- scale(Z, center = TRUE, scale = TRUE) # standardize mean 0
+    # calculate covariance matrix G
+    G <- (Zs %*% t(Zs)) / sum2pq
+    system.time(fit <- mixed.solve(y = Y[,i], K = G)) # GBLUP on 0,1,2 matrix
+    print("0,1,2 encoding")
+    print(cor(Y[,i], fit$u))
+    print(cor(Y[,i], fit$u)^2)
+
+    print("Performing GBLUP...")
     # Perform GBLUP
-    run_model(G)
-    # plot of allele frequencies
-    p <- as.data.frame(p)
-    g <- ggplot(p2, aes(x=p)) +
-            geom_histogram(bins=100, color="white") +
-            xlab("Allele Frequencies") +
-            theme_minimal()
-    ggsave("SNP_allele_freq_histogram.pdf")
+    if (cv == "y") {
+        print("Cross-validation...")
+        system.time(run_model(G))
+        # plot of allele frequencies
+        p <- as.data.frame(p)
+        g <- ggplot(p, aes(x=p)) +
+                geom_histogram(bins=100, color="white") +
+                xlab("Allele Frequencies") +
+                theme_minimal()
+        ggsave("SNP_allele_freq_histogram.pdf")
+    } else {
+        for (i in 1:length(Y)){
+            system.time(fit <- g_blup(X, y=Y[,i], recode=TRUE)) # 0,1,2 ENCODING
+            print("Saving results...")
+            # Append results to file
+            pcc <- cor(Y[,i], fit$u)
+            cat("GBLUP,", file=file, append=TRUE, sep="")
+            cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
+            cat(pcc, ",", file=file, append=TRUE, sep="")
+            cat(pcc^2, ",", file=file, append=TRUE, sep="")
+            cat(fit$beta, ",", file=file, append=TRUE, sep="")
+            cat(fit$Vu, ",", file=file, append=TRUE, sep="")
+            cat(fit$Ve, ",", file=file, append=TRUE, sep="")
+            cat(fit$Ve/fit$Vu, ",", file=file, append=TRUE, sep="")
+            cat(fit$Vu / (fit$Vu + fit$Ve), "\n", file=file, append=TRUE, sep="")
+            # Save breeding values
+            write.csv(fit$u, paste(names(Y)[i], "GBLUP.csv", sep="_"))
+        }
+    }
 }

@@ -150,7 +150,7 @@ for (i in 1:length(Y)){
             dev.off()
 
             # Extract results from model
-            Coeff <- rbind(Coeff, model$ETA[[1]]$d) # feature coefficients (what is b?)
+            Coeff <- rbind(Coeff, model$ETA[[1]]$d) # feature coefficients (what is b? the estimated coeffs, d is the posterior probs)
             yhat$yhat[validation] <- model$yHat[validation] # predicted labels for validation set
             yhat$yhat_sd[validation] <- model$SD.yHat[validation] # standard deviation of predicted labels
             yhat$yhat[test] <- model$yHat[test] # predicted labels for test set
@@ -177,7 +177,7 @@ for (i in 1:length(Y)){
 	PCC_test <- cbind(PCC_test, corr_test) # test set PCC
     R2_cv <- cbind(R2_cv, Accuracy_CV) # cross-validation accuracy
     R2_test <- cbind(R2_test, Accuracy_test) # test set accuracy
-    write.csv(Coef, paste("Coef_", save_name, "_", names(Y)[i], ".csv", sep=""), row.names=FALSE, quote=FALSE) # coefficients
+    write.csv(Coef, paste("Posterior_", save_name, "_", names(Y)[i], ".csv", sep=""), row.names=FALSE, quote=FALSE) # coefficients
     colnames(pred_val) <- paste(names(Y)[i], "_", 1:number, sep="") # columns for predicted values for each repetition
     Predict_validation <- cbind(Predict_validation, pred_val) # validation predicted values
     colnames(pred_test) <- paste(names(Y)[i], "_", 1:number, sep="") # columns for predicted values for each repetition
