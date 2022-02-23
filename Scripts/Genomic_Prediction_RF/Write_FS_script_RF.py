@@ -63,7 +63,7 @@ def make_RF_FS_files(path1, path2, path3, save, trait, start, stop, step, name2)
     # Write RF slurm job submission script
     out2 = open(name2, 'w')
     out2.write(f'#!/bin/sh --login \
-                \n#SBATCH --array=29500-50000:5000 # 10 array tasks \
+                \n#SBATCH --array=500-50000:5000 # 10 array tasks \
                 \n#SBATCH --time=100:00:00 \
                 \n#SBATCH --ntasks=2 \
                 \n#SBATCH --cpus-per-task=2 \
@@ -78,7 +78,7 @@ def make_RF_FS_files(path1, path2, path3, save, trait, start, stop, step, name2)
                 \nend_ind=$(( $start_ind + 4500 )) \
                 \necho "this job start from $start_ind to $end_ind" \
                 \nfor i in `seq $start_ind 500 $end_ind`; do \
-                \n    python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_${trait}.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_${trait}_top_$i -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 1 -cv_num 5 -save ${trait}_rf_$i -plots t \
+                \n    python /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline/ML_regression.py -df /mnt/scratch/seguraab/yeast_project/yeast_rf_results/geno_rf_{trait}.csv -sep , -feat /mnt/scratch/seguraab/yeast_project/yeast_rf_results/feat_rf_{trait}_top_$i -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 100 -cv_num 5 -save {trait}_rf_$i -plots t \
                 \ndone\n \
                 \n$scontrol show job $SLURM_JOB_ID')
     
