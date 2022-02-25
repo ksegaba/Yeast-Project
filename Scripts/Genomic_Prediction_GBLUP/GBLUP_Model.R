@@ -77,6 +77,7 @@ if (length(args) < 12) {
 #cvf_file <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/CVFs.csv"
 #save_name <- "rrBLUP_geno_Markers_top2000"
 #i=1;j=1;k=1
+#y=Y[,trait]; W=X; maf=0.05
 
 # Read in data
 # if file is larger than 10Mb, using fread to read the file
@@ -93,9 +94,9 @@ if (feat_file != "all") {
     X[1:5,1:5]
 }
 
-Y <- read.csv(Y_file, row.names=1) 
+Y <- read.csv(Y_file, row.names=1) # phenotype data
 
-if (cv == "y"){
+if (cv == "y"){ # Test file and Cross-validation file with fold assignments
     Test <- scan(test_file, what='character')
     cvs <- read.csv(cvf_file, row.names=1)
 
@@ -118,7 +119,7 @@ if (trait == 'all') {
 }
 
 # Function to perform G/O/CBLUP within a cross-validation scheme
-run_model <- function(G){ 
+cv_gblup <- function(G){ 
     for(i in 1:length(Y)){
         message(sprintf("Modeling trait %s...", names(Y)[i]))
         BV <- c() # breeding values
@@ -169,7 +170,6 @@ run_model <- function(G){
     message("Complete.")
 }
 
-#y=Y[,trait]; W=X; maf=0.05
 # Function to perform G/O/CBLUP (I may not need this function, and just add the fit mixed.solve line to the cv=='n' in the next section below.
 g_blup <- function(W, y, maf=0.05, recode=FALSE){
     # Source: http://morotalab.org/apsc5984-2020/day29/day29a.html
@@ -198,7 +198,7 @@ g_blup <- function(W, y, maf=0.05, recode=FALSE){
 file <- "RESULTS_BLUPs.csv"
 if (!file.exists(file)) {
     cat("Model", "Trait", "PCC", "R-sq", "Intercept", "Vu", "Ve", "lambda", "heritability\n", file=file, append=FALSE, sep=",")
-} else { message("RESULTS_BLUPs.csv exists") }
+} else {message("RESULTS_BLUPs.csv exists") }
 
 # Calculate covariance matrix and run the G/O/CBLUP
 if (orf == "y") { # covariance of ORF presence/absence
@@ -216,7 +216,7 @@ if (orf == "y") { # covariance of ORF presence/absence
     message("Performing OBLUP...")
     # Perform OBLUP
     if (cv == "y") {
-        system.time(run_model(O))
+        system.time(cv_gblup(O))
     } else {
         for (i in 1:length(Y)){
             system.time(fit <- mixed.solve(y = Y[,i], K = O))
@@ -231,8 +231,8 @@ if (orf == "y") { # covariance of ORF presence/absence
             cat(fit$Vu, ",", file=file, append=TRUE, sep="")
             cat(fit$Ve, ",", file=file, append=TRUE, sep="")
             cat(fit$Ve/fit$Vu, ",", file=file, append=TRUE, sep="")
-            cat(fit$Vu / (fit$Vu + fit$Ve), "\n", file=file, append=TRUE, sep="")
-            # Save breeding values
+            cat(fit$Vu^2 / (fit$Vu^2 + fit$Ve^2), "\n", file=file, append=TRUE, sep="")
+            # Save predicted values
             write.csv(fit$u, paste(names(Y)[i], "OBLUP.csv", sep="_"))
         }
     }
@@ -251,7 +251,7 @@ if (orf == "y") { # covariance of ORF presence/absence
     # Perform CBLUP
     if (cv == "y") {
         print("Cross-validation...")
-        system.time(run_model(C))
+        system.time(cv_gblup(C))
     } else {
         for (i in 1:length(Y)){
             system.time(fit <- mixed.solve(y = Y[,i], K = C))
@@ -266,8 +266,8 @@ if (orf == "y") { # covariance of ORF presence/absence
             cat(fit$Vu, ",", file=file, append=TRUE, sep="")
             cat(fit$Ve, ",", file=file, append=TRUE, sep="")
             cat(fit$Ve/fit$Vu, ",", file=file, append=TRUE, sep="")
-            cat(fit$Vu / (fit$Vu + fit$Ve), "\n", file=file, append=TRUE, sep="")
-            # Save breeding values
+            cat(fit$Vu^2 / (fit$Vu^2 + fit$Ve^2), "\n", file=file, append=TRUE, sep="")
+            # Save predicted values
             write.csv(fit$u, paste(names(Y)[i], "CBLUP.csv", sep="_"))
         }
     }
@@ -277,7 +277,7 @@ if (orf == "y") { # covariance of ORF presence/absence
     # Z is the MAF adjusted marker matrix with (0-2p), (1-2p), (2-2p) entries
     # genotypes are 0, 1, 2 for -1, 0, 1, respectively
     p <- colMeans(X)/2 # minor allele frequencies of each SNP
-    # var(binomial) = n*theta(1-theta) ==> var(SNP) = 2p(1-p)
+    ### Note: var(binomial) = n*theta(1-theta) ==> var(SNP) = 2p(1-p)
     sum2pq <- 2*sum(p*(1-p)) # scaling factor
     # Center X by mean allele frequencies
     P <- matrix(rep(2*p, nrow(X)), ncol=ncol(X), nrow=nrow(X), byrow=TRUE)
@@ -315,7 +315,7 @@ if (orf == "y") { # covariance of ORF presence/absence
     # Perform GBLUP
     if (cv == "y") {
         print("Cross-validation...")
-        system.time(run_model(G))
+        system.time(cv_gblup(G))
         # plot of allele frequencies
         p <- as.data.frame(p)
         g <- ggplot(p, aes(x=p)) +
@@ -337,7 +337,7 @@ if (orf == "y") { # covariance of ORF presence/absence
             cat(fit$Vu, ",", file=file, append=TRUE, sep="")
             cat(fit$Ve, ",", file=file, append=TRUE, sep="")
             cat(fit$Ve/fit$Vu, ",", file=file, append=TRUE, sep="")
-            cat(fit$Vu / (fit$Vu + fit$Ve), "\n", file=file, append=TRUE, sep="")
+            cat(fit$Vu^2 / (fit$Vu^2 + fit$Ve^2), "\n", file=file, append=TRUE, sep="")
             # Save breeding values
             write.csv(fit$u, paste(names(Y)[i], "GBLUP.csv", sep="_"))
         }
