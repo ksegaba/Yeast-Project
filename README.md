@@ -66,3 +66,6 @@ Google Docs with information about all scripts and their development:
 The google drive path to the file is `Segura Abá_ShiuLab/Projects/Yeast GI Network/`.
 - [2021_Lab_Notebook](https://docs.google.com/document/d/16pWLJoNUdrJx2gudEZUvN1ArLeKEfzN8NybQsQqfP6A/edit#) 
 - [2022_Lab_Notebook](https://docs.google.com/document/d/1aUd3k6bq0C7dGq2EUltONa7x2MRFOlhzxdJTPKoCPU0/edit?skip_itp2_check=true#)
+
+
+[Git Tutorial](https://docs.google.com/presentation/d/1w7n3-A0R0Fjd1lxWuwJmA41r_ctRp2U6N-fBBfPwbJs/edit?usp=sharing)
