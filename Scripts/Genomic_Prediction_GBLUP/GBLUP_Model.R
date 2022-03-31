@@ -7,9 +7,10 @@
 # Model: y = Xb + Zu + e
 # y is a phenotype vector, b is a fixed effect estimate vector, u is random breeding value vector
 # X, Z are incidence matrices for fixed and random effects, respectively, e is residuals vector
+# 
 # Model Output: Vu (additive genetic variance), Ve (residual variance), beta (intercept),
 #               u (additive genetic values)
-# Other stats: Vu/(Vu+Ve) as genomic heritability, Ve/Vu as lambda (ratio of variance components)
+# Other stats: Vu^2/(Vu^2+Ve^2) as genomic heritability, Ve/Vu as lambda (ratio of variance components)
 # 
 # Arguments:
 #   [1] X_file:     genotype matrix (default), orf presence/absence matrix, or orf copy number matrix
@@ -148,7 +149,7 @@ cv_gblup <- function(G){
                 system.time(fit <- mixed.solve(y=Y[training,i], K=G[training,training]))
                 
                 # Extract results from model
-                Heritabilities <- rbind(Heritabilities, fit$Vu / (fit$Vu + fit$Ve)) # genomic heritability estimate
+                Heritabilities <- rbind(Heritabilities, fit$Vu^2 / (fit$Vu^2 + fit$Ve^2)) # genomic heritability estimate
                 Bv <- rbind(Bv,fit$u) # breeding values
                 va <- rbind(va, fit$Vu) # additive genetic variance term (Vu) per cv fold
                 ve <- rbind(ve, fit$Ve) # residual variance term (Ve) per cv fold
@@ -183,7 +184,7 @@ g_blup <- function(W, y, maf=0.05, recode=FALSE){
         #write.csv(W, "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno_012.csv", quote=FALSE, row.names=FALSE)
     }
     # Genomic covariance matrix G
-    p <- colMeans(W)/2 # allele frequencies
+    p <- colMeans(W) # allele frequencies
     maf2 <- pmin(p, 1-p)
     index <- which(maf2 < maf) 
     W2 <- W[,-index] # remove genotypes with maf2 < maf
@@ -197,7 +198,7 @@ g_blup <- function(W, y, maf=0.05, recode=FALSE){
 # Collect results
 file <- "RESULTS_BLUPs.csv"
 if (!file.exists(file)) {
-    cat("Model", "Trait", "PCC", "R-sq", "Intercept", "Vu", "Ve", "lambda", "heritability\n", file=file, append=FALSE, sep=",")
+    cat("Date", "Model", "Trait", "PCC", "R-sq", "Intercept", "Vu", "Ve", "lambda", "heritability\n", file=file, append=FALSE, sep=",")
 } else {message("RESULTS_BLUPs.csv exists") }
 
 # Calculate covariance matrix and run the G/O/CBLUP
@@ -205,7 +206,7 @@ if (orf == "y") { # covariance of ORF presence/absence
     print("Calculating ORF covariance matrix...")
     # OBLUP: O = WW'/sum(q(1-q)) 
     # W is ORF matrix centered as (0-q) and (1-q) for each entry
-    q <- colSums(X)/nrow(X) # q is the frequency of each orf
+    q <- colMeans(X) # q is the frequency of each orf
     Q <- matrix(rep(q, nrow(X)), ncol=ncol(X), nrow=nrow(X), byrow=TRUE)
     rownames(Q) <- rownames(X) ; colnames(Q) <- colnames(X)
     W <- X - Q # W matrix DO I NEED TO SCALE AND CENTER?
@@ -223,6 +224,7 @@ if (orf == "y") { # covariance of ORF presence/absence
             print("Saving results...")
             # Append results to file
             pcc <- cor(Y[,i], fit$u)
+            cat(Sys.time(), file=file, append=TRUE, sep="")
             cat("OBLUP,", file=file, append=TRUE, sep="")
             cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
             cat(pcc, ",", file=file, append=TRUE, sep="")
@@ -258,6 +260,7 @@ if (orf == "y") { # covariance of ORF presence/absence
             print("Saving results...")
             # Append results to file
             pcc <- cor(Y[,i], fit$u)
+            cat(Sys.time(), file=file, append=TRUE, sep="")
             cat("CBLUP,", file=file, append=TRUE, sep="")
             cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
             cat(pcc, ",", file=file, append=TRUE, sep="")
@@ -273,16 +276,36 @@ if (orf == "y") { # covariance of ORF presence/absence
     }
 } else if (snp == "y") { # covariance of genotypes
     print("Calculating SNP covariance matrix...")
+    # https://rpubs.com/amputz/GBLUP_and_ssGBLUP 
     # GBLUP: G = (ZZ')/(2*sum(p*(1-p))); VanRaden et al. 2008
     # Z is the MAF adjusted marker matrix with (0-2p), (1-2p), (2-2p) entries
     # genotypes are 0, 1, 2 for -1, 0, 1, respectively
-    p <- colMeans(X)/2 # minor allele frequencies of each SNP
+    W=X; print("Recoding X_file from -1,0,1 to 0,1,2 encoding")
+    W[W==1] <- 2 # recode genotype matrix
+    W[W==0] <- 1
+    W[W==-1] <- 0
+    #sum(W[,1]==0)/750              genotype freq homozygous ref
+    #[1] 0.076
+    #sum(W[,1]==1)/750              genotype freq heterozygote
+    #[1] 0.04533333
+    #sum(W[,1]==2)/750              genotype freq heterozygous alt
+    #[1] 0.8786667
+    #0.8786667+0.04533333+0.076 = 1
+    #0.076+(0.04533333/2)           allele freq p
+    #[1] 0.09866667
+    #0.8786667+(0.04533333/2)       allele freq q
+    #[1] 0.9013334                  this matches colMeans/2
+    p <- colMeans(W)/2 # allele frequencies of each SNP
+    print(head(p^2)) #p2 genotype frequency
+    print(head((1-p)^2)) # q2
+    print(head(2*p*(1-p))) # 2pq
+    print(head(sum((p^2),((1-p)^2),(2*p*(1-p))))) # should be 1
     ### Note: var(binomial) = n*theta(1-theta) ==> var(SNP) = 2p(1-p)
     sum2pq <- 2*sum(p*(1-p)) # scaling factor
     # Center X by mean allele frequencies
-    P <- matrix(rep(2*p, nrow(X)), ncol=ncol(X), nrow=nrow(X), byrow=TRUE)
-    rownames(P) <- rownames(X) ; colnames(P) <- colnames(X)
-    Z <- X - P # Z matrix 
+    P <- matrix(rep(2*p, nrow(W)), ncol=ncol(W), nrow=nrow(W), byrow=TRUE)
+    rownames(P) <- rownames(W) ; colnames(P) <- colnames(W)
+    Z <- W - P # Z matrix 
     Zs <- scale(Z, center = TRUE, scale = TRUE) # standardize mean 0
     # calculate covariance matrix G
     G <- (Zs %*% t(Zs)) / sum2pq
@@ -293,31 +316,6 @@ if (orf == "y") { # covariance of ORF presence/absence
             xlab("Allele Frequencies") +
             theme_minimal()
     ggsave("SNP_allele_freq_histogram.pdf")
-    for (i in 1:length(Y)){
-        system.time(fit <- mixed.solve(y = Y[,], K = G)) # GBLUP on -1,0,1 matrix
-        print("-1,0,1 encoding")
-        print(cor(Y[,i], fit$u))
-        print(cor(Y[,i], fit$u)^2)
-    }
-    W=X
-    W[W==1] <- 2 # recode genotype matrix
-    W[W==0] <- 1
-    W[W==-1] <- 0
-    p <- colMeans(W)/2 # minor allele frequencies of each SNP
-    # var(binomial) = n*theta(1-theta) ==> var(SNP) = 2p(1-p)
-    sum2pq <- 2*sum(p*(1-p)) # scaling factor
-    # Center X by mean allele frequencies
-    P <- matrix(rep(2*p, nrow(W)), ncol=ncol(W), nrow=nrow(W), byrow=TRUE)
-    rownames(P) <- rownames(W) ; colnames(P) <- colnames(W)
-    Z <- X - P # Z matrix 
-    Zs <- scale(Z, center = TRUE, scale = TRUE) # standardize mean 0
-    # calculate covariance matrix G
-    G <- (Zs %*% t(Zs)) / sum2pq
-    system.time(fit <- mixed.solve(y = Y[,i], K = G)) # GBLUP on 0,1,2 matrix
-    print("0,1,2 encoding")
-    print(cor(Y[,i], fit$u))
-    print(cor(Y[,i], fit$u)^2)
-
     print("Performing GBLUP...")
     # Perform GBLUP
     if (cv == "y") {
@@ -325,10 +323,12 @@ if (orf == "y") { # covariance of ORF presence/absence
         system.time(cv_gblup(G))
     } else {
         for (i in 1:length(Y)){
-            system.time(fit <- g_blup(X, y=Y[,i], recode=TRUE)) # 0,1,2 ENCODING
+            system.time(fit <- mixed.solve(y = Y[,i], K = G)) # GBLUP on 0, 1, 2 matrix
+            #system.time(fit <- g_blup(X, y=Y[,i], recode=TRUE)) # 0,1,2 ENCODING
             print("Saving results...")
             # Append results to file
             pcc <- cor(Y[,i], fit$u)
+            cat(Sys.time(), file=file, append=TRUE, sep="")
             cat("GBLUP,", file=file, append=TRUE, sep="")
             cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
             cat(pcc, ",", file=file, append=TRUE, sep="")
@@ -341,5 +341,34 @@ if (orf == "y") { # covariance of ORF presence/absence
             # Save breeding values
             write.csv(fit$u, paste(names(Y)[i], "GBLUP.csv", sep="_"))
         }
+    }
+    # GBLUP with -1, 0, 1 encoding
+    p <- colMeans(X) # minor allele frequencies of each SNP
+    print(head(p^2)) #p2
+    print(head((1-p)^2)) # q2
+    print(head(2*p*(1-p))) # 2pq
+    print(head(sum((p^2),((1-p)^2),(2*p*(1-p))))) # should be 1
+    # var(binomial) = n*theta(1-theta) ==> var(SNP) = 2p(1-p)
+    sum2pq <- 2*sum(p*(1-p)) # scaling factor
+    # Center X by mean allele frequencies
+    P <- matrix(rep(2*p, nrow(X)), ncol=ncol(X), nrow=nrow(X), byrow=TRUE)
+    rownames(P) <- rownames(X) ; colnames(P) <- colnames(X)
+    Z <- X - P # Z matrix 
+    Zs <- scale(Z, center = TRUE, scale = TRUE) # standardize mean 0
+    # calculate covariance matrix G
+    G <- (Zs %*% t(Zs)) / sum2pq
+    for (i in 1:length(Y)){
+        system.time(fit <- mixed.solve(y = Y[,i], K = G)) # GBLUP on -1,0,1 matrix
+        cat(Sys.time(), file=file, append=TRUE, sep="")
+        cat("GBLUP-101,", file=file, append=TRUE, sep="")
+        cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
+        cat(pcc, ",", file=file, append=TRUE, sep="")
+        cat(pcc^2, ",", file=file, append=TRUE, sep="")
+        cat(fit$beta, ",", file=file, append=TRUE, sep="")
+        cat(fit$Vu, ",", file=file, append=TRUE, sep="")
+        cat(fit$Ve, ",", file=file, append=TRUE, sep="")
+        cat(fit$Ve/fit$Vu, ",", file=file, append=TRUE, sep="")
+        cat(fit$Vu^2 / (fit$Vu^2 + fit$Ve^2), "\n", file=file, append=TRUE, sep="")
+        write.csv(fit$u, paste(names(Y)[i], "GBLUP-101.csv", sep="_"))
     }
 }
