@@ -1,5 +1,5 @@
 # Yeast-Project
-Prediction of *Saccharomyces cerevisiae* fitness in different environments
+Prediction of *Saccharomyces cerevisiae* fitness in different environments and cross-environment prediction of fitness using transfer learning.
 
 ## Project Resources
 __Data__
@@ -9,7 +9,7 @@ __Data__
 - Phenotype data: 35 conditions (YPD standard is control media used to normalize fitness values), 4 replicates, fitness = colony size normalized
 
 __Literature__
-Peter et al. 2018: https://doi.org/10.1038/s41586-018-0030-5 
-Costanzo et al. 2016: https://doi.org/10.1126/science.aaf1420 
+- Peter et al. 2018: https://doi.org/10.1038/s41586-018-0030-5 
+- Costanzo et al. 2016: https://doi.org/10.1126/science.aaf1420 
 
 *For code, switch to `master` branch*
