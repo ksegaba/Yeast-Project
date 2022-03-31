@@ -286,6 +286,13 @@ if (orf == "y") { # covariance of ORF presence/absence
     Zs <- scale(Z, center = TRUE, scale = TRUE) # standardize mean 0
     # calculate covariance matrix G
     G <- (Zs %*% t(Zs)) / sum2pq
+    # plot of allele frequencies
+    p <- as.data.frame(p)
+    g <- ggplot(p, aes(x=p)) +
+            geom_histogram(bins=100, color="white") +
+            xlab("Allele Frequencies") +
+            theme_minimal()
+    ggsave("SNP_allele_freq_histogram.pdf")
     for (i in 1:length(Y)){
         system.time(fit <- mixed.solve(y = Y[,], K = G)) # GBLUP on -1,0,1 matrix
         print("-1,0,1 encoding")
@@ -316,13 +323,6 @@ if (orf == "y") { # covariance of ORF presence/absence
     if (cv == "y") {
         print("Cross-validation...")
         system.time(cv_gblup(G))
-        # plot of allele frequencies
-        p <- as.data.frame(p)
-        g <- ggplot(p, aes(x=p)) +
-                geom_histogram(bins=100, color="white") +
-                xlab("Allele Frequencies") +
-                theme_minimal()
-        ggsave("SNP_allele_freq_histogram.pdf")
     } else {
         for (i in 1:length(Y)){
             system.time(fit <- g_blup(X, y=Y[,i], recode=TRUE)) # 0,1,2 ENCODING
