@@ -1,0 +1,126 @@
+---
+title: "BGLR-Variable Selection"
+author: "G. de los Campos"
+date: "2/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Single trait simulation
+```{r}
+
+ library(BGLR)
+ data(mice)
+ X=scale(mice.X[,1:500],center=TRUE,scale=FALSE)
+ p=ncol(X) # features
+ n=nrow(X) # samples
+ b=rep(0,p) # feature coefficients all 0 (so no SNPs have any effect on y)
+ b[200]=1 # give feature 200 an effect of 1 (The model should pick it up)
+ signal=X%*%b # signal of each feature (y = mu + Xb + U + e)
+ Rsq=0.05
+ signal=scale(signal)*sqrt(Rsq) # sqrt(Rsq) is the correlation coefficient r which measures linear dependence between X and Y
+ error=rnorm(sd=sqrt(1-Rsq),n=n)
+ y=signal+error
+ 
+ LP=list(list(X=X,model='BayesC',probIn=1/100,counts=110)) # BayesB is also for variable selection
+ 
+ fm=BGLR(y=y,ETA=LP,nIter=52000,burnIn=2000,verbose=FALSE)
+ plot(fm$ETA[[1]]$d)
+ abline(v=which(b!=0))
+
+ 
+
+```
+
+
+Now saving the samples
+
+
+```{r}
+  setwd('~/Desktop')
+  dir.create('tmp')
+  setwd('tmp')
+  LP=list(list(X=X,model='BayesC',probIn=1/100,counts=110,saveEffects=TRUE))
+ 
+  fm=BGLR(y=y,ETA=LP,nIter=22000,burnIn=2000,verbose=FALSE)
+  B=readBinMat('ETA_1_b.bin')
+  
+  par(mfrow=c(4,1))
+ 
+  plot(B[,199],cex=.5,col='darkred')
+  plot(B[,200],cex=.5,col='darkred')
+  plot(B[,206],cex=.5,col='darkred')
+  plot(B[,207],cex=.5,col='darkred')
+  
+  cor(X[,c(199,200,206,207)])^2
+```
+
+
+## Set inference
+
+```{r}
+  tmp=B[,c(199,200,206,207)]!=0
+  tmp=apply(FUN=any,MARGIN=1,X=tmp)
+  mean(tmp)
+ 
+   tmp=B[,c(191:210)]!=0
+  tmp=apply(FUN=any,MARGIN=1,X=tmp)
+  mean(tmp)
+```
+
+
+## Window variances
+
+```{r}
+  WV=rep(NA,nrow(B))
+  window=190:210
+  for(i in 1:nrow(B)){
+     g=X[,window,drop=FALSE]%*%B[i,window]
+     WV[i]=var(g)
+    
+  }
+  plot(WV)
+  mean(WV)
+```
+
+## Now Multi-trait
+
+Simulation
+
+```{r}
+
+ b2=rep(0,ncol(X))
+ b2[198]=1
+ signal2=X%*%b2
+ signal2=scale(signal2)*sqrt(Rsq)
+ error2=rnorm(sd=sqrt(1-Rsq),n=n)
+ y2=signal2+error2
+ 
+ Y=cbind(y,y2)
+ 
+  LP=list( list(X=X,model='SpikeSlab',model="SpikeSlab",
+		        inclusionProb=list(probIn=rep(1/100,ncol(Y)),
+		        counts=rep(110,ncol(Y))),saveEffects=TRUE))
+ 
+ fm=Multitrait(y=cbind(y,y2),ETA=LP,nIter=6000,burnIn=100,saveAt='multi_trait_')
+ B2=readBinMatMultitrait('multi_trait_ETA_1_beta.bin')
+```
+
+  - You can do the same things done above, here for each trait separately using each of the slices in B2, e.g., `B2[,,1]` for trait 1, and `B2[,,2]` for trait 2. 
+
+  - However, now you can make inferences for both traits simultaneously. 
+
+```{r}
+window=195:205
+tmp=apply(FUN=any,X=B2[,window,]!=0,MARGIN=c(1,3))
+# marginal posterior probabilities of inclussions for each trait
+colMeans(tmp)
+# same as  mean(apply(FUN=any,MARGIN=1,X=B2[,window,1]!=0)) 
+# and
+#  mean(apply(FUN=any,MARGIN=1,X=B2[,window,2]!=0))
+tmpBoth=apply(FUN=all,MARGIN=1,X=tmp)
+ mean(tmpBoth)
+```
