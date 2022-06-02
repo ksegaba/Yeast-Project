@@ -1,0 +1,9 @@
+/mnt/home/seguraab/.bashrc: line 54: unexpected EOF while looking for matching `"'
+/mnt/home/seguraab/.bashrc: line 56: syntax error: unexpected end of file
+
+ 
+
+Reading data...
+Composing features...
+/var/lib/slurmd/job43573041/slurm_script: line 15:  5373 Killed                  python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genetic_Interactions/composite_GI_feat.py
+slurmstepd: error: Detected 1 oom-kill event(s) in StepId=43573041.batch cgroup. Some of your processes may have been killed by the cgroup out-of-memory handler.

@@ -1,0 +1,111 @@
+---
+title: "BayesC Models for 35 Traits"
+author: "Kenia Segura Abá"
+date: "Feb. 14, 2022"
+output: BiocStyle::pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load_data}
+# Rscript -e "rmarkdown::render('BayesC_mapping.Rmd')"
+library(BGLR)
+library(data.table)
+library(parallel)
+library(ggplot2)
+library(tidyr)
+
+X <- fread("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv") # genotype
+X <- as.matrix(X, rownames=1, colnames=1)
+X <- scale(X, center=TRUE, scale=FALSE)
+y <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv", row.names=1) # phenotype
+
+X[1:5,1:5]; y[1:5,1:5]
+```
+
+### BayesC on each trait
+
+```{r bayesc}
+ETA <- list(list(X=X, model="BayesC", counts=110, probIn=1/100, saveEffects=TRUE))
+bayesc <- function(Y){ # Function to run BayesC on each trait
+    print(Y)
+    fit <- BGLR(y=as.matrix(y[Y]), ETA=ETA, saveAt=paste(Y, "bayesC_mapping_", sep="_"), nIter=7000, burnIn=4000, verbose=FALSE)
+
+    # plot posterior probabilities
+    pdf(paste(Y, "bayesC_mapping_posterior.pdf", sep="_"))
+    plot(fit$ETA[[1]]$d, main=Y)
+    dev.off()
+
+    # collect output
+    list(noquote(Y), var(y[Y]), fit$varE, 1-(fit$varE/var(y[Y])), max(fit$ETA[[1]]$d), 
+         min(fit$ETA[[1]]$d), sum(fit$ETA[[1]]$d < 0.05), sum(fit$ETA[[1]]$d < 0.01))
+}
+system.time(tmp <- mclapply(colnames(y), bayesc, mc.cores=35))
+
+# write output to file
+out <- do.call(rbind, tmp)
+colnames(out) <- c("Y", "varY", "varE", "h2", "max d", "min d", "d05", "d01"); head(out)
+write.csv(out, "BayesC_mapping_results.csv", quote=FALSE, row.names=FALSE)
+```
+
+```{r stats}
+out <- read.csv("BayesC_mapping_results.csv", row.names=1)
+out
+
+#pdf("bayesC_heritability.pdf")
+ggplot(out, aes(x=rownames(out), y=h2)) + geom_bar(stat="identity") + 
+    theme_bw() + theme(axis.text.x = element_text(angle=90, vjust=0.5,
+    hjust=1)) + xlab("Condition")
+dev.off()
+```
+
+```{r trace_plot}
+# Looking in which iteration the SNP was active in the model
+setwd("/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BayesC/Results")
+B=readBinMat("YPDBENOMYL500_bayesC_mapping_12000_ETA_1_b.bin")
+dim(B)
+colnames(B) <- colnames(X)[-1]
+# [1]   600 64456 # There were only 3000 iterations kept, and the model throughs throws out a sample every 5 iterations
+which(colMeans(B!=0)>0.5)
+# integer(0)
+which(colMeans(B!=0)>0.3)
+# [1] 11154
+
+grep("_33476", colnames(X))
+# [1] 14625 49345
+colnames(X)[14625]
+# [1] "chromosome4_334761"
+
+pdf("test.pdf")
+plot(B[,11154])
+dev.off()
+
+pdf("test.pdf") # manhattan plot
+plot(colMeans(B!=0))
+abline(v=11154) # SNP 11154
+dev.off()
+```
+
+```{r bayesc12000}
+ETA <- list(list(X=X, model="BayesC", count=110, probIn=1/100, saveEffects=TRUE))
+bayesc <- function(Y){ # Function to run BayesC on each trait
+    print(Y)
+    fit <- BGLR(y=as.matrix(y[Y]), ETA=ETA, nIter=12000, burnIn=2000, saveAt=paste(Y, "bayesC_mapping_12000_", sep="_"), verbose=FALSE)
+
+    # plot posterior probabilities
+    pdf(paste(Y, "bayesC_mapping_posterior.pdf", sep="_"))
+    plot(fit$ETA[[1]]$d, main=Y)
+    dev.off()
+
+    # collect output
+    list(noquote(Y), var(y[Y]), fit$varE, 1-(fit$varE/var(y[Y])), max(fit$ETA[[1]]$d), 
+         min(fit$ETA[[1]]$d), sum(fit$ETA[[1]]$d < 0.05), sum(fit$ETA[[1]]$d < 0.01))
+}
+system.time(tmp <- mclapply(colnames(y), bayesc, mc.cores=35))
+
+# write output to file
+out <- do.call(rbind, tmp)
+colnames(out) <- c("Y", "varY", "varE", "h2", "max d", "min d", "d05", "d01"); out
+write.csv(out, "BayesC_mapping_results_12000iter.csv", quote=FALSE, row.names=FALSE)
+```
