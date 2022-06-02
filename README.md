@@ -9,16 +9,10 @@ __Data__
 - Phenotype data: 35 conditions (YPD standard is control media used to normalize fitness values), 4 replicates, fitness = colony size normalized
 
 __Literature__
-- Peter et al. 2018: https://doi.org/10.1038/s41586-018-0030-5 
-- Costanzo et al. 2016: https://doi.org/10.1126/science.aaf1420 
+- Peter et al. 2018: https://doi.org/10.1038/s41586-018-0030-5 (genetic markers, phenotype, whole genome RNA-seq)
+- Costanzo et al. 2016: https://doi.org/10.1126/science.aaf1420 (genetic interactions)
 
-*For code, switch to `master` branch*
-=======
-# Data sources:
-- Peter et al. 2018 DOI: 10.1038/s41586-018-0030-5 (genetic markers, phenotype, whole genome RNA-seq)
-- Costanzo et al. 2016 DOI: 10.1126/science.aaf1420 (genetic interactions)
-
-# Description of files and directories
+## Description of files and directories
 
 |File/Directory                                     |Description                                                                         |
 |---------------------------------------------------|---------------------------------------------------------------------------------   |
@@ -52,7 +46,7 @@ __Literature__
 |__yeast_RF_results__                               |Output files and figures for RF modelling                                           |
 
 
-# Description of external software that I'm using or exploring
+## Description of external software that I'm using or exploring
 |Software                                           |Description                                                                         |
 |---------------------------------------------------|---------------------------------------------------------------------------------   |
 |fastPHASE                                          |Executable for imputation of missing genotypes from population data                 |
