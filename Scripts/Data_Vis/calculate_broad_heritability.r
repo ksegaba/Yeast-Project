@@ -27,22 +27,20 @@ for (i in 1:length(traits)){
   head(p)
   
   ### 4. Estimate the genomic heritability (narrow and broad)
-  ans.ADE <- mmer(trt~1, random=~vs(ID,Gu=A) + vs(IDD,Gu=D), rcov=~units, data=p, verbose = FALSE)
-  summary(ans.ADE)
+  ans.ADE <- mmer(fixed=trt~1, random=~vs(ID,Gu=A) + vs(IDD,Gu=D), rcov=~units, data=p, verbose = FALSE)
+  summary(ans.ADE)$varcomp
   h2 <- vpredict(ans.ADE, h2 ~ (V1) / (V1+V3))
   results$h2[i] <- h2$Estimate[1] # narrow sense heritability
   results$h2_SE[i] <- h2$SE[1]
-  
-  ans.ADE2 <- mmer(trt~1, random=~vs(ID,Gu=A) + vs(IDD,Gu=D) + vs(IDE,Gu=E), rcov=~units, data=p, verbose = FALSE)
-  summary(ans.ADE2)
-  H2_ADE <- vpredict(ans.ADE2, h2 ~ (V1+V2+V3) / (V1+V2+V3+V4))
-  results$H2_ADE[i] <- H2_ADE$Estimate[1] # broad sense heritability (w/epistasis)
-  results$H2_ADE_SE[i] <- H2_ADE$SE[1]
-  vpredict(ans.ADE2, h2 ~ (V1+V2) / (V1+V2+V3))
-  H2_AD <- vpredict(ans.ADE, h2 ~ (V1+V2) / (V1+V2+V3)) # broad sense heritability (no epistasis)
-  H2_AD$Estimate
-  results$H2_AD[i] <- H2_AD$Estimate[1]
-  results$H2_AD_SE[i] <- H2_AD$SE[1]
+  H2 <- vpredict(ans.ADE, h2 ~ (V1+V2)/(V1+V2+V3)) # broad sense heritability
+  results$H2_AD[i] <- H2$Estimate[1]
+  results$H2_AD_SE[i] <- H2$SE[1]
+
+  #ans.ADE2 <- mmer(trt~1, random=~vs(ID,Gu=A) + vs(IDD,Gu=D) + vs(IDE,Gu=E), rcov=~units, data=p, verbose = FALSE)
+  #summary(ans.ADE2)
+  #H2_ADE <- vpredict(ans.ADE2, h2 ~ (V1+V2+V3) / (V1+V2+V3+V4))
+  #results$H2_ADE[i] <- H2_ADE$Estimate[1] # broad sense heritability (w/epistasis)
+  #results$H2_ADE_SE[i] <- H2_ADE$SE[1]
 }
 
 ### 5. Write to file
