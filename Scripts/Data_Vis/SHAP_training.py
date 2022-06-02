@@ -184,6 +184,13 @@ def main():
 	values_abs_mean_sorted = values_abs_mean.sort_values(ascending = False)
 	values_abs_mean_sorted.to_csv('SHAP_values_sorted_average_%s_training.txt'%args.save,sep='\t',header=True,index=True)
 
+	###### genes: add args.gene to specify if I want to do the mapping
+	#genes = pd.read_csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt", header=None)
+	#genes = genes.set_index(0)
+	#out = genes.loc[values.columns]
+	#out.columns = ['Chr', 'Position', 'Gene']
+	#out.to_csv('SHAP_top_snps_genes_sorted_%s_training.txt'%args.save,sep='\t',header=True,index=True)
+
 	# sort the column in the SHAP value matrix according to the average absolute values
 	values_sorted = values[values_abs_mean_sorted.index]
 	values_sorted.to_csv('SHAP_values_sorted_%s_training.txt'%args.save,sep='\t',header=True,index=True)
@@ -194,13 +201,27 @@ def main():
 	shap_values = explainer(X_train)
 
 	#### 03/28/2022: Additions by Kenia Segura Abá  ####
-	# Bar chart of mean importance
-	# This takes the average of the SHAP value magnitudes across the dataset and plots it as a simple bar chart.
+	## Bar chart of mean abs importance
+	# This takes the average of the absolute value of SHAP value magnitudes across the dataset
+	# and plots it as a simple bar chart.
 	plt.clf()
-	shap.summary_plot(shap_values.values, X_train, plot_type="bar")
+	shap.plots.bar(shap_values)
+	#shap.summary_plot(shap_values.abs.max(0), X_train, plot_type="bar")
 	plt.savefig("SHAP_%s_training_mean_importance.pdf"%args.save)
 
-	# SHAP summary plot
+	## Bar chart of max abs importance
+	# Take the max of the absolute value of the SHAP values across the dataset
+	plt.clf()
+	shap.plots.bar(shap_values.abs.max(0))
+	#shap.summary_plot(shap_values.values, X_train, plot_type="bar")
+	plt.savefig("SHAP_%s_training_max_importance.pdf"%args.save)
+
+	## SHAP heatmap
+	plt.clf()
+	shap.plots.heatmap(shap_values)
+	plt.savefig("SHAP_%s_training_heatmap.pdf"%args.save)
+	
+	## SHAP summary plot
 	# A density scatter plot of SHAP values for each feature to identify how much 
 	# impact each feature has on the model output for individuals in the validation dataset. 
 	# Features are sorted by the sum of the SHAP value magnitudes across all samples.
@@ -208,14 +229,13 @@ def main():
 	shap.summary_plot(shap_values.values, X_train)
 	plt.savefig("SHAP_%s_training_summary.pdf"%args.save)
 
-	# SHAP dependence plots
+	## SHAP dependence plots
 	# Shows the effect of a single feature across the whole dataset.
 	# Accounts for the interaction effects present in the features (vertical dispersion)
-	'''for name in X_train.columns[0:int(args.top)]:
-		plt.clf()
-		shap.dependence_plot(name, shap_values.values, X_train, display_features=X_train)
-		plt.savefig("SHAP_%s_%s_training_dependence.pdf"%(args.save,name))
-	'''
+	#for name in X_train.columns[0:int(args.top)]:
+	#	plt.clf()
+	#	shap.dependence_plot(name, shap_values.values, X_train, display_features=X_train)
+	#	plt.savefig("SHAP_%s_%s_training_dependence.pdf"%(args.save,name))
 	####################################################
 	
 	# get rid of the features beyond top # features
