@@ -98,30 +98,9 @@ echo $trait
 echo ${FILES[n]} # for each marker file corresponding to that trait
 
 ((n+=1))
-done'
+done
 
 # echo "step 15: sEERBLUP on geno.csv for each condition"
-
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~# 01/19/2022: Added code to get results from population structure
-# https://github.com/peipeiwang6/Genomic_prediction_in_Switchgrass >> these are the codes and steps I'm using/following
-#echo "Step 9. get the population structure, which is defined as the top 5 principle components from the genetic markers"
-#Rscript /mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass/08_getPCs.r /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv
-
-#echo "Step 9_2. get the top 5 PCs"
-#Rscript 08_2_PCA_after_removing.r /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv
-
-#echo "Step 10. genomic prediction using population structure within a cross-validation scheme"
-# Note: 09_rrBLUP_fread_PCs.r builds a simple linear regression model using the PCs, which has similar results of models built using mixed.solve from rrBLUP
-#Rscript 09_rrBLUP_fread_predict_values.r /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/PCA5_geno.csv /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv all all 5 10 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/CVFs.csv rrBLUP_pca	
-#Rscript 09_rrBLUP_fread_PCs.r /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/PCA5_geno.csv /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv all all 5 10 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/CVFs.csv simple_lr_pca
-
-#echo "Step 14. genomic prediction using population structure within a cross-validation scheme"
-#Rscript 13_rrBLUP_training_test_split_fread_predict_values.r /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/PCA5_geno.csv /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv selected_markers all /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt 5 10 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/CVFs.csv selected_markers_pca
-
-#echo "Step 15. get the prediction using the top 5 PCs for ramdomly selected markers. Make sure the title of the first column in your geno matrix is "ID"."
-#Rscript 14_random_select_subset.r PCA5_geno.csv 500 50500 500 64456
-#Rscript 15_rrBLUP_pca_for_subset_markers.r geno_250.csv pheno.csv selected_markers target_trait /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt 5 10 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/CVFs.csv Random_250_markers_pca
 
 scontrol show job $SLURM_JOB_ID
 

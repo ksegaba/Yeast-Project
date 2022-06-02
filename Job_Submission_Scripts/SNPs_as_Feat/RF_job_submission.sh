@@ -38,18 +38,19 @@ save=/mnt/home/seguraab/Shiu_Lab/Project/Job_Submission_Scripts
 python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -trait ${trait} -start 500 -stop 50000 -step 500 -runFS n -runRF y
 done
 
-
-# step 3. train and apply classification machine learning model (Random Forest)
-#echo "Train and apply RF classification ML model"
+# step 3. train and apply regression machine learning model (Random Forest)
+#echo "Train and apply RF regression ML model"
 #for trait in ${TRAITS[*]}
 #do
-#echo "Apply RF model to top 5000 features for ${trait}"
-#python /mnt/home/seguraab/Shiu_Lab/Project/ML-Pipeline/ML_regression.py -df geno_rf_${trait}.csv -sep , -feat feat_rf_${trait}_top_5000 -test test_rf_${trait}.txt -alg RF -n_jobs 12 -cv_num 5 -save ${trait}_rf -plots t
-
 #echo "Baseline for ${trait}"
 # this step only completes about 3 traits in 100 hrs!! That's insane!
 #python /mnt/home/seguraab/Shiu_Lab/Project/ML-Pipeline/ML_regression.py -df geno_rf_${trait}.csv -sep , -test /mnt/home/seguraab/Shiu_Lab/Project/Test.txt  -alg RF -n_jobs 12 -cv_num 5 -save ${trait}_rf_baseline -plots t
 #done
 
+# step 4. population structure based model
+
+
 scontrol show job $SLURM_JOB_ID
+
+
 
