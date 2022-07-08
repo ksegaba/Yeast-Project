@@ -56,76 +56,93 @@ hm <- heatmap.2(kin,
                 dendrogram = "none",
                 Rowv = TRUE,
                 Colv = TRUE,
-                notecex = 0.4,
-                cex.axis = 0.4,
-                cexRow = 0.5,
-                cexCol = 0.4,
-                key.title = "Kinship")
+                notecex = 1,
+                cex.axis = 1,
+                cexRow = 1,
+                cexCol = 1,
+                density.info = "none",
+                keysize=1,
+                key.title = "Kinship",
+                key.par = list(cex=1, mar=c(3,1,3,0)), # bottom, left, top, right
+                margins=c(1,1))
 dev.off()
 
 #--------- FITNESS CORRELATIONS ---------#
 pCorEnvs <- read.csv("Data/Peter_2018/pheno_corr_envs.csv", header=T, row.names=1) # Correlation between conditions
+colnames(pCorEnvs) <- rownames(pCorEnvs)
 pCorIso <- read.csv("Data/Peter_2018/pheno_corr_isolates.csv", header=T, row.names=1) # Correlation between isolates across all conditions
+pCorIso[pCorIso < 0] <- 0
 
-pdf("Scripts/Data_Vis/pheno_corr_isolates.pdf")
+pdf("Scripts/Data_Vis/pheno_corr_isolates.pdf") # v1, v2 [set <0 to 0] (kinship order), v3 (not kinship order, changed color, set neg to 0)
 hm2 <- heatmap.2(as.matrix(pCorIso),
-                col = colorRampPalette(c("blue","white","red"))(21),
+                col = colorRampPalette(c("blue","yellow"))(21),
                 trace="none",
                 dendrogram="none",
-                Rowv=hm$rowDendrogram,
-                Colv=hm$rowDendrogram,
+                #Rowv=hm$rowDendrogram, # same order as kinship heatmap
+                #Colv=hm$rowDendrogram,
                 labRow = FALSE,
                 labCol = FALSE,
-                #notecex=0.4,
-                #cex.axis=0.4,
-                #cexRow=0.5,
-                #cexCol=0.4,
-                keysize=1.4,
+                cex.axis=1,
+                cexRow=1,
+                cexCol=1,
+                density.info = "none",
+                keysize=1,
                 key.title="PCC",
-                key.par = list(cex=36), 
-                mar=c(2,0,2,0))
+                key.par = list(cex=1, mar=c(3,1,3,0)), # bottom, left, top, right
+                margins=c(1,1)) # column, row
 dev.off()
 
-pdf("Scripts/Data_Vis/pheno_corr_envs.pdf")
+
+pdf("Scripts/Data_Vis/pheno_corr_envs_v2.pdf")
 hm3 <- heatmap.2(as.matrix(pCorEnvs),
                 col = colorRampPalette(c("blue","white","red"))(21),
-                hclustfun = function(x) hclust(x, method="median"),
+                #hclustfun = function(x) hclust(x, method="complete"),
                 trace = "none",
                 dendrogram = "none",
                 notecex = 1,
                 cex.axis = 1,
                 cexRow = 0.6,
                 cexCol = 0.6,
-                keysize = 0.8,
+                density.info = "none",
+                keysize = 1,
                 key.title = "PCC",
-                key.ytickfun = NA,
-                key.par = list(cex=0.6),
+                key.par = list(cex=1, mar=c(3,1,3,0)),
                 margins = c(11,11))
 dev.off()
 
 #--------- ISOLATE FITNESS CORRELATION VS KINSHIP ---------#
 k_bin <- reshape2::melt(kin) # reshape kinship matrix
-k_quant <- quantile(k_bin, seq(0,1,0.05)) # kinship quantiles
-k_bin$bin <- cut(k_bin$value, breaks=k_quant) # bins
-k_bin$bin <- as.character(lapply(strsplit(as.character(k_bin$bin),split=","),head,n=1)) # rename bins
-k_bin$bin <- gsub("\\(", "", k_bin$bin) # remove (
-k_bin$bin <- as.numeric(k_bin$bin) # convert to numeric
+#k_quant <- quantile(k_bin, seq(0,1,0.05)) # kinship quantiles
+k_breaks <- seq(min(k_bin$value), max(k_bin$value), 0.5) # regular bins
+#k_bin$bin <- cut(k_bin$value, breaks=k_quant) # quantile bins
+k_bin$breaks <- cut(k_bin$value, breaks=k_breaks) # regular bins
+#k_bin$bin <- as.character(lapply(strsplit(as.character(k_bin$bin),split=","),head,n=1)) # rename bins
+k_bin$breaks <- as.character(lapply(strsplit(as.character(k_bin$breaks), split=","), head, n=1))
+#k_bin$bin <- gsub("\\(", "", k_bin$bin) # remove
+k_bin$breaks <- gsub("\\(", "", k_bin$breaks)
+#k_bin$bin <- as.numeric(k_bin$bin) # convert to numeric
+k_bin$breaks <- as.numeric(k_bin$breaks)
 
-pCorIso <- as.matrix(pCorIso)
+pCorIso <- as.matrix(pCorIso) # original, no values have been reset to 0
 i_bin <- reshape2::melt(pCorIso) # reshape fitness across isolates correlation matrix
-i_quant <- quantile(i_bin$value, seq(0,1,0.05)) # pCor quantiles
-i_bin$bin <- cut(i_bin$value, breaks=i_quant)
-i_bin$bin <- as.character(lapply(strsplit(as.character(i_bin$bin),split=","),head,n=1))
-i_bin$bin <- gsub("\\(", "", i_bin$bin)
-i_bin$bin <- as.numeric(i_bin$bin)
+#i_quant <- quantile(i_bin$value, seq(0,1,0.05)) # pCor quantiles
+i_breaks <- seq(min(i_bin$value), 1.01, 0.12)
+#i_bin$bin <- cut(i_bin$value, breaks=i_quant)
+i_bin$breaks <- cut(i_bin$value, breaks=i_breaks)
+#i_bin$bin <- as.character(lapply(strsplit(as.character(i_bin$bin),split=","),head,n=1))
+i_bin$breaks <- as.character(lapply(strsplit(as.character(i_bin$breaks), split=","), head, n=1))
+#i_bin$bin <- gsub("\\(", "", i_bin$bin)
+i_bin$breaks <- gsub("\\(", "", i_bin$breaks)
+#i_bin$bin <- as.numeric(i_bin$bin)
+i_bin$breaks <- as.numeric(i_bin$breaks)
 
 k_i_bin <- merge(k_bin, i_bin, by=c("Var1", "Var2")) # merge dataframes
-names(k_i_bin) <- c("Isolate 1", "Isolate 2", "Kinship", "Kinship bin", "pCor", "pCor bin")
+colnames(k_i_bin) <- c("Isolate 1", "Isolate 2", "Kinship", "Kinship bin", "pCor", "pCor bin")
 
 k.i.cor <- cor(k_i_bin$Kinship, k_i_bin$pCor, method="spearman") # Spearman correlation
 k_i_bin_count <- aggregate(cbind(count = `Isolate 2`) ~ `Kinship bin`, # bin counts
         data=k_i_bin, FUN=function(x){NROW(x)})
-k_i_bin_median <- k_i_bin %>% group_by(`Kinship bin`) %>% summarise(median=median(pCor)) # bin pCor median
+k_i_bin_median <- k_i_bin %>% group_by(`Kinship bin`) %>% summarise(median=median(pCor)) # kinship bin median pCor
 
 get_density <- function(x, y, ...) { # density
   dens <- MASS::kde2d(x, y, ...)
@@ -136,9 +153,9 @@ get_density <- function(x, y, ...) { # density
 k_i_bin$density <- get_density(k_i_bin$Kinship, k_i_bin$pCor, n=100)
 
 # 5% and 95% quantiles for each kinship bin
-quants <- as.data.frame(do.call("rbind", tapply(k_i_bin$pCor, k_i_bin$`Kinship bin`, quantile, c(0.05, 0.95))))
-names(quants) <- c("x5","x95")
-quants$`Kinship bin` <- as.numeric(row.names(quants))
+#quants <- as.data.frame(do.call("rbind", tapply(k_i_bin$pCor, k_i_bin$`Kinship bin`, quantile, c(0.05, 0.95))))
+#names(quants) <- c("x5","x95")
+#quants$`Kinship bin` <- as.numeric(row.names(quants))
 
 # Density scatter plot
 ggplot(k_i_bin, aes(x=Kinship, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
@@ -147,9 +164,10 @@ ggplot(k_i_bin, aes(x=Kinship, y=pCor, color=density)) + geom_point(size=0.2, al
 ggsave("Scripts/Data_Vis/kinpCorIso_Density.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
 
 ggplot(k_i_bin, aes(x=Kinship, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
-        scale_color_viridis(direction=-1) + theme_bw(8) +
-        geom_line(data=k_i_bin_median, aes(x=`Kinship bin`, y=median, group=1), color="red") +
-        annotate(geom="text", x=3, y=-0.3, label=paste("Spearman's rank cor = ", round(k.i.cor, digits=2),sep=""))
+        scale_color_viridis(direction=-1) + theme_bw(base_size=12) + 
+        theme(axis.text.x=element_text(color="black"), axis.text.y = element_text(color="black")) +
+        geom_line(data=k_i_bin_median, aes(x=`Kinship bin`, y=median, group=1), color="black")
+        #annotate(geom="text", x=2, y=-0.3, label=paste("Spearman's rank correlation = ", round(k.i.cor, digits=2),sep=""))
 ggsave("Scripts/Data_Vis/kinpCorIso_Density_median.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
 
 ggplot(k_i_bin, aes(x=`Kinship bin`, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
@@ -167,6 +185,53 @@ ggsave("Scripts/Data_Vis/kinpCorIso_Distribution.pdf", width=4, height = 4, devi
 # Bin counts plot
 ggplot(k_i_bin_count, aes(x=`Kinship bin`, y=log(count))) + theme_bw(10) +geom_bar(stat="identity", position= "dodge")
 ggsave("Scripts/Data_Vis/kinpCorIso_BinCount.pdf", width=3.42, height = 2.42, device="pdf", useDingbats=FALSE)
+
+#--------- ORF PRESENCE/ABSENCE & COPY NUMBER VARIATIONS ---------#
+orf <- fread("Data/Peter_2018/ORFs_pres_abs.csv") # ORF presence/absence
+orf <- as.matrix(orf, rownames=1, colnames=1)
+oCor <- cor(t(orf)) # between isolates
+oCor[oCor < 0.9] <- 0.9
+
+cno <- fread("Data/Peter_2018/ORFs_no_NA.csv") # ORF copy number variants
+cno <- as.matrix(cno, rownames=1, colnames=1)
+cCor <- cor(t(cno))
+cCor[cCor < 0.8] <- 0.8
+
+pdf("Scripts/Data_Vis/orf_corr_isolates.pdf") # kinship order (v1, v2 [reset < 0.9 or 0.8]), v3 does not follow kinship order, v4 (orf and cno same order, not kinship order)
+hm5 <- heatmap.2(as.matrix(oCor),
+        col = colorRampPalette(c("blue","yellow"))(21),
+        trace="none",
+        dendrogram="none",
+        #Rowv=hm$rowDendrogram, # same order as kinship heatmap
+        #Colv=hm$rowDendrogram,
+        labRow = "Isolates",
+        labCol = "Isolates",
+        cexRow = 1,
+        cexCol = 1,
+        density.info = "none",
+        keysize = 1,
+        key.title = "PCC",
+        key.par = list(cex=1, mar=c(3,1,3,0)), # bottom, left, top, right
+        margins = c(1,1)) # column, row
+dev.off()
+
+pdf("Scripts/Data_Vis/cno_corr_isolates.pdf")
+heatmap.2(as.matrix(cCor),
+        col = colorRampPalette(c("blue","yellow"))(21),
+        trace="none",
+        dendrogram="none",
+        Rowv=hm5$rowDendrogram, # same order as v3 of orf_corr_isolates
+        Colv=hm5$rowDendrogram,
+        labRow = "Isolates",
+        labCol = "Isolates",
+        cexRow = 1,
+        cexCol = 1,
+        density.info = "none",
+        keysize = 1,
+        key.title = "PCC",
+        key.par = list(cex=1, mar=c(3,1,3,0)), # bottom, left, top, right
+        margins = c(1,1)) # column, row
+dev.off()
 
 #--------- HERITABILITY ---------#
 
@@ -235,11 +300,11 @@ cno_xgb <- merge(conds, cno_xgb, by.x="cond", by.y="Trait")
 orf_xgb <- orf_xgb[,c(2,9)]
 cno_xgb <- cno_xgb[,c(2,9)]
 ORF_RF = read.csv("/mnt/scratch/seguraab/yeast_project/ORF_yeast_RF_results/RESULTS_reg.txt", sep="\t")
-orf_rf <- ORF_RF[grep("2022-04-2[5-8]",ORF_RF$DateTime),]
+ORF_RF <- ORF_RF[grep("2022-0[4-6]-[0-2][5-9]",ORF_RF$DateTime),]
 orf_rf <- ORF_RF[grep("_orf_",ORF_RF$ID),]
 cno_rf <- ORF_RF[grep("_cno_",ORF_RF$ID),] # need YPDSODIUMMETAARSENITE, YPDNACL1M, YPDANISO20, YPDDMSO
-orf_rf <- orf_rf[36:78, c(1,3,29)] ; orf_rf <- orf_rf %>% group_by(ID) %>% summarise_all(mean)
-cno_rf <- cno_rf[36:67,c(1,3,29)] ; cno_rf <- cno_rf %>% group_by(ID) %>% summarise_all(mean)
+orf_rf <- orf_rf[, c(1,3,29)] ; orf_rf <- orf_rf %>% group_by(ID) %>% summarise_all(mean)
+cno_rf <- cno_rf[,c(1,3,29)] ; cno_rf <- cno_rf %>% group_by(ID) %>% summarise_all(mean)
 orf_rf$ID <- gsub("_orf_baseline", "", orf_rf$ID)
 cno_rf$ID <- gsub("_cno_baseline", "", cno_rf$ID)
 orf_rf <- merge(conds, orf_rf, by.x="cond", by.y="ID")
@@ -346,6 +411,22 @@ heatmap.2(as.matrix(cnos_test),           # cell labeling
           trace="none",
           key.title="R-squared")
 dev.off()
+
+# Random forest SNPs, ORFs, CNVs baseline model performances
+combined <- reshape2::melt(combined)
+med_snps <- median(combined[combined$variable=="SNPs","value"]) # median SNPs performance
+med_orfs <- median(combined[combined$variable=="ORFs","value"]) # median ORFs performance
+med_cnos <- median(combined[combined$variable=="CNVs","value"]) # median CNOs performance
+ggplot(combined, aes(x=Conditions, y=value, fill=variable)) + geom_bar(stat="identity") + 
+        theme_minimal(11) + facet_grid(variable ~ .) + ylab("Performance R-squared") +
+        xlab("Environments") +
+        geom_abline(aes(slope=0, intercept=med_snps, col="SNPs"), lty=2) +
+        geom_abline(aes(slope=0, intercept=med_orfs, col="ORFs"), lty=2) +
+        geom_abline(aes(slope=0, intercept=med_cnos, col="CNVs"), lty=2) + 
+        theme(axis.text.x = element_text(angle=45, hjust=1, color="black", face="bold"),
+         axis.text.y=element_text(color="black"), plot.margin = unit(c(0.5,0,0,0.5), "cm")) # top, right, bottom, left
+ggsave("Scripts/Data_Vis/RF_performances_snps_orfs_bar.pdf", device="pdf", useDingbats=FALSE,
+        width=18, height=22, units="cm")
 
 par(mar=c(30,30,30,30)+1) #bottom,left,top,right
 pdf("Scripts/Data_Vis/RF_performances_snps_orfs.pdf", height=400, width=400)
