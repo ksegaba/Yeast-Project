@@ -44,6 +44,7 @@ Scripts/Genomic_Prediction_GBLUP/BGLR_GBLUP/*.dat
 Scripts/Genomic_Prediction_XGBoost/*.save
 Scripts/Genomic_Prediction_XGBoost/*.txt
 Scripts/Genomic_Prediction_XGBoost/xgboost_all__*
+Scripts/Genomic_Prediction_RF/RF_make_FS_*
 Results/*.csv
 Results/*.pdf
 Scripts/Data_Vis/*.csv
@@ -51,4 +52,5 @@ Scripts/Data_Vis/*.pdf
 .RData
 .Rhistory
 Rplots.pdf
+
 
