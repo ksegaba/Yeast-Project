@@ -1,0 +1,69 @@
+#!/bin/bash
+#SBATCH --time=1:00:00
+#SBATCH --ntasks=2
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=20G
+#SBATCH --job-name Map_ORFs_to_genes
+#SBATCH --output=%x_%j.out
+
+# Map ORF sequences to yeast genes (Reciprocal best match)
+#=========================================================
+
+cd /mnt/home/seguraab/Shiu_Lab/Project/Data/S288C_reference_genome_R64-3-1_20210421
+
+# Create a blast database containing the S288C orf protein product sequences
+path=/mnt/home/seguraab/ncbi-blast-2.13.0+/bin
+${path}/makeblastdb -in orf_trans.fasta -out orf_trans -dbtype prot \
+    -title "S288C 20210421 Protein Coding ORFs" -parse_seqids
+
+# Blast database of pangenomic orf nucleotide sequences
+dir=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
+${path}/makeblastdb -in ${dir}/allORFs_pangenome.fasta \
+    -out ${dir}/allORFs_pangenome -dbtype nucl \
+    -title "Pangenomic ORFs Peter et al. 2018" -parse_seqids
+
+# Run Blastx (DNA to Protein)
+${path}/blastx -query ${dir}/allORFs_pangenome.fasta -db orf_trans \
+    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+    -outfmt '6 qacc qseqid sacc sseqid length qlen slen qstart qend sstart '`
+            `'send evalue bitscore qcovus pident' \
+    -out S288C_orf_peter_blastx.txt
+
+# Run tBlastn (Protein to DNA)
+${path}/tblastn -query orf_trans.fasta -db ${dir}/allORFs_pangenome \
+    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+    -outfmt '6 qacc qseqid sacc sseqid length qlen slen qstart qend sstart '`
+            `'send evalue bitscore qcovus pident' \
+    -out S288C_orf_peter_tblastn.txt
+
+
+# Markov Clustering analysis
+#=================================
+module purge   
+module load icc/2016.3.210-GCC-5.4.0-2.26 impi/5.1.3.181  
+module load OrthoMCL/2.0.9-custom-Perl-5.24.0  
+
+# Convert blast file format to MCL .abc format
+cut -f 1,3,12 S288C_orf_peter_blastx.txt > S288C_orf_peter_blastx.abc
+cut -f 1,3,12 S288C_orf_peter_blastn.txt > S288C_orf_peter_blastn.abc
+
+# Run MCL
+mcxload -abc S288C_orf_peter_blastx.abc --stream-mirror --stream-neg-log10  \
+    -stream-tf 'ceil(200)' -o S288C_orf_peter_blastx.mci \
+    -write-tab S288C_orf_peter_blastx.tab
+
+mcxload -abc S288C_orf_peter_blastn.abc --stream-mirror --stream-neg-log10  \
+    -stream-tf 'ceil(200)' -o S288C_orf_peter_blastn.mci \
+    -write-tab S288C_orf_peter_blastn.tab
+
+mcl S288C_orf_peter_blastx.mci -I 1.4
+mcl S288C_orf_peter_blastx.mci -I 2
+mcl S288C_orf_peter_blastx.mci -I 4
+mcl S288C_orf_peter_blastx.mci -I 6
+mcl S288C_orf_peter_blastx.mci -I 10
+mcl S288C_orf_peter_blastx.mci -I 12
+mcl S288C_orf_peter_blastx.mci -I 15
+
+mcxdump -icl out.S288C_orf_peter_blastx.mci.I14 -tabr S288C_orf_peter_blastx.tab -o dump.S288C_orf_peter_blastx.mci.I14
+
+scontrol show job $SLURM_JOB_ID
