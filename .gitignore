@@ -21,19 +21,7 @@ Scripts/Genomic_Prediction_BL/Figures/
 
 # Files to ignore
 Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.out
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.slurm
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.sb
 Job_Submission_Scripts/SNPs_as_Feat/*.out
-Job_Submission_Scripts/SNPs_as_Feat/*.slurm
-Job_Submission_Scripts/SNPs_as_Feat/*.sb
-Job_Submission_Scripts/ORFs_as_Feat/rf_orf_baseline_*
-Job_Submission_Scripts/ORFs_as_Feat/rrBLUP_CNO_step*
-Job_Submission_Scripts/ORFs_as_Feat/rrBLUP_ORFs_step*
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.slurm
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/RF/*.sb
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/Marker_FS_files_RF/*.slurm
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/Marker_FS_files_RF/RF_make_FS_YPACETATE_*
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/rrBLUP/*.slurm
 Scripts/Genomic_Prediction_BayesC/*.bin
 Scripts/Genomic_Prediction_BayesC/*.dat
 Scripts/Genomic_Prediction_BayesC/*.pdf
