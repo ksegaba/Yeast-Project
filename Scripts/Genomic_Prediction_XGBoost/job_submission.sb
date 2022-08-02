@@ -1,7 +1,7 @@
 #!/bin/sh --login
-#SBATCH --time=4:00:00
+#SBATCH --time=50:00:00
 #SBATCH --nodes=1 --ntasks=1
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=2
 #SBATCH --mem=20G
 #SBATCH --job-name xgboost_all_
 #SBATCH --output=%x_%j

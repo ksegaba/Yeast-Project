@@ -27,7 +27,16 @@ new_cond <- c("YP Acetate 2%", "YPD 14C", "YPD 40C", "YPD 42C", "YPD 6-Azauracil
         "YPD NaCl 1.5M", "YPD NaCl 1M", "YPD Nystatin 10µg/ml", "YPD SDS 0.2%", 
         "YPD Sodium metaarsenite 2.5mM", "YP Ethanol 2%", "YP Galactose 2%", "YP Ribose 2%",
         "YP Glycerol 2%", "YP Xylose 2%", "YP Sorbitol 2%")
-conds <- as.data.frame(cbind(cond, new_cond))
+new_cond2 <- c("YP Acetate 2%", "YPD 14ºC", "YPD 40ºC", "YPD 42ºC", "YPD 6-Azauracile 600 µg/ml",
+        "YPD Anisomycin 10 µg/ml", "YPD Anisomycin 20 µg/ml", "YPD Anisomycin 50 µg/ml",
+        "YPD Benomyl 200 µg/ml", "YPD Benomyl 500 µg/ml", "YPD Caffeine 40 mM", "YPD Caffeine 50 mM",
+        "YPD Cycloheximide 0.5 µg/ml", "YPD Cycloheximide 1 µg/ml", "YPD CuSO4 10 mM", "YPD DMSO 6%",
+        "YPD Ethanol 15%", "YPD Fluconazole 20 µg/ml", "YPD Formamide 4%", "YPD Formamide 5%",
+        "YPD Hydroxyurea 30 mg/ml", "YPD KCL 2 M", "YPD LiCl 250 mM", "YPD Methylviologen 20 mM",
+        "YPD NaCl 1.5 M", "YPD NaCl 1 M", "YPD Nystatin 10 µg/ml", "YPD SDS 0.2%", 
+        "YPD Sodium metaarsenite 2.5 mM", "YP Ethanol 2%", "YP Galactose 2%", "YP Ribose 2%",
+        "YP Glycerol 2%", "YP Xylose 2%", "YP Sorbitol 2%")
+conds <- as.data.frame(cbind(cond, new_cond, new_cond2))
 
 #--------- LD Decay ---------#
 ld <- fread("Data/Peter_2018/geno_LD_window_50.txt") # Window size 50, TASSEL5 output
@@ -66,6 +75,25 @@ hm <- heatmap.2(kin,
                 key.par = list(cex=1, mar=c(3,1,3,0)), # bottom, left, top, right
                 margins=c(1,1))
 dev.off()
+
+#--------- FITNESS ---------#
+order <- c("YPACETATE", "YPETHANOL", "YPGALACTOSE", "YPGLYCEROL", "YPRIBOSE",
+        "YPSORBITOL", "YPXYLOSE", "YPD14", "YPD40", "YPD42", "YPD6AU", "YPDANISO10", 
+        "YPDANISO20", "YPDANISO50", "YPDBENOMYL200", "YPDBENOMYL500", "YPDCAFEIN40", 
+        "YPDCAFEIN50", "YPDCUSO410MM", "YPDCHX05", "YPDCHX1",  "YPDDMSO", "YPDETOH", 
+        "YPDFLUCONAZOLE", "YPDFORMAMIDE4", "YPDFORMAMIDE5", "YPDHU", "YPDKCL2M", 
+        "YPDLICL250MM", "YPDMV", "YPDNACL15M", "YPDNACL1M", "YPDNYSTATIN", "YPDSDS", 
+        "YPDSODIUMMETAARSENITE")
+
+pheno <- read.csv("Data/Peter_2018/pheno.csv", header=T, row.names=1) # fitness data
+pheno <- pheno[,order] # re-order columns
+pheno <- reshape2::melt(pheno) # pivot longer
+
+ggplot(pheno, aes(x=variable, y=value)) + theme_bw(8) +
+        geom_boxplot(outlier.shape=NA, color="#5B9BD5") + 
+        theme(axis.text.x=element_text(color="black", size=9, angle=45, hjust=1)) +
+        theme(axis.text.y=element_text(color="black", size=9))
+ggsave("Scripts/Data_Vis/fitness_boxplot.pdf", width=8, height=4, device="pdf", useDingbats=FALSE)
 
 #--------- FITNESS CORRELATIONS ---------#
 pCorEnvs <- read.csv("Data/Peter_2018/pheno_corr_envs.csv", header=T, row.names=1) # Correlation between conditions
@@ -111,45 +139,41 @@ hm3 <- heatmap.2(as.matrix(pCorEnvs),
 dev.off()
 
 #--------- ISOLATE FITNESS CORRELATION VS KINSHIP ---------#
-k_bin <- reshape2::melt(kin) # reshape kinship matrix
-#k_quant <- quantile(k_bin, seq(0,1,0.05)) # kinship quantiles
-k_breaks <- seq(min(k_bin$value), max(k_bin$value), 0.5) # regular bins
-#k_bin$bin <- cut(k_bin$value, breaks=k_quant) # quantile bins
-k_bin$breaks <- cut(k_bin$value, breaks=k_breaks) # regular bins
-#k_bin$bin <- as.character(lapply(strsplit(as.character(k_bin$bin),split=","),head,n=1)) # rename bins
-k_bin$breaks <- as.character(lapply(strsplit(as.character(k_bin$breaks), split=","), head, n=1))
-#k_bin$bin <- gsub("\\(", "", k_bin$bin) # remove
-k_bin$breaks <- gsub("\\(", "", k_bin$breaks)
-#k_bin$bin <- as.numeric(k_bin$bin) # convert to numeric
-k_bin$breaks <- as.numeric(k_bin$breaks)
+add_bins <- function(mat, step) {
+        to_bin <- reshape2::melt(mat) # reshape kinship matrix
+        #quants <- quantile(i_bin$value, seq(0,1,0.05)) # pCor quantiles
+        #min <- min(to_bin$value) - step
+        max <- max(to_bin$value) + step
+        breaks <- seq(min(to_bin$value), max, step) # regular bins
+        to_bin$breaks <- cut(to_bin$value, breaks=breaks, include.lowest=T) # regular bins
+        to_bin$breaks <- as.character(lapply(strsplit(as.character(to_bin$breaks), split=","), head, n=1))
+        to_bin$breaks <- gsub("\\(", "", to_bin$breaks)
+        to_bin$breaks <- gsub("\\[", "", to_bin$breaks)
+        to_bin$breaks <- as.numeric(to_bin$breaks)
+        return (to_bin)
+}
 
+k_bin <- add_bins(kin, 0.5) # reshape kinship matrix
+
+pCorIso <- read.csv("Data/Peter_2018/pheno_corr_isolates.csv", header=T, row.names=1) # Correlation between isolates across all conditions
 pCorIso <- as.matrix(pCorIso) # original, no values have been reset to 0
-i_bin <- reshape2::melt(pCorIso) # reshape fitness across isolates correlation matrix
-#i_quant <- quantile(i_bin$value, seq(0,1,0.05)) # pCor quantiles
-i_breaks <- seq(min(i_bin$value), 1.01, 0.12)
-#i_bin$bin <- cut(i_bin$value, breaks=i_quant)
-i_bin$breaks <- cut(i_bin$value, breaks=i_breaks)
-#i_bin$bin <- as.character(lapply(strsplit(as.character(i_bin$bin),split=","),head,n=1))
-i_bin$breaks <- as.character(lapply(strsplit(as.character(i_bin$breaks), split=","), head, n=1))
-#i_bin$bin <- gsub("\\(", "", i_bin$bin)
-i_bin$breaks <- gsub("\\(", "", i_bin$breaks)
-#i_bin$bin <- as.numeric(i_bin$bin)
-i_bin$breaks <- as.numeric(i_bin$breaks)
+i_bin <- add_bins(pCorIso, 0.12) # reshape fitness across isolates correlation matrix
 
 k_i_bin <- merge(k_bin, i_bin, by=c("Var1", "Var2")) # merge dataframes
 colnames(k_i_bin) <- c("Isolate 1", "Isolate 2", "Kinship", "Kinship bin", "pCor", "pCor bin")
-
 k.i.cor <- cor(k_i_bin$Kinship, k_i_bin$pCor, method="spearman") # Spearman correlation
-k_i_bin_count <- aggregate(cbind(count = `Isolate 2`) ~ `Kinship bin`, # bin counts
+k_i_bin_count <- aggregate(cbind(count = `Isolate 2`) ~ `Kinship bin`, # Kinship bin counts
         data=k_i_bin, FUN=function(x){NROW(x)})
-k_i_bin_median <- k_i_bin %>% group_by(`Kinship bin`) %>% summarise(median=median(pCor)) # kinship bin median pCor
+k_i_bin_median <- k_i_bin %>% group_by(`Kinship bin`) %>% summarise(median=median(pCor)) # median pCor per kinship bin 
 
 get_density <- function(x, y, ...) { # density
   dens <- MASS::kde2d(x, y, ...)
   ix <- findInterval(x, dens$x)
   iy <- findInterval(y, dens$y)
   ii <- cbind(ix, iy)
-  return(dens$z[ii])}
+  return(dens$z[ii])
+}
+
 k_i_bin$density <- get_density(k_i_bin$Kinship, k_i_bin$pCor, n=100)
 
 # 5% and 95% quantiles for each kinship bin
@@ -158,33 +182,33 @@ k_i_bin$density <- get_density(k_i_bin$Kinship, k_i_bin$pCor, n=100)
 #quants$`Kinship bin` <- as.numeric(row.names(quants))
 
 # Density scatter plot
-ggplot(k_i_bin, aes(x=Kinship, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
-        geom_smooth(method="lm", formula=y~x, se=FALSE) +
-        scale_color_viridis(direction=-1) + theme_bw(8)
-ggsave("Scripts/Data_Vis/kinpCorIso_Density.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+#ggplot(k_i_bin, aes(x=Kinship, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
+#        geom_smooth(method="lm", formula=y~x, se=FALSE) +
+#        scale_color_viridis(direction=-1) + theme_bw(8)
+#ggsave("Scripts/Data_Vis/kinpCorIso_Density.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
 
 ggplot(k_i_bin, aes(x=Kinship, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
         scale_color_viridis(direction=-1) + theme_bw(base_size=12) + 
         theme(axis.text.x=element_text(color="black"), axis.text.y = element_text(color="black")) +
         geom_line(data=k_i_bin_median, aes(x=`Kinship bin`, y=median, group=1), color="black")
         #annotate(geom="text", x=2, y=-0.3, label=paste("Spearman's rank correlation = ", round(k.i.cor, digits=2),sep=""))
-ggsave("Scripts/Data_Vis/kinpCorIso_Density_median.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+ggsave("Scripts/Data_Vis/kinpCorIso_Density_median_v3.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
 
-ggplot(k_i_bin, aes(x=`Kinship bin`, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
-        scale_color_viridis(direction=-1) + theme_bw(8) + 
-        geom_line(data=k_i_bin_median, aes(x=`Kinship bin`, y=median, group=1), color="red")
-ggsave("Scripts/Data_Vis/kinpCorIso_Density_median_bin.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+#ggplot(k_i_bin, aes(x=`Kinship bin`, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
+#        scale_color_viridis(direction=-1) + theme_bw(8) + 
+#        geom_line(data=k_i_bin_median, aes(x=`Kinship bin`, y=median, group=1), color="red")
+#ggsave("Scripts/Data_Vis/kinpCorIso_Density_median_bin.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
 
 # Binned plot with quantiles
-ggplot(data = k_i_bin, aes(x=`Kinship bin`, y=pCor, group=`Kinship bin`))  + geom_violin() +
-        geom_boxplot(outlier.shape=NA) + theme_bw(10) +
-        geom_line(data=quants, aes(x=`Kinship bin`, y=x95, group = 1), color="red") +
-        geom_line(data=quants, aes(x=`Kinship bin`, y=x5, group = 1), color="blue")
-ggsave("Scripts/Data_Vis/kinpCorIso_Distribution.pdf", width=4, height = 4, device="pdf", useDingbats=FALSE)
+#ggplot(data = k_i_bin, aes(x=`Kinship bin`, y=pCor, group=`Kinship bin`))  + geom_violin() +
+#        geom_boxplot(outlier.shape=NA) + theme_bw(10) +
+#        geom_line(data=quants, aes(x=`Kinship bin`, y=x95, group = 1), color="red") +
+#        geom_line(data=quants, aes(x=`Kinship bin`, y=x5, group = 1), color="blue")
+#ggsave("Scripts/Data_Vis/kinpCorIso_Distribution.pdf", width=4, height = 4, device="pdf", useDingbats=FALSE)
 
 # Bin counts plot
 ggplot(k_i_bin_count, aes(x=`Kinship bin`, y=log(count))) + theme_bw(10) +geom_bar(stat="identity", position= "dodge")
-ggsave("Scripts/Data_Vis/kinpCorIso_BinCount.pdf", width=3.42, height = 2.42, device="pdf", useDingbats=FALSE)
+ggsave("Scripts/Data_Vis/kinpCorIso_BinCount_v3.pdf", width=3.42, height = 2.42, device="pdf", useDingbats=FALSE)
 
 #--------- ORF PRESENCE/ABSENCE & COPY NUMBER VARIATIONS ---------#
 orf <- fread("Data/Peter_2018/ORFs_pres_abs.csv") # ORF presence/absence
@@ -233,8 +257,98 @@ heatmap.2(as.matrix(cCor),
         margins = c(1,1)) # column, row
 dev.off()
 
-#--------- HERITABILITY ---------#
+#--------- ISOLATE FITNESS CORRELATION VS ORF ---------#
+orf <- fread("Data/Peter_2018/ORFs_pres_abs.csv") # ORF presence/absence
+orf <- as.matrix(orf, rownames=1, colnames=1)
+oCor <- cor(t(orf)) # between isolates
+o_bin <- add_bins(oCor, 0.05)
+cno <- fread("Data/Peter_2018/ORFs_no_NA.csv") # ORF copy number variants
+cno <- as.matrix(cno, rownames=1, colnames=1)
+cCor <- cor(t(cno))
+c_bin <- add_bins(cCor, 0.05)
 
+# oCor vs pCor
+o_i_bin <- merge(o_bin, i_bin, by=c("Var1", "Var2")) # merge dataframes
+colnames(o_i_bin) <- c("Isolate 1", "Isolate 2", "oCor", "oCor bin", "pCor", "pCor bin")
+o.i.cor <- cor(o_i_bin$oCor, o_i_bin$pCor, method="spearman") # Spearman correlation
+o_i_bin_count <- aggregate(cbind(count = `Isolate 2`) ~ `oCor bin`, # oCor bin counts
+        data=o_i_bin, FUN=function(x){NROW(x)})
+o_i_bin_median <- o_i_bin %>% group_by(`oCor bin`) %>% summarise(median=median(pCor)) # median pCor per oCor bin
+o_i_bin$density <- get_density(o_i_bin$oCor, o_i_bin$pCor, n=100)
+ggplot(o_i_bin, aes(x=oCor, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
+        scale_color_viridis(direction=-1) + theme_bw(base_size=12) + 
+        theme(axis.text.x=element_text(color="black"), axis.text.y = element_text(color="black")) +
+        geom_line(data=o_i_bin_median, aes(x=`oCor bin`, y=median, group=1), color="black")
+        #annotate(geom="text", x=2, y=-0.3, label=paste("Spearman's rank correlation = ", round(o.i.cor, digits=2),sep=""))
+ggsave("Scripts/Data_Vis/oCorpCorIso_Density_median.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+
+# cCor vs pCor
+c_i_bin <- merge(c_bin, i_bin, by=c("Var1", "Var2")) # merge dataframes
+colnames(c_i_bin) <- c("Isolate 1", "Isolate 2", "cCor", "cCor bin", "pCor", "pCor bin")
+c.i.cor <- cor(c_i_bin$cCor, c_i_bin$pCor, method="spearman") # Spearman correlation
+c_i_bin_count <- aggregate(cbind(count = `Isolate 2`) ~ `cCor bin`, # cCor bin counts
+        data=c_i_bin, FUN=function(x){NROW(x)})
+c_i_bin_median <- c_i_bin %>% group_by(`cCor bin`) %>% summarise(median=median(pCor)) # median pCor per cCor bin
+c_i_bin$density <- get_density(c_i_bin$cCor, c_i_bin$pCor, n=100)
+ggplot(c_i_bin, aes(x=cCor, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
+        scale_color_viridis(direction=-1) + theme_bw(base_size=12) + 
+        theme(axis.text.x=element_text(color="black"), axis.text.y = element_text(color="black")) +
+        geom_line(data=c_i_bin_median, aes(x=`cCor bin`, y=median, group=1), color="black")
+        #annotate(geom="text", x=2, y=-0.3, label=paste("Spearman's rank correlation = ", round(c.i.cor, digits=2),sep=""))
+ggsave("Scripts/Data_Vis/cCorpCorIso_Density_median.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+
+#--------- DATA TYPE COMPARISONS ---------#
+# Kinship vs oCor
+k_o_bin <- merge(k_bin, o_bin, by=c("Var1", "Var2")) # merge dataframes
+colnames(k_o_bin) <- c("Isolate 1", "Isolate 2", "Kinship", "Kinship bin", "oCor", "oCor bin")
+k.o.cor <- cor(k_o_bin$Kinship, k_o_bin$oCor, method="spearman") # Spearman correlation
+k_o_bin_median <- k_o_bin %>% group_by(`Kinship bin`) %>% summarise(median=median(oCor)) # median oCor per Kinship bin
+k_o_bin$density <- get_density(k_o_bin$Kinship, k_o_bin$oCor, n=100)
+ggplot(k_o_bin, aes(x=Kinship, y=oCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
+        scale_color_viridis(direction=-1) + theme_bw(base_size=12) + 
+        theme(axis.text.x=element_text(color="black"), axis.text.y = element_text(color="black")) +
+        geom_line(data=k_o_bin_median, aes(x=`Kinship bin`, y=median, group=1), color="black")
+        #annotate(geom="text", x=2, y=-0.3, label=paste("Spearman's rank correlation = ", round(k.o.cor, digits=2),sep=""))
+ggsave("Scripts/Data_Vis/kinoCor_Density_median.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+
+# Kinship vs cCor
+k_c_bin <- merge(k_bin, c_bin, by=c("Var1", "Var2")) # merge dataframes
+colnames(k_c_bin) <- c("Isolate 1", "Isolate 2", "Kinship", "Kinship bin", "cCor", "cCor bin")
+k.c.cor <- cor(k_c_bin$Kinship, k_c_bin$cCor, method="spearman") # Spearman correlation
+k_c_bin_median <- k_c_bin %>% group_by(`Kinship bin`) %>% summarise(median=median(cCor)) # median cCor per Kinship bin
+k_c_bin$density <- get_density(k_c_bin$Kinship, k_c_bin$cCor, n=100)
+ggplot(k_c_bin, aes(x=Kinship, y=cCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
+        scale_color_viridis(direction=-1) + theme_bw(base_size=12) + 
+        theme(axis.text.x=element_text(color="black"), axis.text.y = element_text(color="black")) +
+        geom_line(data=k_c_bin_median, aes(x=`Kinship bin`, y=median, group=1), color="black")
+        #annotate(geom="text", x=2, y=-0.3, label=paste("Spearman's rank correlation = ", round(k.c.cor, digits=2),sep=""))
+ggsave("Scripts/Data_Vis/kincCor_Density_median.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+
+# oCor vs cCor
+o_c_bin <- merge(o_bin, c_bin, by=c("Var1", "Var2")) # merge dataframes
+colnames(o_c_bin) <- c("Isolate 1", "Isolate 2", "oCor", "oCor bin", "cCor", "cCor bin")
+o.c.cor <- cor(o_c_bin$oCor, o_c_bin$cCor, method="spearman") # Spearman correlation
+o_c_bin_median <- o_c_bin %>% group_by(`oCor bin`) %>% summarise(median=median(cCor)) # median cCor per oCor bin
+o_c_bin$density <- get_density(o_c_bin$oCor, o_c_bin$cCor, n=100)
+ggplot(o_c_bin, aes(x=oCor, y=cCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
+        scale_color_viridis(direction=-1) + theme_bw(base_size=12) + 
+        theme(axis.text.x=element_text(color="black"), axis.text.y = element_text(color="black")) +
+        geom_line(data=o_c_bin_median, aes(x=`oCor bin`, y=median, group=1), color="black")
+        #annotate(geom="text", x=2, y=-0.3, label=paste("Spearman's rank correlation = ", round(o.c.cor, digits=2),sep=""))
+ggsave("Scripts/Data_Vis/oCorcCor_Density_median.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+
+#--------- HERITABILITY ---------#
+h2 <- read.csv("/mnt/gs21/scratch/seguraab/yeast_project/Heritability_h2_H2_sommer.csv", row.names=1)
+h2 <- merge(conds, h2, by.x="cond", by.y="Conditions")
+h2 <- h2[order(h2$h2),] # sort in ascending order
+
+ggplot(h2, aes(x=new_cond, y=h2, fill="#F8766D")) + theme_bw(8) +
+        geom_bar(stat="identity", position=position_dodge()) +
+        geom_errorbar(aes(ymin=h2-h2_SE, ymax=h2+h2_SE), width=0.2,
+                position=position_dodge(0.9)) +
+        theme(axis.text.x = element_text(angle=45, hjust=1)) +
+        theme(axis.text.y = element_text(size=9, color="black"))
+ggsave("Scripts/Data_Vis/h2_conditions.pdf", width=10, height=4, device="pdf", useDingbats=FALSE)
 
 #--------- FITNESS VARIANCE ACROSS CONDITIONS ---------#
 y <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv", row.names=1)
@@ -268,7 +382,7 @@ ggplot(snp_n, aes(x=Freq)) + geom_histogram(bins=40) +
         labs(x="Number of SNPs", y="Counts")
 ggsave("Scripts/Data_Vis/snp_counts_dist_genes.pdf", device="pdf", useDingbats=FALSE)
 
-#--------- GENOMIC PREDICTION ACCURACY ---------#
+#--------- BASELINE GENOMIC PREDICTION ACCURACY ---------#
 # Read in SNP-based model results
 rrBLUP_PCs_cv = read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Results/rrBLUP_PCs_average_cv_R2.csv") # rrBLUP population structure validation
 rrBLUP_PCs_test = read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Results/rrBLUP_PCs_average_test_R2.csv") # rrBLUP pop. struc. test
@@ -461,21 +575,22 @@ Heatmap(as.matrix(combined), cluster_columns=F, col=col_fun_prop,
         title_gp=gpar(fontsize="36"), labels_gp = gpar(fontsize = 36,fontface = "bold"))
 graphics.off()
 
-#--------- ACCURACY VS NARROW-SENSE HERITABILITY ---------#
+#--------- NARROW-SENSE HERITABILITY VS BASELINE ACCURACY ---------#
 accuracy <- read.csv("Scripts/Data_Vis/RF_performances_snps_orfs.csv") # random forest R-squared values
-heritability <- read.csv("yeast_rrBLUP_results/SNPs_as_Features/Heritability_h2_H2_sommer.csv") # sommer narrow and broad sense heritability
+accuracy <- merge(conds, accuracy, by.x="new_cond", by.y="X")
+heritability <- read.csv("/mnt/scratch/seguraab/yeast_project/Heritability_h2_H2_sommer.csv") # sommer narrow and broad sense heritability
 heritability <- merge(conds, heritability, by.x="cond", by.y="Conditions")
-data <- merge(heritability, accuracy, by.x="new_cond", by.y="Conditions")
-data$new_cond <- factor(data$new_cond)
-ggplot(data, aes(x=SNPs, y=h2, color=new_cond, shape=new_cond)) + 
-        scale_shape_manual(values=1:nlevels(data$new_cond)/2) +
-        geom_point(size=2)
-ggsave("Scripts/Data_Vis/accuracy_vs_h2_sommer.pdf", width=7, height=4,
-                device="pdf", useDingbats=FALSE)
+data <- merge(heritability, accuracy, by.x="new_cond2", by.y="new_cond2")
+data$new_cond2 <- factor(data$new_cond2)
+ggplot(data, aes(x=SNPs, y=h2, color=new_cond2, shape=new_cond2)) + theme_bw(8) +
+        scale_shape_manual(values=1:nlevels(data$new_cond2)/2) +
+        geom_point(size=3) + 
+        theme(axis.text.x = element_text(size=9, color="black")) + 
+        theme(axis.text.y = element_text(size=9, color="black"))
+ggsave("Scripts/Data_Vis/accuracy_vs_h2_sommer.pdf", width=8, height=5,
+        device="pdf", useDingbats=FALSE)
 
-#--------- FEATURE SELECTION ---------#
-fs <- read.delim("/mnt/scratch/seguraab/yeast_project/yeast_rf_results/RESULTS_reg.txt", sep="\t")
-fs <- fs[order(fs$ID),]
+#--------- RANDOM FOREST FEATURE SELECTION CURVES---------#
 adj_r2 <- function(n, p, r2){
         # Adjusted R-squared
         # n is number of instances
@@ -484,46 +599,55 @@ adj_r2 <- function(n, p, r2){
         return ( 1-(((1-r2)*(n-1))/(n-p-1)) )
 }
 
-# 500 to 50k features
-for (i in 1:length(cond)){
-        print(cond[i])
-        print(new_cond[i])
-        df <- fs[grep(cond[i],fs$ID),] # subset data corresponding to condition
-        ggplot(tmp, aes(x=FeatureNum, y=r2_test)) + geom_line(color="red") + theme_bw() + 
-                labs(title=new_cond[i],x="Features", y = "Performance") +
-                geom_line(aes(x=FeatureNum, y=r2_val), color="black")
-        ggsave(paste("Scripts/Data_Vis/",cond[i],"_FS.pdf", sep=""), width=7, height=4,
-                device="pdf", useDingbats=FALSE)
-        # adjusted r-squared 
-        adj.r2_test <- adj_r2(125, df$FeatureNum, df$r2_test)
-        adj.r2_val <- adj_r2(625, df$FeatureNum, df$r2_val)
-        ggplot(df, aes(x=FeatureNum, y=adj.r2_test)) + geom_line(color="red") + theme_bw() + 
-                labs(title=new_cond[i],x="Features", y = "Adjusted R-squared") +
-                geom_line(aes(x=FeatureNum, y=adj.r2_val), color="black")
-        ggsave(paste("Scripts/Data_Vis/",cond[i],"_FS_adj_r.pdf", sep=""), width=7, height=4,
-                device="pdf", useDingbats=FALSE)
+plot_fs <- function(fs, save){
+        for (i in 1:length(cond)){
+                sprintf("%s",cond[i]) ; sprintf("%s",new_cond2[i])
+                df <- fs[grep(cond[i],fs$ID),] # subset data corresponding to condition
+                ggplot(df, aes(x=FeatureNum, y=r2_test)) + 
+                        geom_line(color="red") + theme_bw(8) + 
+                        labs(title=new_cond2[i], x="Features", y="Performance") + 
+                        geom_line(aes(x=FeatureNum, y=r2_val), color="black")
+                ggsave(paste("Scripts/Data_Vis/",cond[i],save, sep=""), 
+                        width=7, height=4, device="pdf", useDingbats=FALSE)
+                # adjusted r-squared 
+                #adj.r2_test <- adj_r2(125, df$FeatureNum, df$r2_test)
+                #adj.r2_val <- adj_r2(625, df$FeatureNum, df$r2_val)
+                #ggplot(df, aes(x=FeatureNum, y=adj.r2_test)) + geom_line(color="red") + theme_bw() + 
+                #        labs(title=2[i],x="Features", y = "Adjusted R-squared") +
+                #        geom_line(aes(x=FeatureNum, y=adj.r2_val), color="black")
+                #ggsave(paste("Scripts/Data_Vis/",cond[i],"adj_r",save, sep=""),
+                #        width=7, height=4, device="pdf", useDingbats=FALSE)
+        }
 }
 
-# 2 to 2064 features
+######## SNP-based models
+fs <- read.delim("/mnt/scratch/seguraab/yeast_project/yeast_rf_results/RESULTS_reg.txt", sep="\t")
+fs <- fs[order(fs$ID),]
+plot_fs(fs, "_FS.pdf") # 500 to 50k features
 sub <- fs[grep("_exp_", fs$ID),]
-for (i in 1:length(cond)){
-        print(cond[i])
-        print(new_cond[i])
-        sub_df <- sub[grep(cond[i],sub$ID),]
-        ggplot(sub_df, aes(x=FeatureNum, y=r2_test)) + geom_line(color="red") + theme_bw() + 
-                labs(title=new_cond[i],x="Features", y = "Performance") +
-                geom_line(aes(x=FeatureNum, y=r2_val), color="black")
-        ggsave(paste("Scripts/Data_Vis/",cond[i],"_exp_FS.pdf", sep=""), width=7, height=4,
-                device="pdf", useDingbats=FALSE)
-        # adjusted r-squared 
-        adj.r2_test <- adj_r2(125, sub_df$FeatureNum, sub_df$r2_test)
-        adj.r2_val <- adj_r2(625, sub_df$FeatureNum, sub_df$r2_val)
-        ggplot(sub_df, aes(x=FeatureNum, y=adj.r2_test)) + geom_line(color="red") + theme_bw() + 
-                labs(title=new_cond[i],x="Features", y = "Adjusted R-squared") +
-                geom_line(aes(x=FeatureNum, y=adj.r2_val), color="black")
-        ggsave(paste("Scripts/Data_Vis/",cond[i],"_exp_FS_adj_r.pdf", sep=""), width=7, height=4, 
-                device="pdf", useDingbats=FALSE)
-}
+plot_fs(sub, "_exp_FS.pdf") # 2 to 2064 features
+
+# 0 - 1 ON Y AXIS
+
+
+######## ORF presence/absence-based models
+ofs <- read.delim("/mnt/scratch/seguraab/yeast_project/ORF_yeast_RF_results/RESULTS_reg.txt", sep="\t")
+sub <- ofs[grep("_orf_[^b]", ofs$ID),]
+plot_fs(sub, "_orf_FS.pdf")
+
+# 0 - 1 on y AXIS IN GRID FORM
+
+######## ORF copy number-based models
+sub <- ofs[grep("_cno_[^b]", ofs$ID),]
+plot_fs(sub, "_cno_FS.pdf")
+
+#--------- RANDOM FOREST ACCURACY AFTER FEATURE SELECTION ---------#
+
+
+
+#-------- NARROW-SENSE HERITABILITY VS ACCURACY AFTER FEATURE SELECTION ---------#
+
+
 
 #--------- SNP IMPORTANCE VARIATION ACROSS CONDITIONS ---------#
 # read importance score files
@@ -531,6 +655,61 @@ for (i in 1:length(cond)){
 # rank SNPs
 
 
+#--------- ORF IMPORTANCE vs % PRESENCE ----------#
+# Read in ORF presence/absence data
+orfs <- read.csv("Data/Peter_2018/ORFs_pres_abs.csv", header=T, row.names=1)
+
+# Calculate % presence
+orf.pres <- as.data.frame((colSums(orfs)/750) * 100) # % of isolates ORF is present in
+names(orf.pres) <- "percent_presence"
+iso.pres <- as.data.frame((rowSums(orfs)/7708) * 100) # % of ORFs each isolate contains
+names(iso.pres) <- "percent_presence"
+write.csv(orf.pres, "Data/Peter_2018/percent_iso_ORF_isin.csv", quote=F)
+write.csv(iso.pres, "Data/Peter_2018/percent_ORFs_iso_have.csv", quote=F)
+
+# Read in feature numbers for each environment and RF importance scores
+meta <- read.csv("Scripts/Genomic_Prediction_RF/genomic_data_top_feats.csv", header=T)
+meta <- merge(meta, conds, by.x="Environment", by.y="cond")
+dir <- "/mnt/scratch/seguraab/yeast_project/ORF_yeast_RF_results/"
+files <- list.files(path=dir, pattern="_orf_[0-9]+_imp", recursive=FALSE)
+
+# Save results
+res <- file("RF_Imp_vs_ORF_presence_RESULTS.csv")
+
+plot_density <- function (x) { # give index
+        # Read in ORF presence/absence importance score data
+        imp <- read.delim(
+                paste(dir, meta[x,1], "_orf_", meta[x,4], "_imp", sep=""), sep="\t")
+        df <- cbind(imp, orf.pres[imp$X,]) # merge
+        colnames(df)[3] <- "percent_presence"
+
+        # Spearman's rank
+        rho <- cor.test(df$mean_imp, df$percent_presence, method="spearman")
+
+        # Linear regression
+        lm.res <- lm(df$percent_presence ~ df$mean_imp)
+        summary(lm.res)
+
+        # Density plots
+        d <- get_density(df$mean_imp, df$percent_presence)
+        save <- paste("Scripts/Data_Vis/", meta[x,1], "_orf_", meta[x,4],
+                "_imp_vs_presence_density.pdf", sep="") # save name
+        ggplot(df, aes(x=percent_presence, y=mean_imp, color=d)) + geom_point(size=3, alpha=0.7) +
+                scale_color_viridis(direction=-1) + theme_bw(base_size=5) + 
+                labs(title=paste(meta[x,9], ";rho=", signif(rho$estimate,2), 
+                        ";P=", signif(rho$p.value,2),
+                        ";Adj R2=", signif(summary(lm.res)$adj.r.squared, 2), 
+                        ";Intercept=", signif(lm.res$coef[[1]],2),
+                        ";Slope=", signif(lm.res$coef[[2]],2),
+                        ";P=", signif(summary(lm.res)$coef[2,4],2), sep=""),
+                        x="% Presence", y="Mean Importance") +
+                theme(axis.text.x=element_text(color="black"), axis.text.y = element_text(color="black")) +
+                #annotate(geom="text", x=10, y=0.017, label= paste("rho = ", round(rho, digits=2),sep="")) +
+                stat_smooth(method = "lm", col = "red")
+        ggsave(save, width=5, height=4, device="pdf", useDingbats=FALSE)
+}
+
+lapply(1:35, plot_density)
 
 #--------- PATHWAY INFORMATION ----------#
 pwys <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/biallelic_snps_diploid_S288C_genes_pwys_unique_descriptions.csv")
@@ -559,7 +738,6 @@ write.csv(sshap, "Scripts/Data_Vis/00_shap_ypdcafein50_pathways.csv", quote=F, r
 
 
 #------------ GENE COPY NUMBER DISTRIBUTION
-
 cno <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/ORFs_no_NA.csv")
 orf <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/ORFs_pres_abs.csv")
 
@@ -573,3 +751,5 @@ ggsave("Scripts/Data_Vis/orf_copy_number_dist.pdf", device="pdf", useDingbats=FA
 ggplot(orf, aes(x=value)) + geom_histogram(bins=40) + 
         labs(x="ORF presence/absence", y="Counts")
 ggsave("Scripts/Data_Vis/orf_pres_abs_dist.pdf", device="pdf", useDingbats=FALSE)
+
+
