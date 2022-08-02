@@ -5,8 +5,8 @@ External_software/
 .vscode/
 yeast_RF_results/
 yeast_rrBLUP_results/
-Job_Submission_Scripts/ORFs_as_Feat/
-Job_Submission_Scripts/SNPs_as_Feat/
+Job_Submission_Scripts/
+Job_Submission_Scripts/
 Scripts/All_Algorithms/
 Scripts/Data_Vis/Figures/
 Scripts/Genomic_Prediction_rrBLUP/Figures/
