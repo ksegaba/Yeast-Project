@@ -55,7 +55,7 @@ def main():
         
         gs_results = pd.DataFrame(columns=['mean_test_score', 'params'])
         
-        GS_REPS = 10
+        """GS_REPS = 10
         for j in range(GS_REPS):
             print("Round %s of %s" % (j + 1, GS_REPS))
             
@@ -87,14 +87,15 @@ def main():
         gs_results.to_csv("%s_%s_GridSearchFULL.txt"%(data_type, trait))
 
         print("Best parameters: ", fitted_model.best_params_)
-        #######################################################
+        """#######################################################
         # Run XGBoost model
         results_val = []
         results_test = []
         n = 1
         for j in range(0, n):
             print("Running %i of %i" % (j + 1, args.n))
-            best_model = gs.best_estimator_
+            #best_model = gs.best_estimator_
+			best_model =  xgb.XGBRegressor()
 
             # Cross-validation
             cv_pred = cross_val_predict(estimator=best_model, X=X_train, y=y_train,
