@@ -2,6 +2,7 @@
 library(data.table)
 library(gplots)
 library(ggplot2)
+library(gridExtra)
 library(viridis)
 library(MASS)
 library(dplyr)
@@ -667,17 +668,16 @@ names(iso.pres) <- "percent_presence"
 write.csv(orf.pres, "Data/Peter_2018/percent_iso_ORF_isin.csv", quote=F)
 write.csv(iso.pres, "Data/Peter_2018/percent_ORFs_iso_have.csv", quote=F)
 
-# Read in feature numbers for each environment and RF importance scores
+# Read in feature numbers for each environment
 meta <- read.csv("Scripts/Genomic_Prediction_RF/genomic_data_top_feats.csv", header=T)
 meta <- merge(meta, conds, by.x="Environment", by.y="cond")
-dir <- "/mnt/scratch/seguraab/yeast_project/ORF_yeast_RF_results/"
-files <- list.files(path=dir, pattern="_orf_[0-9]+_imp", recursive=FALSE)
 
 # Save results
 res <- file("RF_Imp_vs_ORF_presence_RESULTS.csv")
 
 plot_density <- function (x) { # give index
         # Read in ORF presence/absence importance score data
+        dir <- "/mnt/scratch/seguraab/yeast_project/ORF_yeast_RF_results/"
         imp <- read.delim(
                 paste(dir, meta[x,1], "_orf_", meta[x,4], "_imp", sep=""), sep="\t")
         df <- cbind(imp, orf.pres[imp$X,]) # merge
@@ -691,25 +691,39 @@ plot_density <- function (x) { # give index
         summary(lm.res)
 
         # Density plots
-        d <- get_density(df$mean_imp, df$percent_presence)
+        d <- get_density(df$mean_imp, df$percent_presence) # calculate density
+        
         save <- paste("Scripts/Data_Vis/", meta[x,1], "_orf_", meta[x,4],
                 "_imp_vs_presence_density.pdf", sep="") # save name
-        ggplot(df, aes(x=percent_presence, y=mean_imp, color=d)) + geom_point(size=3, alpha=0.7) +
-                scale_color_viridis(direction=-1) + theme_bw(base_size=5) + 
-                labs(title=paste(meta[x,9], ";rho=", signif(rho$estimate,2), 
-                        ";P=", signif(rho$p.value,2),
-                        ";Adj R2=", signif(summary(lm.res)$adj.r.squared, 2), 
-                        ";Intercept=", signif(lm.res$coef[[1]],2),
-                        ";Slope=", signif(lm.res$coef[[2]],2),
-                        ";P=", signif(summary(lm.res)$coef[2,4],2), sep=""),
+        ggplotGrob(ggplot(df, aes(x=percent_presence, y=mean_imp, color=d)) + 
+                geom_point(size=1, alpha=0.7) +
+                scale_color_viridis(direction=-1) + 
+                theme_bw(base_size=5) + 
+                labs(title=paste(meta[x,9], "; rho=", signif(rho$estimate,2),
+                        "; P=", signif(rho$p.value,2), sep=""),
                         x="% Presence", y="Mean Importance") +
-                theme(axis.text.x=element_text(color="black"), axis.text.y = element_text(color="black")) +
-                #annotate(geom="text", x=10, y=0.017, label= paste("rho = ", round(rho, digits=2),sep="")) +
-                stat_smooth(method = "lm", col = "red")
-        ggsave(save, width=5, height=4, device="pdf", useDingbats=FALSE)
+                annotate(geom="text", x=50, y=max(df[2]), size=0.7,
+                        label=paste(
+                        "Adj R2=", signif(summary(lm.res)$adj.r.squared, 2), 
+                        "; Intercept=", signif(lm.res$coef[[1]],2),
+                        "; Slope=", signif(lm.res$coef[[2]],2),
+                        "; P=", signif(summary(lm.res)$coef[2,4],2),sep="")) +
+                theme(axis.text.x=element_text(color="black"), 
+                        axis.text.y = element_text(color="black"),
+                        legend.key.size = unit(0.12, 'cm'),
+                        plot.title=element_text(size=3)) +
+                stat_smooth(method = "lm", col = "red"))
+        
+        # Save individual plots
+        #ggsave(save, width=5, height=4, device="pdf", useDingbats=FALSE)
 }
 
-lapply(1:35, plot_density)
+p <- lapply(1:35, plot_density)
+
+# Save all plots into one pdf
+ggsave('Scripts/Data_Vis/RF_orf_imp_vs_presence_density.pdf', 
+        plot=marrangeGrob(p, nrow=7, ncol=5, top=NULL), width=18, 
+        height=22, unit="cm")
 
 #--------- PATHWAY INFORMATION ----------#
 pwys <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/biallelic_snps_diploid_S288C_genes_pwys_unique_descriptions.csv")
