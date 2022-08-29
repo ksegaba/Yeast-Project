@@ -16,7 +16,7 @@ __Literature__
 
 |File/Directory                                     |Description                                                                         |
 |---------------------------------------------------|---------------------------------------------------------------------------------   |
-|__Data__                                           |                                                                                    |
+|__Data__                                           |Datasets from the literature                                                        |
 |Costanzo_S1/                                       |Data File S1. Raw genetic interaction datasets: Pair-wise interaction format        |
 |Costanzo_S2/                                       |Data File S2. Raw genetic interaction datasets: Matrix format                       |
 |Peter_2018/                                        |Yeast diploid isolates' bi-allelic SNP and fitness data for 35 growth environments  |
@@ -24,21 +24,10 @@ __Literature__
 |All_genes_and_pathways_in_S._cerevisiae_S288c.txt  |Yeast (S288C) genes and which pathways they belong to                               |
 |All_pathways_S._cerevisiae_S288c.txt               |Pathways and which yeast (S288C) genes are in them                                  |
 |                                                   |                                                                                    |
-|__Scripts__                                        |                                                                                    |
-|All_Algorithms/                                    |Figures containing performance comparisons for all models                           |
-|Data_Processing/                                   |Scripts for preprocessing genotype and phenotype matrices                           |
-|Data_Vis/                                          |Scripts for visualizing genotype and phenotype matrices                             |
-|Genetic_Interactions/                              |Scripts for preprocessing genetic interaction matrix                                |
-|Genomic_Prediction_BayesC/                         |BayesC scripts                                                                      |
-|Genomic_Prediction_BL/                             |Bayesian LASSO scripts                                                              |
-|Genomic_Prediction_GBLUP/                          |GBLUP, OBLUP, and CBLUP scripts                                                     |
-|Genomic_Prediction_GCN/                            |Initial attempt at building a graph convolutional neural network                    |
-|Genomic_Prediction_RF/                             |Random forest and results analysis scripts
-|Genomic_Prediction_rrBLUP/                         |Scripts I wrote or edited from Peipei's rrBLUP code in Genomic_prediction_in_Switchgrass|
+|__Scripts__                                        |Code for various statistical and machine learning algorithms                        |
 |06_classify_SNPs_switchgrass.py                    |Peipei Wang's original code for classifying Switchgrass SNPs                        |
 |06_classify_SNPs_yeast.ipynb                       |Jupyter notebook for development purposes                                           |
 |06_classify_SNPs_yeast.py                          |Adapted from Peipei's code to classify Yeast SNPs                                   |
-|yeast_sERRBLUP_07232021.R                          |sERRBLUP code                                                                       |
 |                                                   |                                                                                    |
 |__External_software__                              |See the following section
 |__Job_Submission_Scripts__                         |Contains SLURM job submission scripts for each prediction model                     |
