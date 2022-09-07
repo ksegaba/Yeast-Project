@@ -16,7 +16,7 @@ start_ind=$SLURM_ARRAY_TASK_ID
 end_ind=$(( $start_ind + 2500 - 500))                  
 echo "this job start from $start_ind to $end_ind"                 
 for i in `seq $start_ind 500 $end_ind`; do
-Rscript ${PIPE}/13_rrBLUP_training_test_split_fread_predict_values.r ${DATA}/geno.csv ${DATA}/pheno.csv ${DATA}/Markers_top${i}.txt $trait ${DATA}/Test.txt 5 10 ${DATA}/CVFs.csv rrBLUP_geno_Markers_top${i}
+Rscript ${PIPE}/13_rrBLUP_training_test_split_fread_predict_values.r ${DATA}/geno.csv ${DATA}/pheno.csv Markers_top${i}.txt $trait ${DATA}/Test.txt 5 10 ${DATA}/CVFs.csv rrBLUP_geno_Markers_top${i}
 done
                 
 scontrol show job $SLURM_JOB_ID

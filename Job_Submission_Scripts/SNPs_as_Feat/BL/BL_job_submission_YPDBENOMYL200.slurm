@@ -1,10 +1,10 @@
 #!/bin/sh --login                 
-#SBATCH --time=15:00:00                 
+#SBATCH --time=14:00:00                 
 #SBATCH --ntasks=1                 
-#SBATCH --cpus-per-task=2                 
+#SBATCH --cpus-per-task=1                 
 #SBATCH --mem=36G                 
 #SBATCH --job-name BL_job_YPDBENOMYL200                 
-#SBATCH --output=%x_%j                 
+#SBATCH --output=%x_%j.out                 
 cd /mnt/scratch/seguraab/yeast_project/yeast_BL_results                 
 module purge                 
 module load GCC/8.3.0  OpenMPI/3.1.4  R/4.0.2
