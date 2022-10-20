@@ -7,19 +7,22 @@ yeast_RF_results/
 yeast_rrBLUP_results/
 Scripts/All_Algorithms/
 Scripts/Data_Vis/Figures/
-Scripts/Genomic_Prediction_rrBLUP/Figures/
-Scripts/Genomic_Prediction_RF/SHAP/
-Scripts/Genomic_Prediction_XGBoost/Results/
-Scripts/Genomic_Prediction_BayesC/Results/
-Scripts/Genomic_Prediction_BayesC/Results_1kb/
-Scripts/Genomic_Prediction_BayesC/Results_5kb/
-Scripts/Genomic_Prediction_BayesC/Results_chr1/
-Scripts/Genomic_Prediction_BL/Slurm output/
-Scripts/Genomic_Prediction_BL/Figures/
+Scripts/Genomic_Prediction_rrBLUP/rrBLUP_Figures_64k_geno/
+Scripts/Genomic_Prediction_RF/RF_64k_geno/
+Scripts/Genomic_Prediction_XGBoost/XGBoost_Results_64k_geno/
+Scripts/Genomic_Prediction_BayesC/BayesC_64k_geno/
+Scripts/Genomic_Prediction_BL/BL_Figures_64k_geno/
+Scripts/Genomic_Prediction_GBLUP/GBLUP_64k_geno/
 
 # Files to ignore
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.out
 Job_Submission_Scripts/SNPs_as_Feat/*.out
+Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.out
+Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/rrBLUP/*.out
+Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_*
+Job_Submission_Scripts/SNPs_as_Feat/RF/*.out
+Job_Submission_Scripts/SNPs_as_Feat/BL/*.out
+Job_Submission_Scripts/SNPs_as_Feat/rrBLUP/*.out
+Job_Submission_Scripts/Blast_ORFs/*.out
 Scripts/Genomic_Prediction_BayesC/*.bin
 Scripts/Genomic_Prediction_BayesC/*.dat
 Scripts/Genomic_Prediction_BayesC/*.pdf
@@ -32,9 +35,12 @@ Scripts/Genomic_Prediction_XGBoost/*.save
 Scripts/Genomic_Prediction_XGBoost/*.txt
 Scripts/Genomic_Prediction_XGBoost/xgboost_all__*
 Scripts/Genomic_Prediction_XGBoost/*.sb
+Scripts/Genomic_Prediction_XGBoost/*.out
 Scripts/Genomic_Prediction_RF/RF_make_FS_*
 Scripts/Genomic_Prediction_RF/*.out
 Scripts/Genomic_Prediction_RF/*.csv
+Scripts/Genomic_Prediction_rrBLUP/*.out
+Scripts/GxE/*.pdf
 Scripts/Data_Vis/*.out
 Scripts/Data_Vis/*.csv
 Scripts/Data_Vis/*.pdf
@@ -46,3 +52,23 @@ Results/*.pdf
 .Rhistory
 Rplots.pdf
 
+Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_59808023
+Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_59808024
+Scripts/Genomic_Prediction_RF/autopep8_test_Write_FS_script_RF.py
+Scripts/Genomic_Prediction_RF/black_test_Write_FS_script_RF.py
+Scripts/Genomic_Prediction_RF/yapf_Write_FS_script_RF.py
+
+
+
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr1/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr2/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr3/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr4/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr5/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr6/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr7/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr8/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr9/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr10/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr11/
+Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr12/
