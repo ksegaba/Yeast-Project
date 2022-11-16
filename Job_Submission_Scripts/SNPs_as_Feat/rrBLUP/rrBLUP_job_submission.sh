@@ -36,7 +36,7 @@ Rscript /mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction
 
 #echo "step 13: create Marker files for feature selection"
 #module load GCC/6.4.0-2.28  OpenMPI/2.1.2  Python/3.6.4
-# the marker files do not change regardless of trait
+# the marker files do not change regardless of trait ## 08/16/22 this doesn't make sense. the markers are sorted by coef. how could it be that each trait puts the markers in the same order?
 #~~~~~~~# Note: re-ran this on 01/19/2022
 #python /mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass/12_select_markers_according_to_abs_coef.py -coef Coef_rrBLUP_geno_YPACETATE.csv -start 500 -stop 50500 -step 500
 
