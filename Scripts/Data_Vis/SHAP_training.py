@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Script to calculate Shapley values for each feature using the SHAP (SHapley Additive exPlanations) method. 
 The SHAP value is used to explain the contribution of individual features to the prediction of an instance.
