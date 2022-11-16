@@ -7,6 +7,7 @@
 #SBATCH --mem-per-cpu=20G
 #SBATCH --job-name rf_PCs_tassel_baseline
 #SBATCH --output=%x_%j.out
+none
 
 module purge                 
 module load GCC/6.4.0-2.28  OpenMPI/2.1.2  Python/3.6.4   
@@ -17,9 +18,9 @@ echo "${SLURM_ARRAY_TASK_ID} ; ${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
 PIPE=/mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline
 DATA=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
 
-cd /mnt/scratch/seguraab/yeast_project/yeast_rf_results
+cd /mnt/scratch/seguraab/yeast_project/SNP_yeast_RF_results
 
-# BASED ON PCs COMPUTED IN BASE R (750 X 5)
+# BASED ON PCs COMPUTED IN BASE R (750 X 5) NOTE 11/14/2022: I will not re-run this with the geno.csv containing ~118k SNPs
 # run on command line: 
 ## cd /mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass
 ## Rscript 08_getPCs.r ${DATA}/geno.csv ${DATA}/pheno.csv
@@ -27,6 +28,6 @@ cd /mnt/scratch/seguraab/yeast_project/yeast_rf_results
 
 
 # BASED ON TASSEL5 TOP 5 PCs (64456 x 5)
-python ${PIPE}/ML_regression.py -df ${DATA}/geno_PCs1.csv -df2 ${DATA}/pheno.csv -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -sep , -test ${DATA}/Test.txt -alg RF -n_jobs 12 -n 100 -cv_num 5 -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_PCs_tassel -plots t
+python ${PIPE}/ML_regression.py -df ${DATA}/geno_PCs1.csv -df2 ${DATA}/pheno.csv -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -sep , -test ${DATA}/Test.txt -alg RF -n_jobs 12 -n 10 -cv_num 5 -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_PCs_tassel -plots t
 
 scontrol show job $SLURM_JOB_ID
