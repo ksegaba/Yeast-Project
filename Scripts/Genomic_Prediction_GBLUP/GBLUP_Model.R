@@ -119,6 +119,15 @@ if (trait == 'all') {
   Y <- Y[trait]
 }
 
+# 08/16/2022 Kenia: Added coefficient of determination (R^2) function
+r2_score <- function(preds, actual) {
+	# This function is comparable to sklearn's r2_score function
+	# It computes the coefficient of determination (R^2)
+	rss <- sum((preds - actual) ^ 2) # residual sum of squares
+	tss <- sum((actual - mean(actual)) ^ 2) # total sum of squares
+	return(1 - (rss/tss)) # return R^2 value
+}
+
 # Function to perform G/O/CBLUP within a cross-validation scheme
 cv_gblup <- function(G){ 
     for(i in 1:length(Y)){
@@ -224,11 +233,12 @@ if (orf == "y") { # covariance of ORF presence/absence
             print("Saving results...")
             # Append results to file
             pcc <- cor(Y[,i], fit$u)
+            R2 <- r2_score(Y[,i], fit$u) # 08/16/22 Kenia: Added coefficient of determination (R^2) function
             cat(Sys.time(), file=file, append=TRUE, sep="")
             cat("OBLUP,", file=file, append=TRUE, sep="")
             cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
             cat(pcc, ",", file=file, append=TRUE, sep="")
-            cat(pcc^2, ",", file=file, append=TRUE, sep="")
+            cat(R2, ",", file=file, append=TRUE, sep="")
             cat(fit$beta, ",", file=file, append=TRUE, sep="")
             cat(fit$Vu, ",", file=file, append=TRUE, sep="")
             cat(fit$Ve, ",", file=file, append=TRUE, sep="")
@@ -260,11 +270,12 @@ if (orf == "y") { # covariance of ORF presence/absence
             print("Saving results...")
             # Append results to file
             pcc <- cor(Y[,i], fit$u)
+            R2 <- r2_score(Y[,i], fit$u) # 08/16/22 Kenia: Added coefficient of determination (R^2) function
             cat(Sys.time(), file=file, append=TRUE, sep="")
             cat("CBLUP,", file=file, append=TRUE, sep="")
             cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
             cat(pcc, ",", file=file, append=TRUE, sep="")
-            cat(pcc^2, ",", file=file, append=TRUE, sep="")
+            cat(R2, ",", file=file, append=TRUE, sep="")
             cat(fit$beta, ",", file=file, append=TRUE, sep="")
             cat(fit$Vu, ",", file=file, append=TRUE, sep="")
             cat(fit$Ve, ",", file=file, append=TRUE, sep="")
@@ -328,11 +339,12 @@ if (orf == "y") { # covariance of ORF presence/absence
             print("Saving results...")
             # Append results to file
             pcc <- cor(Y[,i], fit$u)
+            R2 <- r2_score(Y[,i], fit$u) # 08/16/22 Kenia: Added coefficient of determination (R^2) function
             cat(Sys.time(), file=file, append=TRUE, sep="")
             cat("GBLUP,", file=file, append=TRUE, sep="")
             cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
             cat(pcc, ",", file=file, append=TRUE, sep="")
-            cat(pcc^2, ",", file=file, append=TRUE, sep="")
+            cat(R2, ",", file=file, append=TRUE, sep="")
             cat(fit$beta, ",", file=file, append=TRUE, sep="")
             cat(fit$Vu, ",", file=file, append=TRUE, sep="")
             cat(fit$Ve, ",", file=file, append=TRUE, sep="")
@@ -359,11 +371,13 @@ if (orf == "y") { # covariance of ORF presence/absence
     G <- (Zs %*% t(Zs)) / sum2pq
     for (i in 1:length(Y)){
         system.time(fit <- mixed.solve(y = Y[,i], K = G)) # GBLUP on -1,0,1 matrix
+        pcc <- cor(Y[,i], fit$u)
+        R2 <- r2_score(Y[,i], fit$u) # 08/16/22 Kenia: Added coefficient of determination (R^2) function
         cat(Sys.time(), file=file, append=TRUE, sep="")
         cat("GBLUP-101,", file=file, append=TRUE, sep="")
         cat(names(Y)[i], ",", file=file, append=TRUE, sep="")
         cat(pcc, ",", file=file, append=TRUE, sep="")
-        cat(pcc^2, ",", file=file, append=TRUE, sep="")
+        cat(R2, ",", file=file, append=TRUE, sep="")
         cat(fit$beta, ",", file=file, append=TRUE, sep="")
         cat(fit$Vu, ",", file=file, append=TRUE, sep="")
         cat(fit$Ve, ",", file=file, append=TRUE, sep="")
