@@ -1,0 +1,64 @@
+#!/bin/bash --login
+#SBATCH --time=4:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=2
+#SBATCH --cpus-per-task=2
+#SBATCH --mem-per-cpu=20G
+#SBATCH --job-name blastx_peter_diff_species # rename to get output of each step individually
+#SBATCH --output=%x_%j.out
+
+path=/mnt/home/seguraab/ncbi-blast-2.13.0+/bin
+dir=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
+
+cd /mnt/home/seguraab/Shiu_Lab/Project/Data/BLAST_nr_db/
+
+echo "Create nr database"
+${path}/diamond makedb --in nr.faa -d nr_db -p 28 --taxonmap
+
+echo "Run Blastx against the nonredundant database"
+${path}/diamond blastx --db nr_db \
+   --outfmt 6 qseqid sseqid pident evalue sscinames length mismatch gaps qlen qstart qend slen sstart send bitscore \
+   --out peter_orf_nr_blastx.txt -p 28 --evalue 1e-06 \
+   --query ${dir}/allORFs_pangenome.fasta --un unaligned_peter_orf_nr_blastx.faa
+
+cd /mnt/home/seguraab/Shiu_Lab/Project/Data/Arabidopsis_Genome_TAIR10.1
+echo "Run Blastx (DNA to Protein) against TAIR10"
+${path}/blastx -query ${dir}/allORFs_pangenome.fasta -db TAIR10_db \
+   -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+   -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+   -out peter_orf_TAIR10_blastx.txt
+
+cd /mnt/home/seguraab/Shiu_Lab/Project/Data/Drosophila_Genome_R6_ISO1MT/
+echo "create a blast database containing the Drosophila protein sequences (not orfs)"
+${path}/makeblastdb -in protein.faa -out ISO1MT_db -dbtype prot \
+   -title "D. Melanogaster Protein Sequences"
+
+echo "Run Blastx (DNA to Protein) against Drosophila"
+${path}/blastx -query ${dir}/allORFs_pangenome.fasta -db ISO1MT_db \
+   -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+   -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+   -out peter_orf_ISO1MT_blastx.txt
+
+cd /mnt/home/seguraab/Shiu_Lab/Project/Data/Human_Genome_GRCh38.p14/
+echo "create a blast database containing the Human protein sequences (not orfs)"
+${path}/makeblastdb -in protein.faa -out human_db -dbtype prot \
+   -title "H. sapiens Protein Sequences"
+
+echo "Run Blastx (DNA to Protein) agains Human"
+${path}/blastx -query ${dir}/allORFs_pangenome.fasta -db human_db \
+   -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+   -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+   -out peter_orf_human_blastx.txt
+
+cd /mnt/home/seguraab/Shiu_Lab/Project/Data/Neurospora_OR74A_Genome_NC12/
+echo "create a blast database containing the Human protein sequences (not orfs)"
+${path}/makeblastdb -in protein.faa -out NC12_db -dbtype prot \
+   -title "N. Cross OR74A Protein Sequences"
+
+echo "Run Blastx (DNA to Protein) against Neurospora"
+${path}/blastx -query ${dir}/allORFs_pangenome.fasta -db NC12_db \
+   -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+   -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+   -out peter_orf_NC12_blastx.txt
+
+scontrol show job $SLURM_JOB_ID
