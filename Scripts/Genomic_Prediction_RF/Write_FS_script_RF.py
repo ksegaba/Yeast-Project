@@ -1,42 +1,43 @@
-#!/bin/python
+#!/usr/bin/env python3
 """
 This code generates slurm job submission scripts for feature selection (FS)
 and random forest (RF) using the FS files for each trait. 
 
-Inputs:
-- path1 = path to RF pipeline scripts e.g. /mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline
-- path2 = path to save FS files & RF output  e.g /mnt/scratch/seguraab/yeast_project/yeast_rf_results
-- path3 = path to RF input files e.g. /mnt/scratch/seguraab/yeast_project/yeast_rf_results
-- save = path to save job_submission files e.g. /mnt/home/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/RF
-- start = minimum number of features e.g. 500
-- stop = maximum number of features e.g. 50000
-- step = step size (generate a FS file at each step) e.g. 500
-- batch = number of features each array task gets e.g. 5000
-- base = base (generate a FS file from base ** start to base ** stop) e.g. 2
-- runFS = make FS files slurm scripts (y/n), default is n
-- runExpFS = make FS slurm scripts based on exponentially picking features, default is n
-- runRF = make RF slurm scripts (y/n), default is n
-- snp = set to True if features are SNPs
-- orf = set to True if features are ORF presence/absence
-- cno = set to True if features are ORF copy number
-- submit = submit slurm scripts (y/n)
+Arguments:
+    path1 (str): path to RF pipeline scripts
+    path2 (str): path to save FS files & RF output
+    path3 (str): path to RF input files
+    save (str): path to save job_submission files
+    start (int): minimum number of features
+    stop (int): maximum number of features
+    step (int): step size (generate a FS file at each step)
+    batch (int): number of features each array task gets
+    base (int): base (generate a FS file from base**start to base**stop)
+    runFS (str): make FS files slurm scripts (y/n), default is n
+    runExpFS (str): make FS slurm scripts based on exponentially picking features, default is n
+    runRF (str): make RF slurm scripts (y/n), default is n
+    snp (str): set to True if features are SNPs, default is False
+    orf (str): set to True if features are ORF presence/absence, default is False
+    cno (str): set to True if features are ORF copy number, default is False
+    submit (str): submit slurm scripts (y/n), default is n
 
-Outputs:
-    - Script to generate feature selection files containing a subset of features
-    - Script to run RF on each of the feature selection files.
+Returns:
+    [1] Script to generate feature selection files containing a subset of features
+    [2] Script to run RF on each of the feature selection files.
 
-Commands:
+Examples:
 # For SNP-based RF
 path1=/mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline
-path2=/mnt/gs21/scratch/seguraab/yeast_project/yeast_rf_results
-path3=/mnt/gs21/scratch/seguraab/yeast_project/yeast_rf_results
+path2=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results
+path3=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
 save=/mnt/home/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/RF
-python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 500 -stop 50000 -step 500 -batch 5000 -runRF y -snp True -submit y
-python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 1 -stop 12 -base 2 -runExpFS y -snp True -submit y
+python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 1000 -stop 40000 -step 1000 -batch 5000 -runFS y -snp True -submit y
+python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 1000 -stop 40000 -step 1000 -batch 5000 -runRF y -snp True -submit y
+python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 1 -stop 11 -base 2 -runExpFS y -snp True -submit y
 
 # For ORF/CNO-based RF
 path1=/mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline
-path2=/mnt/scratch/seguraab/yeast_project/ORF_yeast_RF_results
+path2=/mnt/scratch/seguraab/yeast_project/ORF_SNP_yeast_RF_results
 path3=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
 save=/mnt/home/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/ORFs_as_Feat/FS/RF
 python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 250 -stop 7708 -step 250 -batch 1000 -runRF y -orf True -submit y
@@ -44,17 +45,17 @@ python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_F
 python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 250 -stop 7708 -step 250 -batch 1000 -runRF y -cno True -submit y
 python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 1 -stop 10 -base 2 -runExpFS y -cno True -submit y
 
-# Author
-Kenia Segura Aba
+# Date
 12/01/2021
 """
+
+__author__ = "Kenia Segura Abá"
 
 import warnings
 import sys
 import os
 import argparse
 from tkinter import N
-import datatable
 
 
 def warn(*args, **kwargs):
@@ -75,12 +76,12 @@ def make_FS_files(path1, path2, path3, save, trait, start, stop, step, batch, sn
     out1 = open(name1, 'w')
     out1.write(f'#!/bin/sh --login \
                 \n#SBATCH --array={start}-{stop}:{batch} \
-                \n#SBATCH --time=3:00:00 \
+                \n#SBATCH --time=100:00:00 \
                 \n#SBATCH --ntasks=3 \
                 \n#SBATCH --cpus-per-task=1 \
                 \n#SBATCH --mem=20G \
                 \n#SBATCH --job-name RF_make_FS_{trait} \
-                \n#SBATCH --output=%x_%j \
+                \n#SBATCH --output=%x_%j.out \
                 \ncd {path2}/ \
                 \nmodule purge \
                 \nmodule load GCC/6.4.0-2.28  OpenMPI/2.1.2  Python/3.6.4 \
@@ -93,13 +94,12 @@ def make_FS_files(path1, path2, path3, save, trait, start, stop, step, batch, sn
                 \nfor i in `seq $start_ind {step} $end_ind`; do')
 
     if snp:
-        out1.write('data=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/\n \
-                    python ${path1}/Feature_Selection.py -df ${path3}/geno_rf_${trait}.csv -alg randomforest -n $i -test ${data}/Test.txt -y_name Y -sep , -type r -save feat_rf_${trait}_top -scores T\n')
+        out1.write('\npython ${path1}/Feature_Selection.py -df ${path3}/geno.csv -df2 ${path3}/pheno.csv -y_name ${trait} -alg randomforest -n $i -test ${path3}/Test.txt -sep , -type r -save feat_rf_${trait}_top -scores T\n')
     if orf:
-        out1.write('python ${path1}/Feature_Selection.py -df ${path3}/ORFs_pres_abs.csv -df2 ${path3}/pheno.csv -y_name ${trait} -alg randomforest -n $i -test ${path3}/Test.txt -sep , -type r -save feat_rf_${trait}_top -scores T\n')
+        out1.write('\npython ${path1}/Feature_Selection.py -df ${path3}/ORFs_pres_abs.csv -df2 ${path3}/pheno.csv -y_name ${trait} -alg randomforest -n $i -test ${path3}/Test.txt -sep , -type r -save feat_rf_${trait}_top -scores T\n')
     if cno:
-        out1.write('python ${path1}/Feature_Selection.py -df ${path3}/ORFs_no_NA.csv -df2 ${path3}/pheno.csv -y_name ${trait} -alg randomforest -n $i -test ${path3}/Test.txt -sep , -type r -save feat_rf_${trait}_top -scores T\n')
-    out1.write('\nscontrol show job $SLURM_JOB_ID')
+        out1.write('\npython ${path1}/Feature_Selection.py -df ${path3}/ORFs_no_NA.csv -df2 ${path3}/pheno.csv -y_name ${trait} -alg randomforest -n $i -test ${path3}/Test.txt -sep , -type r -save feat_rf_${trait}_top -scores T\n')
+    out1.write('done\nscontrol show job $SLURM_JOB_ID')
     out1.close()
     return name1
 
@@ -122,17 +122,17 @@ def make_exp_FS_files(path1, path2, path3, save, trait, start, stop, base, snp=F
                 \n#SBATCH --cpus-per-task=1 \
                 \n#SBATCH --mem=20G \
                 \n#SBATCH --job-name RF_make_FS_{trait} \
-                \n#SBATCH --output=%x_%j \
+                \n#SBATCH --output=%x_%j.out \
                 \ncd {path2}/ \
                 \nmodule purge \
                 \nmodule load GCC/6.4.0-2.28  OpenMPI/2.1.2  Python/3.6.4 \
                 \ntrait={trait} \
                 \npath1={path1} \
+                \npath2={path2} \
                 \npath3={path3}\n')
     if snp:
-        out1.write('data=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/\n \
-                    python ${path1}/Feature_Selection.py -df ${data}/geno.csv -df2 ${data}/pheno.csv -y_name ${trait} -alg randomforest -n $SLURM_ARRAY_TASK_ID -test ${data}/Test.txt -sep , -type r -save feat_exp_rf_${trait}_top -scores T\n \
-                    python ${path1}/ML_regression.py -df ${data}/geno.csv -df2 ${data}/pheno.csv -y_name ${trait} -sep , -feat ${path3}/feat_exp_rf_${trait}_top_$SLURM_ARRAY_TASK_ID -test ${data}/Test.txt -alg RF -n_jobs 12 -n 100 -cv_num 5 -save ${trait}_exp_rf_$SLURM_ARRAY_TASK_ID -plots t\n\n')
+        out1.write('python ${path1}/Feature_Selection.py -df ${path3}/geno.csv -df2 ${path3}/pheno.csv -y_name ${trait} -alg randomforest -n $SLURM_ARRAY_TASK_ID -test ${path3}/Test.txt -sep , -type r -save feat_exp_rf_${trait}_top -scores T\n')
+        out1.write('python ${path1}/ML_regression.py -df ${path3}/geno.csv -df2 ${path3}/pheno.csv -y_name ${trait} -sep , -feat ${path2}/feat_exp_rf_${trait}_top_$SLURM_ARRAY_TASK_ID -test ${path3}/Test.txt -alg RF -n_jobs 12 -n 10 -cv_num 5 -save ${trait}_exp_rf_$SLURM_ARRAY_TASK_ID -plots t\n\n')
     if orf:
         out1.write('python ${path1}/Feature_Selection.py -df ${path3}/ORFs_pres_abs.csv -df2 ${path3}/pheno.csv -y_name ${trait} -alg randomforest -n $SLURM_ARRAY_TASK_ID -test ${path3}/Test.txt -sep , -type r -save feat_exp_rf_orf_${trait}_top -scores T\n')
         out1.write('python ${path1}/ML_regression.py -df ${path3}/ORFs_pres_abs.csv -df2 ${path3}/pheno.csv -y_name ${trait} -sep , -feat ${path3}/feat_exp_rf_${trait}_top_$SLURM_ARRAY_TASK_ID -test ${path3}/Test.txt -alg RF -n_jobs 12 -n 100 -cv_num 5 -save ${trait}_exp_rf_orf_$SLURM_ARRAY_TASK_ID -plots t\n\n')
@@ -155,8 +155,8 @@ def make_RF_files(path1, path2, path3, save, trait, start, stop, step, batch, sn
     out2 = open(name2, 'w')
     out2.write(f'#!/bin/sh --login \
                 \n#SBATCH --array={start}-{stop}:{batch} \
-                \n#SBATCH --time=50:00:00 \
-                \n#SBATCH --ntasks=2 \
+                \n#SBATCH --time=100:00:00 \
+                \n#SBATCH --ntasks=3 \
                 \n#SBATCH --cpus-per-task=2 \
                 \n#SBATCH --mem=20G \
                 \n#SBATCH --job-name RF_FS_job_{trait} \
@@ -173,7 +173,7 @@ def make_RF_files(path1, path2, path3, save, trait, start, stop, step, batch, sn
                 \necho "this job start from $start_ind to $end_ind" \
                 \nfor i in `seq $start_ind {step} $end_ind`; do')
     if snp:
-        out2.write('\n\tpython ${path1}/ML_regression.py -df ${path3}/geno_rf_${trait}.csv -sep , -feat ${path2}/feat_rf_${trait}_top_$i -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt -alg RF -n_jobs 12 -n 100 -cv_num 5 -save ${trait}_rf_$i -plots t')
+        out2.write('\n\tpython ${path1}/ML_regression.py -df ${path3}/geno.csv -df2 ${path3}/pheno.csv -y_name ${trait} -sep , -feat ${path2}/feat_rf_${trait}_top_$i -test ${path3}/Test.txt -alg RF -n_jobs 12 -n 10 -cv_num 5 -save ${trait}_rf_$i -plots t')
     if orf:
         out2.write('\n\tpython ${path1}/ML_regression.py -df ${path3}/ORFs_pres_abs.csv -df2 ${path3}/pheno.csv -y_name ${trait} -sep , -feat ${path2}/feat_rf_${trait}_top_$i -test ${path3}/Test.txt -alg RF -n_jobs 12 -n 100 -cv_num 5 -save ${trait}_orf_$i -plots t')
     if cno:
@@ -198,13 +198,13 @@ def main():
         '-path3', help='path to RF input files (genomic)', required=True)
     req_group.add_argument(
         '-save', help='path to save job_submission files', required=True)
-    req_group.add_argument(
-        '-start', help='minimum number of features', required=True)
-    req_group.add_argument(
-        '-stop', help='maxiumum number of features', required=True)
     # Optional input
     req_group.add_argument(
-        '-step', help='step size (generate a FS file at each step)', default=500)
+        '-start', help='minimum number of features', default=1000)
+    req_group.add_argument(
+        '-stop', help='maxiumum number of features', default=40000)
+    req_group.add_argument(
+        '-step', help='step size (generate a FS file at each step)', default=1000)
     req_group.add_argument(
         '-batch', help='number of features each array task gets e.g. 5000', default=5000)
     req_group.add_argument(
