@@ -1,12 +1,12 @@
 #!/bin/sh --login                 
-#SBATCH --array=500-50000:2500 # 20 array tasks                 
+#SBATCH --array=500-80000:2500                 
 #SBATCH --time=12:00:00                 
 #SBATCH --ntasks=1                 
 #SBATCH --cpus-per-task=1                 
 #SBATCH --mem=20G                 
 #SBATCH --job-name rrBLUP_FS_YPDFORMAMIDE4                 
 #SBATCH --output=%x_%j.out                 
-cd /mnt/scratch/seguraab/yeast_project/yeast_rrBLUP_results                 
+cd /mnt/scratch/seguraab/yeast_project/SNP_yeast_rrBLUP_results                 
 module purge                 
 module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3                 
 trait=YPDFORMAMIDE4                 
