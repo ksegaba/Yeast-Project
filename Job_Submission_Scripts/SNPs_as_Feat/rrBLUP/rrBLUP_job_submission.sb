@@ -1,6 +1,6 @@
 #!/bin/bash --login 
 #SBATCH --array=0-34 # 35 array tasks
-#SBATCH --time=10:00:00
+#SBATCH --time=4:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -10,27 +10,34 @@
 
 # 08/16/22 Note: All results were deleted from scratch, so had to rerun the following
 # 10/31/22 Note: I only re-ran step 14b with the updated geno.csv with ~124k SNPs
+# 01/18/22 Note: Even though I change the modification date, the files get deleted. Had to re-run with the 118k SNPs (124k was not the final filtered dataset)
 
 TRAITS=( YPDKCL2M YPGALACTOSE YPD40 YPDCHX05 YPDLICL250MM YPGLYCEROL YPD42 YPDCHX1 YPDMV YPRIBOSE YPD6AU YPDCUSO410MM YPDNACL15M YPSORBITOL YPDANISO10 YPDNACL1M YPXYLOSE YPDANISO20 YPDETOH YPDSDS YPDSODIUMMETAARSENITE YPDNYSTATIN YPDFLUCONAZOLE YPACETATE YPDCAFEIN40 YPDHU YPETHANOL YPD14 YPDCAFEIN50 YPDDMSO YPDANISO50 YPDBENOMYL200 YPDFORMAMIDE4 YPDBENOMYL500 YPDFORMAMIDE5 )
 echo "${SLURM_ARRAY_TASK_ID} ; ${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
 
 PIPE=/mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass/
 DATA=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
-cd /mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_rrBLUP_results/
+cd /mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_rrBLUP_results
+
+# echo "Step 11: split geno and pheno into training sets
+# Split the genotype and phenotype matrices into training sets
+# module purge
+# module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
+# Rscript ${PIPE}/11_split_geno_pheno_fread.r ${DATA}/geno.csv ${DATA}/pheno.csv ${DATA}/Test.txt
 
 # echo "Step 12...build rrBLUP model using training geno and pheno data"
 # module purge
 # module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
-# Rscript ${PIPE}/09_rrBLUP_fread_predict_values.r ${DATA}/geno_training.csv ${DATA}/pheno_training.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} 5 10 ${DATA}/CVFs.csv rrBLUP_geno
+# Rscript ${PIPE}/09_rrBLUP_fread_predict_values.r geno_training.csv pheno_training.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} 5 10 ${DATA}/CVFs.csv rrBLUP_geno_training
 
 # echo "step 13: create Marker files for feature selection"
 # module purge
 # module load GCC/6.4.0-2.28  OpenMPI/2.1.2  Python/3.6.4
-# python ${PIPE}/12_select_markers_according_to_abs_coef.py -coef Coef_rrBLUP_geno_${TRAITS[${SLURM_ARRAY_TASK_ID}]}.csv -start 500 -stop 50500 -step 500
+# python ${PIPE}/12_select_markers_according_to_abs_coef.py -coef Coef_rrBLUP_geno_training_${TRAITS[${SLURM_ARRAY_TASK_ID}]}.csv -start 500 -stop 80000 -step 500
 
-echo "step 14b: baseline rrBLUP models"
-module purge
-module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
-Rscript ${PIPE}/13_rrBLUP_training_test_split_fread_predict_values.r ${DATA}/geno.csv ${DATA}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt 5 10 ${DATA}/CVFs.csv baseline_rrBLUP
+# echo "step 14b: baseline rrBLUP models"
+# module purge
+# module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
+# Rscript ${PIPE}/13_rrBLUP_training_test_split_fread_predict_values.r ${DATA}/geno.csv ${DATA}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt 5 10 ${DATA}/CVFs.csv baseline_rrBLUP
 
 scontrol show job $SLURM_JOB_ID

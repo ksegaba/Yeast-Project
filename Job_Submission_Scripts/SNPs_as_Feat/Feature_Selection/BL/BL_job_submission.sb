@@ -1,0 +1,26 @@
+#!/bin/sh --login                 
+#SBATCH --array=0-34
+#SBATCH --time=15:00:00                 
+#SBATCH --ntasks=1                 
+#SBATCH --cpus-per-task=1                 
+#SBATCH --mem=36G                 
+#SBATCH --job-name BL_after_fs                 
+#SBATCH --output=%x_%j.out                 
+cd /mnt/scratch/seguraab/yeast_project/SNP_yeast_BL_results
+module purge                 
+module load GCC/8.3.0  OpenMPI/3.1.4  R/4.0.2
+
+TRAITS=(YPACETATE YPD6AU YPD14 YPD40 YPD42 YPDANISO10 YPDANISO20 YPDANISO50 YPDBENOMYL200 YPDBENOMYL500 YPDCAFEIN40 YPDCAFEIN50 YPDCHX1 YPDCHX05 YPDCUSO410MM YPDDMSO YPDETOH YPDFLUCONAZOLE YPDFORMAMIDE4 YPDFORMAMIDE5 YPDHU YPDKCL2M YPDLICL250MM YPDMV YPDNACL1M YPDNACL15M YPDNYSTATIN YPDSDS YPDSODIUMMETAARSENITE YPETHANOL YPGALACTOSE YPGLYCEROL YPRIBOSE YPSORBITOL YPXYLOSE)
+FEATS=(64 3000 512 1024 2000 2000 2000 256 1024 4000 3000 2000 512 256 1000 512 256 1000 128 1024 512 512 512 1000 3000 1024 32 1000 256 1024 512 256 512 1000 256)
+echo "${SLURM_ARRAY_TASK_ID} ; ${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
+
+PIPE=/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BL
+DATA=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
+MARK=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs
+# Baseline
+Rscript ${PIPE}/BL_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 BL_baseline .
+
+# Using only a subset of features
+Rscript ${PIPE}/BL_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv ${MARK}/feat*_rf_${TRAITS[${SLURM_ARRAY_TASK_ID}]}_top_${FEATS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 BL_top${FEATS[${SLURM_ARRAY_TASK_ID}]} .
+
+scontrol show job $SLURM_JOB_ID
