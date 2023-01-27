@@ -1,0 +1,29 @@
+#!/bin/bash --login 
+#SBATCH --array=0-34
+#SBATCH --time=150:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=3
+#SBATCH --cpus-per-task=2
+#SBATCH --mem-per-cpu=20G
+#SBATCH --job-name xgb_baseline
+#SBATCH --output=%x_%j.out
+
+module purge
+module load GCC/6.4.0-2.28  OpenMPI/2.1.2  Python/3.6.4
+
+cd /mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_XGBoost_results
+
+TRAITS=(YPACETATE YPD6AU YPD14 YPD40 YPD42 YPDANISO10 YPDANISO20 YPDANISO50 YPDBENOMYL200 YPDBENOMYL500 YPDCAFEIN40 YPDCAFEIN50 YPDCHX1 YPDCHX05 YPDCUSO410MM YPDDMSO YPDETOH YPDFLUCONAZOLE YPDFORMAMIDE4 YPDFORMAMIDE5 YPDHU YPDKCL2M YPDLICL250MM YPDMV YPDNACL1M YPDNACL15M YPDNYSTATIN YPDSDS YPDSODIUMMETAARSENITE YPETHANOL YPGALACTOSE YPGLYCEROL YPRIBOSE YPSORBITOL YPXYLOSE)
+FEATS=(64 3000 512 1024 2000 2000 2000 256 1024 4000 3000 2000 512 256 1000 512 256 1000 128 1024 512 512 512 1000 3000 1024 32 1000 256 1024 512 256 512 1000 256)
+echo "${SLURM_ARRAY_TASK_ID} ; ${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
+
+# Models with optimal features (based on RF FS)
+path1=/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_XGBoost
+data=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
+feat=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs
+python ${path1}/xgboost_model.py -X ${data}/geno.csv -Y ${data}/pheno.csv -test ${data}/Test.txt -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -feat ${feat}/feat*_rf_${TRAITS[${SLURM_ARRAY_TASK_ID}]}_top_${FEATS[${SLURM_ARRAY_TASK_ID}]} -save xgb_top${FEATS[${SLURM_ARRAY_TASK_ID}]}
+
+# Baseline
+python ${path1}/xgboost_model.py -X ${data}/geno.csv -Y ${data}/pheno.csv -test ${data}/Test.txt -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -feat all -save xgb_baseline
+
+scontrol show job $SLURM_JOB_ID
