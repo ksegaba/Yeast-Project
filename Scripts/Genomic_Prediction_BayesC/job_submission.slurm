@@ -1,10 +1,10 @@
 #!/bin/sh --login
-#SBATCH --time=5:00:00 # 10
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=20G
+#SBATCH --time=10:00:00
+#SBATCH --ntasks=2
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=10G
 #SBATCH --job-name wv_1kb_sliding
-#SBATCH --output=%x_%j
+#SBATCH --output=%x_%j.out
 
 module purge
 module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3

@@ -21,9 +21,9 @@ echo "${SLURM_ARRAY_TASK_ID} ; ${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
 path1=/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_XGBoost
 data=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
 feat=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs
-python ${path1}/xgboost_model.py -X ${data}/geno.csv -Y ${data}/pheno.csv -test ${data}/Test.txt -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -feat ${feat}/feat*_rf_${TRAITS[${SLURM_ARRAY_TASK_ID}]}_top_${FEATS[${SLURM_ARRAY_TASK_ID}]} -save xgb_top${FEATS[${SLURM_ARRAY_TASK_ID}]}
+python ${path1}/xgboost_model.py -X ${data}/geno.csv -Y ${data}/pheno.csv -test ${data}/Test.txt -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -feat ${feat}/feat*_rf_${TRAITS[${SLURM_ARRAY_TASK_ID}]}_top_${FEATS[${SLURM_ARRAY_TASK_ID}]} -save fs
 
 # Baseline
-python ${path1}/xgboost_model.py -X ${data}/geno.csv -Y ${data}/pheno.csv -test ${data}/Test.txt -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -feat all -save xgb_baseline
+python ${path1}/xgboost_model.py -X ${data}/geno.csv -Y ${data}/pheno.csv -test ${data}/Test.txt -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -feat all -save baseline
 
 scontrol show job $SLURM_JOB_ID

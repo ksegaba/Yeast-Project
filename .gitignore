@@ -80,3 +80,6 @@ Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/BL/*.out
 Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/XGBoost/*.out
 Scripts/Genomic_Prediction_RKHS/logs
 Scripts/Genomic_Prediction_RKHS/output
+Scripts/Genomic_Prediction_RKHS/data/
+Results/
+Scripts/Genomic_Prediction_RF/SHAP/

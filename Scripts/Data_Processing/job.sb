@@ -1,5 +1,5 @@
 #!/bin/sh --login
-#SBATCH --time=10:00:00
+#SBATCH --time=4:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20G
@@ -9,6 +9,7 @@
 
 cd /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Data_Processing
 
+# Convert fastPHASE to matrix format
 path=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/
 file=1011Matrix_diploid750_biallelic_maf0.05_10172022_genotypes.out
 map=1011Matrix_diploid750_biallelic_maf0.05_10172022.plink.map

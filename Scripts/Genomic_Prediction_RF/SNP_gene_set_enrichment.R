@@ -15,6 +15,7 @@ suppressPackageStartupMessages(library(topGO))
 suppressPackageStartupMessages(library(qvalue))
 suppressPackageStartupMessages(library(pvclust))
 suppressPackageStartupMessages(library(gplots))
+suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(RColorBrewer))
@@ -68,14 +69,19 @@ for(i in 1:nrow(go)){
         finally = {})
 }
 # write.csv(go, "Data/yeast_GO/sgd_GO_BP.csv", quote=F, row.names=F)
+# go <- read.csv("Data/yeast_GO/sgd_GO_BP.csv")
 
 ########################### Map GO terms to SNPs ###########################
 genes <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt",
-                  sep=",", header=T)
+                  sep=",", header=F)
+colnames(genes) <- c("snp", "chr", "pos", "gene")
 genes <- genes[!(genes$gene=="intergenic"),] # drop intergenic snps
 out <- left_join(genes, go, by=c("gene"="Gene"))
-with_go <- out[complete.cases(out),] # genes with go 
-no_go <- out[is.na(out$GO.ID),] # genes with no go
+with_go <- out[complete.cases(out$GO.ID),] # genes with go terms
+no_go <- out[is.na(out$GO.ID),] # genes with no go terms
+go_genes <- out
+write.table(go_genes, 
+    "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go_all.csv", sep="\t")
 write.table(with_go, 
     "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go.csv", sep="\t", 
     quote=F, row.names=F)
@@ -96,7 +102,7 @@ get_genes <- function(f, baseline=F) {
     # add the genes and GO annotations to each SHAP file
     df <- read.delim(f, sep="\t") # read in shap values
     colnames(df) <- c("SNP", "shap_value")
-    out <- right_join(with_go, df, by=c("snp"="SNP")) # add gene & go information
+    out <- right_join(go_genes, df, by=c("snp"="SNP")) # add gene & go information
     name <- str_extract(f, "SHAP_values_sorted_average_[A-Z0-9]+_[0-9]+_training[^txt]") # extract file name
     name <- gsub("SHAP", "GO_SHAP", name)
     path <- as.character("Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs")
@@ -146,10 +152,20 @@ heatmap <- function(toplot, path){
     }
 }
 
-heatmap2 <- function(toplot, path){
+heatmap2 <- function(toplot, rownames, path){
+    toplot$logP <- 0
+    toplot <- toplot[order(toplot$qvalues, decreasing=T),]
+    for(i in 1:nrow(toplot)){ # take the log of the q-values
+        if(toplot$direction[i] == '-') toplot$logP[i] <- log10(toplot$qvalues[i])
+        if(toplot$direction[i] == '+') toplot$logP[i] <- -log10(toplot$qvalues[i])
+    }
+    if (nrow(toplot[toplot$logP < -10,])!=0) toplot[toplot$logP < -10,]$logP <- -10
+    if (nrow(toplot[toplot$logP > 10,])!=0) toplot[toplot$logP > 10,]$logP <- 10
+    
+    print("   Generating heatmap...")
+    path <- gsub('ORA_qval_vs_lfdr', 'ORA_hm2', path)
     plotp <- as.matrix(toplot$logP)
-    rownames(plotp) <- toplot$BP
-    path <- gsub('ORA', 'ORA_hm2', path); path <- gsub('training.', 'training.pdf', path)
+    rownames(plotp) <- rownames
     rdbu_r <- rev(brewer.pal(n=3, "RdBu")) # reversed color palette
     col_fun = colorRamp2(c(-round(max(plotp), 2), 0, round(max(plotp), 2)), rdbu_r)
     pdf(path) # file to save
@@ -168,11 +184,11 @@ heatmap2 <- function(toplot, path){
     write.table(toplot, path, sep="\t", quote=F, row.names=T)
 }
 
-make_contingency <- function(all_orfs){
+make_contingency <- function(go_genes){
     cols <- c("GO", "ORF_top_has_GO", "ORF_not_top_has_GO", "ORF_top_no_GO",
               "ORF_not_top_no_GO", "direction", "p.val", "odds ratio", "qvalues", "lfdr")
-    contingency <- data.frame(matrix(0, nrow=length(unique(all_orfs$GO.ID)),
-        ncol=10, dimnames=list(unique(all_orfs$GO.ID), cols)))
+    contingency <- data.frame(matrix(0, nrow=length(unique(go_genes$GO.ID)),
+        ncol=10, dimnames=list(unique(go_genes$GO.ID), cols)))
     contingency$GO <- rownames(contingency)
 
     print("   Grabbing BP, CC, and MF info...")
@@ -190,57 +206,93 @@ make_contingency <- function(all_orfs){
     return(contingency)
 }
 
-ora <- function(with_go, top, bg, contingency, path){
+ora <- function(go_genes, top, bg, path){
     # Overrepresentation Analysis
-    # with_go: dataframe of all genes and GO annotations
-    # top2: dataframe of genes of interest
+    # go_genes: dataframe of all genes and GO annotations
+    # top: dataframe of genes of interest
     # bg: dataframe of genes in background set
     # path: file path and name to save as
 
+    # create contingency table
+    cols <- c("GO", "ORF_top_has_GO", "ORF_not_top_has_GO", "ORF_top_no_GO",
+              "ORF_not_top_no_GO", "direction", "p.val", "odds ratio", "qvalues", "lfdr")
+    contingency <- data.frame(matrix(nrow=1, ncol=10))
+    colnames(contingency) <- cols
+    # contingency <- data.frame(matrix(0, nrow=length(unique(go_genes$GO.ID)),
+    #     ncol=10, dimnames=list(unique(go_genes$GO.ID), cols)))
+    # contingency$GO <- rownames(contingency)
+    
     # fill in contingency table for each gene
     print("   Running ORA...")
-    for (go in unique(with_go$GO)){
-        a <- length(unique(top2[which(top2$GO.ID==go),]$gene)) # Genes in top features and have `go`
-        b <- length(unique(bg[which(bg$GO.ID==go),]$gene)) # Genes not in top features and have `go`
-        c <- length(unique(top2$gene)) - a # Genes in top features and do not have `go`
-        d <- length(unique(bg$gene)) - b # Genes not in top features and do not have `go`
-        tbl <- matrix(c(a, b, c, d), ncol=2, byrow=TRUE) # gene contingency table
-        res <- fisher.test(tbl, alternative="two.sided") # fisher's exact test
-        if(enrichment(k=a, n=a+c, C=a+b, G=a+b+c+d) >= 1) direction = '+' else direction = '-' # direction of enrichment
-        contingency[go,] <- c(go, a, b, c, d, direction, res$p.value, res$estimate, NA, NA)
+    for (go in unique(go_genes$GO.ID)){
+        if (!is.na(go)){
+            a <- length(unique(top[which(top$GO.ID==go),]$gene)) # Genes in top features and have `go`
+            b <- length(unique(bg[which(bg$GO.ID==go),]$gene)) # Genes not in top features and have `go`
+            c <- length(unique(top$gene)) - a # Genes in top features and do not have `go`
+            d <- length(unique(bg$gene)) - b # Genes not in top features and do not have `go`
+            tbl <- matrix(c(a, b, c, d), ncol=2, byrow=TRUE) # gene contingency table
+            res <- fisher.test(tbl, alternative="two.sided") # fisher's exact test
+            if (a+b!=0){
+                if(enrichment(k=a, n=a+c, C=a+b, G=a+b+c+d) >= 1) direction = '+' else direction = '-' # direction of enrichment
+                contingency <- rbind(contingency, c(go, a, b, c, d, direction, res$p.value, res$estimate, 'NA', 'NA'))
+            } # else {
+            #     contingency <- rbind(contingency, c(go, a, b, c, d, 'NA', 'NA', 'NA', 'NA', 'NA'))
+            # }
+        }
     }
+    contingency <- contingency[-1,] # drop first row with NAs
+
+    # drop go terms that were not found in either the top or bg sets
+    # print(dim(contingency))
+    # sub_contingency <- contingency[which(!is.na(contingency$direction)),]
+    # print(dim(sub_contingency))
     
     # Calculate q-values
-    print("   Calculating q values...")
     contingency$p.val <- as.numeric(contingency$p.val)
     sub <- contingency[!(contingency$p.val==1),] # don't include rows with p_val=1
-    if (dim(sub)[1] > 1){
+    
+    # add biological process, cellular component, and molecular function info
+    if (nrow(sub)!=0){
+        print("   Grabbing BP, CC, and MF info...")
+        sub$BP <- "" # biological process
+        sub$CC <- "" # cellular component
+        sub$MF <- "" # molecular function
+        for(i in 1:nrow(sub)){
+            tryCatch({
+                if(!is.null(getGOTerm(sub[i,1])$BP[1])) sub[i,11] <- getGOTerm(sub[i,1])$BP[1]
+                if(!is.null(getGOTerm(sub[i,1])$CC[1])) sub[i,12] <- getGOTerm(sub[i,1])$CC[1]
+                if(!is.null(getGOTerm(sub[i,1])$MF[1])) sub[i,13] <- getGOTerm(sub[i,1])$MF[1]
+            }, error = function(e){print(paste("no GO for ", sub[i,1])); NaN},
+                finally = {})
+        }
+        print("   Calculating q values...")
         qvals <- qvalue(sub$p.val, lambda=0)
         sub$qvalues <- qvals$qvalues
         sub$lfdr <- qvals$lfdr
         # save contingency table
-        out <- rbind(sub, contingency[which(contingency$p.val==1),])
-        out <- out[order(out$qvalues),]
-        write.table(out, paste(path, "tsv", sep=""), sep="\t", quote=F, row.names=F)
+        sub <- sub[order(sub$qvalues),]
+        write.table(sub, paste(path, "tsv", sep=""), sep="\t", quote=F, row.names=F)
+
+        # plot qvalues and lfdr 
+        path <- gsub("ORA", "ORA_qval_vs_lfdr", path)
+        ggplot(sub, aes(x=qvalues, y=lfdr)) + geom_point() + 
+            geom_smooth(method="lm", color="black") +
+            labs(x="q-values", y="local FDR") + theme_bw()
+        ggsave(paste(path, "pdf", sep=""))
 
         # Generate heatmaps for significant go terms        
+        # Biological process
         toplot <- sub[(sub$BP != '' & sub$lfdr < 0.05),] # sig GO terms # sub$qvalues < 0.05 & 
         print(nrow(toplot))
-        if (dim(toplot)[1] != 0){
-            toplot$logP <- 0
-            toplot <- toplot[order(toplot$qvalues, decreasing=T),]
-            for(i in 1:nrow(toplot)){ # take the log of the q-values
-                if(toplot$direction[i] == '-') toplot$logP[i] <- log10(toplot$qvalues[i])
-                if(toplot$direction[i] == '+') toplot$logP[i] <- -log10(toplot$qvalues[i])
-            }
-            if (nrow(toplot[toplot$logP < -10,])!=0) toplot[toplot$logP < -10,]$logP <- -10
-            if (nrow(toplot[toplot$logP > 10,])!=0) toplot[toplot$logP > 10,]$logP <- 10
-            print("   Generating heatmap...")
-            heatmap2(toplot, path)
-        }
-        #plotfdr <- as.matrix(cbind(toplot$lfdr, c(1))
-    } else {
-        write.table(contingency, path, sep="\t", quote=F, row.names=F)
+        if (dim(toplot)[1] != 0) heatmap2(toplot, toplot$BP, paste(path, "BP.pdf", sep=""))
+        # Cellular Component
+        toplot <- sub[(sub$CC != '' & sub$lfdr < 0.05),] # sig GO terms # sub$qvalues < 0.05 & 
+        print(nrow(toplot))
+        if (dim(toplot)[1] != 0) heatmap2(toplot, toplot$CC, paste(path, "CC.pdf", sep=""))
+        # Molecular Function
+        toplot <- sub[(sub$MF != '' & sub$lfdr < 0.05),] # sig GO terms # sub$qvalues < 0.05 & 
+        print(nrow(toplot))
+        if (dim(toplot)[1] != 0) heatmap2(toplot, toplot$MF, paste(path, "MF.pdf", sep=""))
     }
 }
 
@@ -248,10 +300,13 @@ go_enrichment <- function(f){
     ### ORA and GSEA of top gene features
     # add gene information to top snp file
     top <- get_genes(f)
+
+    # drop intergenic snps from top
+    top <- top[which(!is.na(top$gene)),]
     
     # name of importance score file
     name <- str_extract(f, "[A-Z0-9]+_[0-9]+[^_training.csv]") # extract file name
-    name <- gsub("_", "_exp_rf_", name)
+    # name <- gsub("_", "_exp_rf_", name)
     print(paste("File", name, sep=" "))
     
     ### Step 1. add mean importance scores to rank genes for GSEA
@@ -276,20 +331,19 @@ go_enrichment <- function(f){
     #     sep=""), sep="\t", quote=FALSE, row.names=FALSE)
     
     ### Step 2: calculate the enrichment score
-    bg <- with_go[!(with_go$gene %in% top$gene),] # remove top from background set
+    bg <- go_genes[!(go_genes$gene %in% top$gene),] # remove top from background set
     bg <- bg[c(4,9,22:24)] # keep only gene, GO.ID, BP, CC, MF
     bg <- bg[!duplicated(bg),] # remove duplicates
     print(paste("   Top Genes: ", length(unique(top$gene)), sep=""))
     print(paste("   Genes not in top: ", length(unique(bg$gene)), sep=""))
+    print(paste("   Total number of genes is correct: ", length(unique(top$gene))+length(unique(bg$gene))==length(unique(go_genes$gene))))
     
     ## Overrepresentation Analysis
-    save <- paste("Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs/ORA_", str_extract(f,
+    path <- paste("Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs/ORA_", str_extract(f,
         "SHAP_values_sorted_average_[A-Z0-9]+_[0-9]+_training[^txt]"), sep="")
-    ora(with_go, top, bg, save)
+    ora(go_genes, top, bg, path)
 }
 
-# GO mapped to genes
-with_go <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go.csv", sep="\t")
 
 # Read in top features' (FS) average SHAP values files
 dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs" # path to FS average SHAP files
@@ -297,7 +351,4 @@ files <- list.files(path=dir, pattern="SHAP_values_sorted_average_Y",
                     full.names=TRUE, recursive=FALSE)
 
 mclapply(X=files, FUN=go_enrichment, mc.cores=35) # match go to orfs
-#lapply(files, go_enrichment)
-
-
-### Generate a large heatmap combining all SHAP values GO enrichment
+# lapply(files, go_enrichment)

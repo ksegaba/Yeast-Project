@@ -4,10 +4,11 @@ XGBoost for regression on SNP, ORF, and CNO data from Peter et al. 2018
 # Required Inputs
     -X      Path to feature matrix
     -Y      Path to label matrix
-    -test   List of test instances
+    -test   Path to list of test instances file
     -trait  Column name of target trait in Y matrix
-    -save   Path to save output files
+    -save   Path to folder to save output files to
     # Optional
+    -feat   Path to list of training features file (default is all)
     -type   Feature types (e.g. SNP (default), ORF, CNO)
     -fold   k folds for Cross-Validation (default is 5)
     -n      Number of CV repetitions (default is 10)
@@ -55,8 +56,8 @@ def tune_model(xg_reg, X_train, y_train, data_type, trait, fold):
     parameters = {"gamma": [0,0.01], # min split loss
                 "eta":[0.3, 0.1, 0.03], # learning rate
                 "max_depth":[3, 6, 7], # tree depth
-                "subsample": [0.5, 1], # instances per tree
-                "colsample_bytree": [0.5, 1], # features per tree
+                "subsample": [0.3, 1], # instances per tree
+                "colsample_bytree": [0.3, 0.5, 1], # features per tree
                 "n_estimators": [100, 300, 500]} # sample training instances
     gs = GridSearchCV(estimator=xg_reg,
                 param_grid=parameters,
@@ -195,6 +196,8 @@ if __name__ == "__main__":
     
     # Optional input
     req_group.add_argument(
+        "-feat", help="Path to list of training features file (default is all)", default="all")
+    req_group.add_argument(
         "-type", help="data type of X matrix (e.g. SNP, ORF, CNO)", default="SNP")
     req_group.add_argument(
         "-fold", help="k number of cross-validation folds", default=5)
@@ -213,6 +216,15 @@ if __name__ == "__main__":
     X.set_index(X.columns[0], inplace=True)
     Y = pd.read_csv(args.Y, index_col=0)
     test = pd.read_csv(args.test, sep="\t", header=None)
+
+    # Filter out features not in feat file
+    if args.feat != "all":
+        print("Using subset of %s features" % args.feat)
+        with open(args.feat) as f:
+            features = f.read().strip().splitlines()
+            features = ["ID"] + features
+        X = X.reindex(columns=features)
+        print(X.shape)
 
     # Train the model
     start = time.time()

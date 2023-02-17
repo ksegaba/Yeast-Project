@@ -10,7 +10,7 @@ ID=X[,1]
 X=as.matrix(X[,-1])
 rownames(X)=ID
 
-MAP=fread('../data/feat_map_for_GDLC.csv',data.table=FALSE)
+MAP=fread('../../data/feat_map_for_GDLC.csv',data.table=FALSE)
 tmp=matrix(byrow=TRUE,ncol=2,data=unlist(strsplit(MAP[,1],split='_')))
 getChr=function(x){
   n=length(unlist(strsplit(tmp,split='')))
@@ -44,10 +44,10 @@ for(i in 1:length(models)){
        B=readBinMat('ETA_2_b.bin')!=0
        VAR_COMP[VAR_COMP$trait==trait,]$h2=1-fm$varE 
 
-       LFDR=1-colMeans(B)
+       LFDR=1-colMeans(B) # 1 - posterior probability = local FDR
        DS=segments(LFDR,chr=MAP$chr,bp=MAP$Mbp,threshold=0.97,gap=.05)
        
-       DS$setPIP=NA
+       DS$setPIP=NA # posterior inclusion probability
        for(i in 1:nrow(DS)){
          DS$setPIP[i]=mean(apply(FUN=any,X=B[,DS$start[i]:DS$end[i]]!=0,MARGIN=1))
        }
@@ -70,3 +70,12 @@ for(i in 1:length(models)){
        write.csv(DS,file=paste0('DS_',trait,'_.csv'))
      setwd('../')
 }
+
+
+pdf('posterior_probs.pdf')
+plot(colMeans(B))
+dev.off()
+
+
+# consider ld pruning, or do ld blocks and pick a couple of snps per block (can be done in plink)
+# can do by chromosome to make sure blocks don't have snps that are too far away

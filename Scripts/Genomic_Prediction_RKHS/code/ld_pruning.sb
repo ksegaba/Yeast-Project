@@ -1,0 +1,61 @@
+#!/bin/bash --login
+#SBATCH --job-name=ld_pruning
+#SBATCH --time=4:00:00
+#SBATCH --mem=16G
+#SBATCH --array=1-16
+#SBATCH --output=../logs/%x_%A_%a.out
+
+# Convert geno.csv to vcf
+cd /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Data_Processing/
+geno=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv
+out=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv.vcf
+python csv_to_vcf.py -csv $geno -out $out
+
+# Split VCF into individual chromosomes
+module load bcftools/1.9.64 GCC/6.4.0-2.28  OpenMPI/2.1.2
+bcftools view $out -Oz -o ${out}.gz # block compression
+module load tabix/0.2.6 GCC/4.9.3-2.25  OpenMPI/1.10.2
+tabix ${out}.gz # indexer
+module load bcftools/1.9.64 GCC/6.4.0-2.28  OpenMPI/2.1.2
+for i in {1..16} # split by chromosome
+do
+bcftools view ${out}.gz --regions ${i} -o ${geno}_chr${i}.vcf -O v
+done
+
+# LD Pruning by chromosome with Plink
+cd /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RKHS/code
+plink19=/mnt/home/seguraab/Shiu_Lab/Project/External_software
+data=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
+ws=500 # window size in kb
+step=50 # step size in kb
+rsq=0.90 # exclude SNP pairs above r^2 threshold
+# chr=$SLURM_ARRAY_TASK_ID # chromosome number
+for chr in {1..16} # split by chromosome
+do
+${plink19}/plink2 --vcf ${data}/geno.csv_chr${chr}.vcf --make-bed --out ${data}/geno.csv_chr${chr}
+${plink19}/plink --bfile ${data}/geno.csv_chr${chr} --indep-pairwise $ws $step $rsq -out ${data}/geno.csv_chr${chr}_rsq90
+done
+
+# Combine list of SNPs that were not pruned out
+cd /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
+cat geno.csv_chr1_rsq90.prune.in >> tmp
+for chr in {1..16} # split by chromosome
+do
+echo ' geno.csv_chr${chr}_rsq90.prune.in '
+cat tmp geno.csv_chr${chr}_rsq90.prune.in >> geno.csv_prune.in.txt
+mv geno.csv_prune.in.txt tmp
+done
+wc -l tmp # 85660 snps
+mv tmp geno.csv_prune.in.txt
+
+# Subset geno.csv in python
+python
+import pandas as pd
+prunein = pd.read_csv('geno.csv_prune.in.txt', header=None)
+import datatable as dt
+geno = dt.fread('geno.csv')
+geno = geno.to_pandas()
+geno.set_index('ID', inplace=True)
+sub = geno[geno.columns.intersection(prunein[0])]
+sub.shape # (750 isolates, 85660 snps)
+sub.to_csv("geno_pruned.csv", chunksize=50)
