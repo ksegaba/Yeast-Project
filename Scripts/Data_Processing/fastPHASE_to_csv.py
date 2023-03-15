@@ -95,7 +95,7 @@ def fastPHASE_to_csv(inf, map, save):
 
 if __name__=="__main__":
     # Argument parser
-    parser = argparse.ArgumentParser(description="Convert fastPHASE format to matrix format")
+    parser = argparse.ArgumentParser(description="Test script to convert vcf to matrix format")
     req_group = parser.add_argument_group(title="REQUIRED INPUT")
     req_group.add_argument("-path", type=str, help="Path to working directory.", required=True)
     req_group.add_argument("-file", type=str, help="Name of fastPHASE imputed _genotype.out file in the working directory.", required=True)
