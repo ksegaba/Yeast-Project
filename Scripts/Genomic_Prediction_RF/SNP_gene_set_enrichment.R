@@ -69,7 +69,7 @@ for(i in 1:nrow(go)){
         finally = {})
 }
 # write.csv(go, "Data/yeast_GO/sgd_GO_BP.csv", quote=F, row.names=F)
-# go <- read.csv("Data/yeast_GO/sgd_GO_BP.csv")
+go <- read.csv("Data/yeast_GO/sgd_GO_BP.csv")
 
 ########################### Map GO terms to SNPs ###########################
 genes <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt",
@@ -78,15 +78,16 @@ colnames(genes) <- c("snp", "chr", "pos", "gene")
 genes <- genes[!(genes$gene=="intergenic"),] # drop intergenic snps
 out <- left_join(genes, go, by=c("gene"="Gene"))
 with_go <- out[complete.cases(out$GO.ID),] # genes with go terms
+sum(is.na(with_go)) # 0
 no_go <- out[is.na(out$GO.ID),] # genes with no go terms
 go_genes <- out
 write.table(go_genes, 
-    "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go_all.csv", sep="\t")
+    "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go_all.tsv", sep="\t")
 write.table(with_go, 
-    "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go.csv", sep="\t", 
+    "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go.tsv", sep="\t", 
     quote=F, row.names=F)
 write.table(no_go, 
-    "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_no_go.csv", sep="\t", 
+    "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_no_go.tsv", sep="\t", 
     quote=F, row.names=F)
 
 ################################################################################
@@ -102,7 +103,7 @@ get_genes <- function(f, baseline=F) {
     # add the genes and GO annotations to each SHAP file
     df <- read.delim(f, sep="\t") # read in shap values
     colnames(df) <- c("SNP", "shap_value")
-    out <- right_join(go_genes, df, by=c("snp"="SNP")) # add gene & go information
+    out <- right_join(with_go, df, by=c("snp"="SNP")) # add gene & go information
     name <- str_extract(f, "SHAP_values_sorted_average_[A-Z0-9]+_[0-9]+_training[^txt]") # extract file name
     name <- gsub("SHAP", "GO_SHAP", name)
     path <- as.character("Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs")
@@ -184,11 +185,11 @@ heatmap2 <- function(toplot, rownames, path){
     write.table(toplot, path, sep="\t", quote=F, row.names=T)
 }
 
-make_contingency <- function(go_genes){
-    cols <- c("GO", "ORF_top_has_GO", "ORF_not_top_has_GO", "ORF_top_no_GO",
-              "ORF_not_top_no_GO", "direction", "p.val", "odds ratio", "qvalues", "lfdr")
-    contingency <- data.frame(matrix(0, nrow=length(unique(go_genes$GO.ID)),
-        ncol=10, dimnames=list(unique(go_genes$GO.ID), cols)))
+make_contingency <- function(with_go){
+    cols <- c("GO", "Gene_top_has_GO", "Gene_not_top_has_GO", "Gene_top_no_GO",
+              "Gene_not_top_no_GO", "direction", "p.val", "odds ratio", "qvalues", "lfdr")
+    contingency <- data.frame(matrix(0, nrow=length(unique(with_go$GO.ID)),
+        ncol=10, dimnames=list(unique(with_go$GO.ID), cols)))
     contingency$GO <- rownames(contingency)
 
     print("   Grabbing BP, CC, and MF info...")
@@ -206,25 +207,25 @@ make_contingency <- function(go_genes){
     return(contingency)
 }
 
-ora <- function(go_genes, top, bg, path){
+ora <- function(with_go, top, bg, path){
     # Overrepresentation Analysis
-    # go_genes: dataframe of all genes and GO annotations
+    # with_go: dataframe of all genes and GO annotations
     # top: dataframe of genes of interest
     # bg: dataframe of genes in background set
     # path: file path and name to save as
 
     # create contingency table
-    cols <- c("GO", "ORF_top_has_GO", "ORF_not_top_has_GO", "ORF_top_no_GO",
-              "ORF_not_top_no_GO", "direction", "p.val", "odds ratio", "qvalues", "lfdr")
+    cols <- c("GO", "Gene_top_has_GO", "Gene_not_top_has_GO", "Gene_top_no_GO",
+              "Gene_not_top_no_GO", "direction", "p.val", "odds ratio", "qvalues", "lfdr")
     contingency <- data.frame(matrix(nrow=1, ncol=10))
     colnames(contingency) <- cols
-    # contingency <- data.frame(matrix(0, nrow=length(unique(go_genes$GO.ID)),
-    #     ncol=10, dimnames=list(unique(go_genes$GO.ID), cols)))
+    # contingency <- data.frame(matrix(0, nrow=length(unique(with_go$GO.ID)),
+    #     ncol=10, dimnames=list(unique(with_go$GO.ID), cols)))
     # contingency$GO <- rownames(contingency)
     
     # fill in contingency table for each gene
     print("   Running ORA...")
-    for (go in unique(go_genes$GO.ID)){
+    for (go in unique(with_go$GO.ID)){
         if (!is.na(go)){
             a <- length(unique(top[which(top$GO.ID==go),]$gene)) # Genes in top features and have `go`
             b <- length(unique(bg[which(bg$GO.ID==go),]$gene)) # Genes not in top features and have `go`
@@ -301,9 +302,12 @@ go_enrichment <- function(f){
     # add gene information to top snp file
     top <- get_genes(f)
 
-    # drop intergenic snps from top
-    top <- top[which(!is.na(top$gene)),]
+    # drop snps without GO annotations
+    top <- top[which(!is.na(top$GO)),]
     
+    # drop intergenic snps from top
+    top <- top[which(top$gene!="intergenic"),]
+
     # name of importance score file
     name <- str_extract(f, "[A-Z0-9]+_[0-9]+[^_training.csv]") # extract file name
     # name <- gsub("_", "_exp_rf_", name)
@@ -331,23 +335,24 @@ go_enrichment <- function(f){
     #     sep=""), sep="\t", quote=FALSE, row.names=FALSE)
     
     ### Step 2: calculate the enrichment score
-    bg <- go_genes[!(go_genes$gene %in% top$gene),] # remove top from background set
+    bg <- with_go[!(with_go$gene %in% top$gene),] # remove top from background set
     bg <- bg[c(4,9,22:24)] # keep only gene, GO.ID, BP, CC, MF
     bg <- bg[!duplicated(bg),] # remove duplicates
     print(paste("   Top Genes: ", length(unique(top$gene)), sep=""))
     print(paste("   Genes not in top: ", length(unique(bg$gene)), sep=""))
-    print(paste("   Total number of genes is correct: ", length(unique(top$gene))+length(unique(bg$gene))==length(unique(go_genes$gene))))
+    print(paste("   Total number of genes is correct: ", length(unique(top$gene))+length(unique(bg$gene))==length(unique(with_go$gene))))
     
     ## Overrepresentation Analysis
     path <- paste("Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs/ORA_", str_extract(f,
         "SHAP_values_sorted_average_[A-Z0-9]+_[0-9]+_training[^txt]"), sep="")
-    ora(go_genes, top, bg, path)
+    ora(with_go, top, bg, path)
 }
 
+with_go <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go.tsv", sep="\t")
 
 # Read in top features' (FS) average SHAP values files
 dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs" # path to FS average SHAP files
-files <- list.files(path=dir, pattern="SHAP_values_sorted_average_Y", 
+files <- list.files(path=dir, pattern="^SHAP_values_sorted_average_Y", 
                     full.names=TRUE, recursive=FALSE)
 
 mclapply(X=files, FUN=go_enrichment, mc.cores=35) # match go to orfs
