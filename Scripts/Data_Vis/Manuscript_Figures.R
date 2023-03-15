@@ -1,4 +1,24 @@
+################################################################################
 # Chapter 1 Manuscript Figures
+# Table of Contents:
+# line : Fitness
+# line : Kinship
+# line : Fitness vs Kinship
+# line : Linkage Disequilibrium Decay
+# line : ORF presence/absence and copy number variations
+# line : Isolate fitness correlatinos vs ORF dataset correlations
+# line : Kinship and ORF dataset correlations
+# line : TASSEL5 Principal Component Analysis (PCA) plots
+# line : Random Forest (RF) prediction performances (baseline using all features)
+# line : RF feature selection (FS) curves
+# line : RF after FS: Test set performance comparisons
+# line : Heritability $ RF FS performance comparison
+# line : GO Enrichment (RF after FS models)
+# line : Pathway Enrichment (RF after FS models)
+# line : Gene RF importance scores (after FS) comparisons across data types
+#
+
+rm(list=ls())
 suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(gplots))
 suppressPackageStartupMessages(library(ggplot2))
@@ -41,7 +61,7 @@ conds <- as.data.frame(cbind(cond, new_cond))
 ################################################################################
 # FITNESS
 ################################################################################
-pheno <- read.csv("Data/Peter_2018/pheno.csv", header=T, row.names=1) # fitness data
+pheno <- read.csv("Data/Peter_2018/pheno.csv", row.names=1) # fitness data
 pheno <- pheno[,cond[order(cond)]] # re-order columns
 pheno <- reshape2::melt(pheno) # pivot longer
 
@@ -52,10 +72,29 @@ ggplot(pheno, aes(x=variable, y=value)) + theme_bw(8) +
         theme(axis.text.y=element_text(color="black", size=9))
 ggsave("Scripts/Data_Vis/fitness_boxplot.pdf", width=8, height=4, device="pdf", useDingbats=FALSE)
 
+# Fitness correlations among replicates (ensure data quality)
+reps <- read.csv("Data/Peter_2018/1002_pheno_all_conditions_4Rep_40h.csv")
+reps <- reps[!is.na(reps$Growth.ratio),]
+length(unique(reps$Strain)) # only have replicate info for 382 strains :(
+stats <- reps %>% group_by(Condition, Strain) %>% 
+        dplyr::summarize(min=min(Growth.ratio), Q1=quantile(Growth.ratio, 0.25), 
+                median=median(Growth.ratio), mean=mean(Growth.ratio), 
+                sd=sd(Growth.ratio), Q3=quantile(Growth.ratio, 0.75), 
+                max=max(Growth.ratio))
+IDs <- read.csv("Data/Peter_2018/IDcorrespondance.txt", sep="\t")
+stats <- right_join(IDs, stats, by=c("YJS_name"="Strain"))
+pheno <- read.csv("Data/Peter_2018/pheno.csv")
+stats <- stats[stats$Standardized_name %in% pheno$ID, ] # keep only diploids
+length(unique(stats$Standardized_name)) # only have replicate info for 124 diploids
+write.csv(stats, "Data/Peter_2018/1002_pheno_all_conditions_4Rep_40h_only_diploids.csv", quote=F, row.names=F)
+summary(stats[4:10]) # interested in the sd, these should be small
+ggplot() + geom_point(aes(x=sd, y=mean, group=Condition, alpha=0.1), stats)
+ggsave("Data/Peter_2018/1002_pheno_all_conditions_4Rep_40h_only_diploids_stdev.pdf")
+
 # FITNESS CORRELATIONS
-pCorEnvs <- read.csv("Data/Peter_2018/pheno_corr_envs.csv", header=T, row.names=1) # Correlation between conditions
+pCorEnvs <- read.csv("Data/Peter_2018/pheno_corr_envs.csv", row.names=1) # Correlation between conditions
 colnames(pCorEnvs) <- rownames(pCorEnvs)
-pCorIso <- read.csv("Data/Peter_2018/pheno_corr_isolates.csv", header=T, row.names=1) # Correlation between isolates across all conditions
+pCorIso <- read.csv("Data/Peter_2018/pheno_corr_isolates.csv", row.names=1) # Correlation between isolates across all conditions
 pCorIso[pCorIso < 0] <- 0
 
 pdf("Scripts/Data_Vis/pheno_corr_isolates.pdf") # v1, v2 [set <0 to 0] (kinship order), v3 (not kinship order, changed color, set neg to 0)
@@ -141,7 +180,7 @@ dev.off()
 kin <- fread("Data/Peter_2018/geno_transposed.csv_ordered_kinship.txt", skip=3)
 kin <- as.matrix(kin, rownames=1, colnames=1)
 colnames(kin) <- rownames(kin)
-write.csv(kin, "Scripts/Data_Vis/kinship.csv", quote=F, row.names=T)
+write.csv(kin, "Data/Peter_2018/kinship.csv", quote=F, row.names=T)
 
 pdf("Scripts/Data_Vis/kinship.pdf")
 hm <- heatmap.2(kin, 
@@ -464,7 +503,7 @@ pcs %>% ggplot(aes(x=PC1, y=PC5, col=`Geographical origins`)) + geom_point() + t
 dev.off()
 
 ################################################################################
-# RANDOM FOREST PREDICTION ACCURACY (figures in excel)
+# RANDOM FOREST PREDICTION PERFORMANCE (figures in excel)
 ################################################################################
 # SNP Models
 path <- "/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results"
@@ -559,12 +598,49 @@ out <- get_opt_feat(rf_orf_fs) # optimal models
 write.table(out, "Results/RESULTS_RF_ORFs_FS.txt", sep="\t", row.names=F, quote=F)
 
 ################################################################################
-# RANDOM FOREST AFTER FEATURE SELECTION TEST SET PERFORMANCE COMPARISONS
+# RANDOM FOREST AFTER FEATURE SELECTION: TEST SET PERFORMANCE COMPARISONS
 ################################################################################
-pcs <- read.table("Results/RESULTS_RF_PCs.txt", sep="\t", header=T)
-snp <- read.table("Results/RESULTS_RF_SNPs_FS.txt", sep="\t", header=T)
+pcs <- read.table("Results/RESULTS_RF_PCs.txt", sep="\t", header=T, row.names=3)
+snp <- read.table("Results/RESULTS_RF_SNPs_FS.txt", sep="\t", header=T, row.names=2)
 orf <- read.table("Results/RESULTS_RF_ORFs_FS.txt", sep="\t", header=T)
 cnv <- read.table("Results/RESULTS_RF_CNVs_FS.txt", sep="\t", header=T)
+orf <- right_join(conds, orf, by=c("cond"="Y"))
+rownames(orf) <- orf$new_cond
+cnv <- right_join(conds, cnv, by=c("cond"="Y"))
+rownames(cnv) <- cnv$new_cond
+
+# Bar plots with validation and PC performances for SNPs, ORFs, and CNVs
+pcs <- pcs[order(rownames(pcs)),] # ensure all environments are in the same order
+snp <- snp[rownames(pcs),]
+orf <- orf[rownames(pcs),]
+cnv <- cnv[rownames(pcs),]
+rownames(pcs)==rownames(snp)
+rownames(pcs)==rownames(orf)
+rownames(pcs)==rownames(cnv)
+
+ggplot() + geom_bar(aes(x=new_cond,y=r2_val), snp, fill="#90CE4F", stat="identity") +
+        geom_errorbar(aes(x=new_cond, ymin=r2_val-r2_val_sd, 
+                ymax=r2_val+r2_val_sd), snp, width=0.2) +
+        geom_point(aes(x=rownames(pcs), y=r2_test), pcs, size=2.5, col="#702EA0") +
+        geom_tile(aes(x=new_cond, y=r2_test, width=.9, height=.005), snp, fill="black") +
+        theme_bw(10) + theme(axis.text.x=element_text(angle=45, hjust=1))
+ggsave("Scripts/Data_Vis/snp_RF_performance_after_fs.pdf", width=8, height=4, units="in")
+
+ggplot() + geom_bar(aes(x=new_cond,y=r2_val), orf, fill="#FFC000", stat="identity") +
+        geom_errorbar(aes(x=new_cond, ymin=r2_val-r2_val_sd, 
+                ymax=r2_val+r2_val_sd), orf, width=0.2) +
+        geom_point(aes(x=rownames(pcs), y=r2_test), pcs, size=2.5, col="#702EA0") +
+        geom_tile(aes(x=new_cond, y=r2_test, width=.9, height=.005), orf, fill="black") +
+        theme_bw(10) + theme(axis.text.x=element_text(angle=45, hjust=1))
+ggsave("Scripts/Data_Vis/orf_RF_performance_after_fs.pdf", width=8, height=4, units="in")
+
+ggplot() + geom_bar(aes(x=new_cond,y=r2_val), cnv, fill="#5B9BD5", stat="identity") +
+        geom_errorbar(aes(x=new_cond, ymin=r2_val-r2_val_sd, 
+                ymax=r2_val+r2_val_sd), cnv, width=0.2) +
+        geom_point(aes(x=rownames(pcs), y=r2_test), pcs, size=2.5, col="#702EA0") +
+        geom_tile(aes(x=new_cond, y=r2_test, width=.9, height=.005), cnv, fill="black") +
+        theme_bw(10) + theme(axis.text.x=element_text(angle=45, hjust=1))
+ggsave("Scripts/Data_Vis/cnv_RF_performance_after_fs.pdf", width=8, height=4, units="in")
 
 # Combine performances
 test <- list(pcs[c(1,31)], snp[c(1,31)], orf[c(1,31)], cnv[c(1,31)]) %>% 
@@ -693,13 +769,12 @@ ggplot(h2, aes(x=SNPs, y=h2)) + geom_point() +
         theme(axis.text.y = element_text(size=9, color="black"))
 ggsave("Scripts/Data_Vis/h2_vs_test_R2_RF_FS_lm.pdf", width=5, height=5, device="pdf", useDingbats=FALSE)
 
-
 ################################################################################
-# GO ENRICHMENT
+# GO ENRICHMENT (RF MODELS AFTER FS)
 ################################################################################
 ## SNPs
 dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs" # path to ORA results files
-files <- list.files(path=dir, pattern="ORA_SHAP_", full.names=T, recursive=F)
+files <- list.files(path=dir, pattern="^ORA_SHAP_", full.names=T, recursive=F)
 
 # read in the first file
 trait <- str_extract(files[1], "YP[A-Z0-9]+[^_]")
@@ -743,6 +818,13 @@ df_logQ <- df_logQ %>% dplyr::select(which(apply(df_logQ, 2, n_distinct) > 1)) #
 new_order <- c("GO", sort(colnames(df_logQ[2:8])), "BP", "CC", "MF") # sort columns
 df_logQ <- df_logQ[,new_order]
 
+# get genes annotated with these go terms
+path <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go.tsv"
+genes <- read.csv(path, sep="\t")
+df_logQ <- left_join(df_logQ, genes[c(4,9)], by=c("GO"="GO.ID"))
+df_logQ <- df_logQ[!duplicated(df_logQ),] # drop duplicate rows due to many snps per gene
+write.csv(df_logQ, "Scripts/Data_Vis/SNPs_GO_BP_CC_MF_logQ_genes.csv", quote=F, row.names=F)
+
 # separate into GO categories
 BP <- df_logQ[which(df_logQ$BP!=""),-c(1,10,11)]
 rownames(BP) <- BP$BP
@@ -758,6 +840,7 @@ MF <- MF[-8]
 
 # heatmaps (red=enriched, blue=underrepresented)
 plot_hm <- function(df, range){
+        # Function to plot heatmap
         p <- Heatmap(as.matrix(df), 
                 col=col_fun,
                 na_col="grey",
@@ -771,8 +854,8 @@ plot_hm <- function(df, range){
                 border_gp = gpar(col="black", lty=1),
                 #rect_gp = gpar(col="black", lty=1),
                 name="log10(q-values)",
-                # width=ncol(BP)*unit(1, "cm"),
-                # height=ncol(BP)*unit(0.5, "cm"),
+                width=ncol(df)*unit(0.5, "cm"),
+                height=nrow(df)*unit(0.5, "cm"),
                 heatmap_legend_param=list(title="log10(qval)", 
                 at=range))
         return (p)
@@ -791,7 +874,7 @@ dev.off()
 # see /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/ORF_gene_set_enrichment.R
 # line 442
 dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/ORFs/fs" # path to ORA results files
-files <- list.files(path=dir, pattern="ORA_SHAP_", full.names=T, recursive=F)
+files <- list.files(path=dir, pattern="^ORA_SHAP_", full.names=T, recursive=F)
 
 # separate into orf and cnv data types
 files_orf <- c()
@@ -799,27 +882,6 @@ files_cnv <- c()
 for (i in 1:length(files)){
         if (grepl("_orf_", files[i])) files_orf <- c(files_orf, files[i])
         if (grepl("_cno_", files[i])) files_cnv <- c(files_cnv, files[i])
-}
-
-plot_hm <- function(df, range){
-        # Function to plot heatmap
-        p <- Heatmap(as.matrix(df), 
-                col=col_fun,
-                na_col="grey",
-                cluster_rows=F, 
-                show_row_dend=F,
-                cluster_columns=F,
-                show_column_dend=F,
-                row_names_side="left",
-                row_names_gp = gpar(fontsize=8),
-                column_names_gp = gpar(fontize=8),
-                border_gp = gpar(col="black", lty=1),
-                name="log10(q-values)",
-                # width=ncol(BP)*unit(1, "cm"),
-                # height=ncol(BP)*unit(0.5, "cm"),
-                heatmap_legend_param=list(title="log10(qval)", 
-                at=range))
-        return (p)
 }
 
 combine <- function(files, path){
@@ -887,7 +949,7 @@ MF <- MF[-32]
 palette_func <- colorRampPalette(c("red", "white"))
 palette <- rev(palette_func(2)) 
 col_fun <- colorRamp2(c(0, max(df_logQ[2:32])), palette)
-pdf("Scripts/Data_Vis/ORFs_pres_abs_GO_BP_CC_MF_logQ.pdf", height=unit(9, "in"), width=unit(10, "in"))
+pdf("Scripts/Data_Vis/ORFs_pres_abs_GO_BP_CC_MF_logQ.pdf", height=unit(10, "in"), width=unit(15, "in"))
 p1 <- plot_hm(BP, range=c(0, max(df_logQ[2:32])))
 p2 <- plot_hm(CC, range=c(0, max(df_logQ[2:32])))
 p3 <- plot_hm(MF, range=c(0, max(df_logQ[2:32])))
@@ -919,12 +981,134 @@ MF <- MF[-30]
 palette_func <- colorRampPalette(c("red", "white"))
 palette <- rev(palette_func(2)) 
 col_fun <- colorRamp2(c(0, max(df_logQ[2:35])), palette)
-pdf("Scripts/Data_Vis/ORFs_copy_num_GO_BP_CC_MF_logQ.pdf", height=unit(9, "in"), width=unit(10, "in"))
+pdf("Scripts/Data_Vis/ORFs_copy_num_GO_BP_CC_MF_logQ.pdf", height=unit(10, "in"), width=unit(15, "in"))
 p1 <- plot_hm(BP, range=c(0, max(df_logQ[2:30])))
 p2 <- plot_hm(CC, range=c(0, max(df_logQ[2:30])))
 p3 <- plot_hm(MF, range=c(0, max(df_logQ[2:30])))
 draw(p1 %v% p2 %v% p3)
 dev.off()
+
+################################################################################
+# PATHWAY ENRICHMENT (RF MODELS AFTER FS)
+################################################################################
+## SNPs
+dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs" # path to ORA results files
+files <- list.files(path=dir, pattern="PWY_ORA_SHAP_", full.names=T, recursive=F)
+path <- "/mnt/home/seguraab/Shiu_Lab/Co-function/Data/MetaCyc/All-pathways-S288c_descriptions.txt"
+info <- read.csv(path, sep="\t")# pathway descriptions
+
+combine <- function(files, path){
+        # read in the first file
+        trait <- str_extract(files[1], "YP[A-Z0-9]+[^_]")
+        df <- read.csv(files[1], sep="\t")
+        df$Env <- trait # add environment to keep track where the GO term is enriched
+        df <- df[df$lfdr < 0.05,] # filter by local FDR
+
+        # combine with remaining environments
+        for (i in 2:length(files)){
+        trait <- str_extract(files[i], "YP[A-Z0-9]+[^_]") # environment name
+        df2 <- read.csv(files[i], sep="\t")
+        df2$Env <- trait
+        df2 <- df2[df2$lfdr < 0.05,]
+        df <- rbind.fill(df, df2)
+        }
+
+        # take the log of the q-values
+        df$logQ <- 0
+        df <- df[order(df$qvalues, decreasing=F),]
+        for(i in 1:nrow(df)){ 
+                if(df$direction[i] == '-') df$logQ[i] <- log10(df$qvalues[i])
+                if(df$direction[i] == '+') df$logQ[i] <- -log10(df$qvalues[i])
+        }
+        if (nrow(df[df$logQ < -10,])!=0) df[df$loggQ < -10,]$logQ <- -10 # set limits for extreme values
+        if (nrow(df[df$logQ > 10,])!=0) df[df$logQ > 10,]$logQ <- 10
+
+        # reshape
+        df_logQ <- df %>% group_by(Env) %>% 
+                pivot_wider(id_cols=PWY, names_from=Env, values_from=logQ) %>% 
+                as.data.frame()
+        df_logQ$PWY <- gsub(" ", "", df_logQ$PWY) # remove extra white spaces in df_logQ
+        df_logQ <- left_join(df_logQ, info[c('Pathways','Object.ID')], by=c('PWY'='Object.ID'))
+        # df_logQ <- df_logQ[!duplicated(df_logQ),]
+        write.table(df_logQ, path, sep="\t", quote=F, row.names=F)
+        return(df_logQ)
+}
+
+df_logQ <- combine(files, "Scripts/Data_Vis/SNPs_PWY_logQ.tsv")
+# df_logQ[is.na(df_logQ)] <- 0 # set insignificant q-values to zero
+# df_logQ <- df_logQ[which(df_logQ$YPD6AU >= 0),] # drop rows with negative values
+# df_logQ <- df_logQ %>% dplyr::select(which(apply(df_logQ, 2, n_distinct) > 1)) # drop columns with only zeroes
+
+# heatmap of significant pathways
+palette_func <- colorRampPalette(c("red", "white"))
+palette <- rev(palette_func(2)) 
+col_fun <- colorRamp2(c(0, max(df_logQ[2])), palette)
+rownames(df_logQ) <- df_logQ$Pathways
+pdf("Scripts/Data_Vis/SNPs_PWY_logQ.pdf", height=unit(9, "in"), width=unit(10, "in"))
+p <- plot_hm(df_logQ[2], range=c(0, max(df_logQ[2]))) # function in snp go enrichment
+draw(p)
+dev.off()
+
+# get genes annotated with these pathways
+path <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_pwy.csv"
+genes <- read.csv(path)
+genes$Pathways.of.gene <- gsub(" ", "", genes$Pathways.of.gene)
+df_logQ <- left_join(df_logQ, genes[c(2,6)], by=c("PWY"="Pathways.of.gene"))
+df_logQ <- df_logQ[!duplicated(df_logQ),] # drop duplicate rows due to many snps per gene
+write.csv(df_logQ, "Scripts/Data_Vis/SNPs_PWY_logQ_genes.csv", quote=F, row.names=F)
+
+## ORF presence/absence & ORF copy number
+dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/ORFs/fs" # path to ORA results files
+files <- list.files(path=dir, pattern="PWY_ORA_SHAP_", full.names=T, recursive=F)
+path <- "/mnt/home/seguraab/Shiu_Lab/Co-function/Data/MetaCyc/All-pathways-S288c_descriptions.txt"
+info <- read.csv(path, sep="\t")# pathway descriptions
+
+files_orf <- c()
+files_cnv <- c()
+for (i in 1:length(files)){
+        if (grepl("_orf_", files[i])) files_orf <- c(files_orf, files[i])
+        if (grepl("_cno_", files[i])) files_cnv <- c(files_cnv, files[i])
+}
+
+df_logQ_orf <- combine(files_orf, "Scripts/Data_Vis/ORFs_pres_abs_PWY_logQ.tsv") # function on line 996
+df_logQ_cnv <- combine(files_cnv, "Scripts/Data_Vis/ORFs_copy_num_PWY_logQ.tsv")
+
+df_logQ_orf[is.na(df_logQ_orf)] <- 0 # set insignificant q-values to zero
+df_logQ_cnv[is.na(df_logQ_cnv)] <- 0
+df_logQ_orf <- df_logQ_orf %>% dplyr::select(which(apply(df_logQ_orf, 2, n_distinct) > 1)) # drop columns with only zeroes
+df_logQ_cnv <- df_logQ_cnv %>% dplyr::select(which(apply(df_logQ_cnv, 2, n_distinct) > 1))
+new_order <- c("PWY", sort(colnames(df_logQ_orf[2:23])), "Pathways") # sort columns
+df_logQ_orf <- df_logQ_orf[,new_order]
+new_order <- c("PWY", sort(colnames(df_logQ_cnv[2:26])), "Pathways")
+df_logQ_cnv <- df_logQ_cnv[,new_order]
+
+# heatmaps of significant pathways
+palette_func <- colorRampPalette(c("red", "white"))
+palette <- rev(palette_func(2))
+col_fun <- colorRamp2(c(0, max(df_logQ_orf[2:23])), palette)
+rownames(df_logQ_orf) <- df_logQ_orf$Pathways
+pdf("Scripts/Data_Vis/ORFs_pres_abs_PWY_logQ.pdf", height=unit(9, "in"), width=unit(10, "in"))
+p <- plot_hm(df_logQ_orf[2:23], range=c(0, max(df_logQ_orf[2:23]))) # function on line 818
+draw(p)
+dev.off()
+
+col_fun <- colorRamp2(c(0, max(df_logQ_cnv[2:26])), palette)
+rownames(df_logQ_cnv) <- df_logQ_cnv$Pathways
+pdf("Scripts/Data_Vis/ORFs_copy_num_PWY_logQ.pdf", height=unit(9, "in"), width=unit(10, "in"))
+p <- plot_hm(df_logQ_cnv[2:26], range=c(0, max(df_logQ_cnv[2:26]))) # function on line 818
+draw(p)
+dev.off()
+
+# get genes annotated with these pathways
+path <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/ORFs_and_S288C_genes_pwy.csv"
+genes <- read.csv(path)
+genes$Pathways.of.gene <- gsub(" ", "", genes$Pathways.of.gene)
+df_logQ_orf <- left_join(df_logQ_orf, genes[c(2,6)], by=c("PWY"="Pathways.of.gene"))
+df_logQ_orf <- df_logQ_orf[!duplicated(df_logQ_orf),] # drop duplicate rows due to several orf gene matches
+write.csv(df_logQ_orf, "Scripts/Data_Vis/ORFs_pres_abs_PWY_logQ_genes.csv", quote=F, row.names=F)
+df_logQ_cnv <- left_join(df_logQ_cnv, genes[c(2,6)], by=c("PWY"="Pathways.of.gene"))
+df_logQ_cnv <- df_logQ_cnv[!duplicated(df_logQ_cnv),]
+write.csv(df_logQ_cnv, "Scripts/Data_Vis/ORFs_copy_num_PWY_logQ_genes.csv", quote=F, row.names=F)
 
 ################################################################################
 # GENE IMPORTANCE SCORE (AFTER FS) COMPARISONS ACROSS DATA TYPES (what about across envs per data type? too much?)
