@@ -1,4 +1,5 @@
 # Ignore the following directories
+Results/
 Data/
 External_software/
 .ipynb_checkpoints/
@@ -6,24 +7,22 @@ External_software/
 yeast_RF_results/
 yeast_rrBLUP_results/
 Scripts/All_Algorithms/
-Scripts/Genetic_Interactions/
 Scripts/Data_Vis/Data_Vis_Figures_64k_geno/
 Scripts/Data_Vis/ORF_CNO_Figures/
 Scripts/Data_Vis/SNP_Figures/
 Scripts/Data_Vis/Pheno_Figures/
 Scripts/Genomic_Prediction_rrBLUP/rrBLUP_Figures_64k_geno/
-Scripts/Genomic_Prediction_RKHS/logs
-Scripts/Genomic_Prediction_RKHS/output
-Scripts/Genomic_Prediction_RKHS/data/
-Scripts/Genomic_Prediction_RF/SHAP/
 Scripts/Genomic_Prediction_RF/RF_64k_geno/
 Scripts/Genomic_Prediction_RF/SHAP/ORFs/baseline/
 Scripts/Genomic_Prediction_RF/SHAP/ORFs/fs/
+Scripts/Genomic_Prediction_RF/SHAP/SNPs/baseline/
+Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs/
+Scripts/Genomic_Prediction_RKHS/logs
+Scripts/Genomic_Prediction_RKHS/output
 Scripts/Genomic_Prediction_XGBoost/XGBoost_Results_64k_geno/
 Scripts/Genomic_Prediction_BL/BL_Figures_64k_geno/
 Scripts/Genomic_Prediction_GBLUP/GBLUP_64k_geno/
 Scripts/GxE/GxE_64k_geno/
-Scripts/Genomic_Prediction_GxE/GxE_64k_geno/
 Scripts/Genomic_Prediction_BayesC/BayesC_64k_geno/
 Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr1/
 Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr2/
@@ -39,11 +38,6 @@ Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr11/
 Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr12/
 
 # Files to ignore
-Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_59808023
-Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_59808024
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/RF/*.out
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/BL/*.out
-Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/XGBoost/*.out
 Job_Submission_Scripts/SNPs_as_Feat/*.out
 Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.out
 Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/rrBLUP/*.out
@@ -51,6 +45,11 @@ Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_*
 Job_Submission_Scripts/SNPs_as_Feat/RF/*.out
 Job_Submission_Scripts/SNPs_as_Feat/BL/*.out
 Job_Submission_Scripts/SNPs_as_Feat/rrBLUP/*.out
+Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_59808023
+Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_59808024
+Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/RF/*.out
+Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/BL/*.out
+Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/XGBoost/*.out
 Job_Submission_Scripts/ORFs_as_Feat/RF/*.out
 Job_Submission_Scripts/PCs_as_Feat/RF/*.out
 Job_Submission_Scripts/Blast_ORFs/*.out
@@ -70,8 +69,6 @@ Scripts/Genomic_Prediction_XGBoost/*.out
 Scripts/Genomic_Prediction_RF/RF_make_FS_*
 Scripts/Genomic_Prediction_RF/*.out
 Scripts/Genomic_Prediction_RF/*.csv
-Scripts/Genomic_Prediction_RF/*.pdf
-Scripts/Genomic_Prediction_RF/*.pkl
 Scripts/Genomic_Prediction_RF/autopep8_test_Write_FS_script_RF.py
 Scripts/Genomic_Prediction_RF/black_test_Write_FS_script_RF.py
 Scripts/Genomic_Prediction_RF/yapf_Write_FS_script_RF.py
@@ -81,13 +78,12 @@ Scripts/Data_Vis/*.out
 Scripts/Data_Vis/*.csv
 Scripts/Data_Vis/*.pdf
 Scripts/Data_Vis/*.txt
-Scripts/Data_Vis/*.tsv
 Scripts/Data_Vis/Figures/*.pdf
+Results/*.csv
 Results/*.pdf
 .RData
 .Rhistory
 Rplots.pdf
-
 
 
 
