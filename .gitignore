@@ -23,6 +23,7 @@ Scripts/Genomic_Prediction_XGBoost/XGBoost_Results_64k_geno/
 Scripts/Genomic_Prediction_BL/BL_Figures_64k_geno/
 Scripts/Genomic_Prediction_GBLUP/GBLUP_64k_geno/
 Scripts/GxE/GxE_64k_geno/
+Scripts/Genomic_Prediction_GxE/GxE_64k_geno/
 Scripts/Genomic_Prediction_BayesC/BayesC_64k_geno/
 Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr1/
 Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr2/
