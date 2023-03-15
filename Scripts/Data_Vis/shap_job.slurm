@@ -53,7 +53,7 @@ python3 SHAP_training.py \
 #     -df2 ${data}/pheno.csv -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
 #     -test ${data}/Test.txt \
 #     -model ${scratch}/${TRAITS[${SLURM_ARRAY_TASK_ID}]}_orf_baseline_models.pkl \
-#     -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_orf
+#     -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_orf_baseline
 
 ### ORF RF FS
 # python SHAP_training.py -df ${data}/ORFs_pres_abs.csv -sep , \
