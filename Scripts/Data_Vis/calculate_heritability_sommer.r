@@ -1,4 +1,5 @@
-# Description: Estimate the narrow- and broad-sense heritability of diploid S. cerevisiae isolates using biallelic SNPs data (Peter 2018)
+# Description: Estimate the narrow- and broad-sense heritability of diploid 
+# S. cerevisiae isolates using biallelic SNPs data (Peter 2018)
 
 ### 0. Install necessary packages
 #install.packages('sommer')
