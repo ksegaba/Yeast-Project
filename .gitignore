@@ -1,4 +1,5 @@
 # Ignore the following directories
+Results/
 Data/
 External_software/
 .ipynb_checkpoints/
