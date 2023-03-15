@@ -56,6 +56,6 @@ import datatable as dt
 geno = dt.fread('geno.csv')
 geno = geno.to_pandas()
 geno.set_index('ID', inplace=True)
-sub = geno[geno.columns.intersection(prunein[0])]
-sub.shape # (750 isolates, 85660 snps)
+sub = geno[geno.columns.intersection(prunein[0].unique())] # I don't know why prunein is not unique
+sub.shape # (750 isolates, 83211 snps)
 sub.to_csv("geno_pruned.csv", chunksize=50)
