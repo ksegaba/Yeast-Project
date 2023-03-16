@@ -19,6 +19,7 @@ Scripts/Genomic_Prediction_RF/SHAP/SNPs/baseline/
 Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs/
 Scripts/Genomic_Prediction_RKHS/logs
 Scripts/Genomic_Prediction_RKHS/output
+Scripts/Genomic_Prediction_RKHS/data
 Scripts/Genomic_Prediction_XGBoost/XGBoost_Results_64k_geno/
 Scripts/Genomic_Prediction_BL/BL_Figures_64k_geno/
 Scripts/Genomic_Prediction_GBLUP/GBLUP_64k_geno/
@@ -69,6 +70,8 @@ Scripts/Genomic_Prediction_XGBoost/*.out
 Scripts/Genomic_Prediction_RF/RF_make_FS_*
 Scripts/Genomic_Prediction_RF/*.out
 Scripts/Genomic_Prediction_RF/*.csv
+Scripts/Genomic_Prediction_RF/*.pdf
+Scripts/Genomic_Prediction_RF/*.pkl
 Scripts/Genomic_Prediction_RF/autopep8_test_Write_FS_script_RF.py
 Scripts/Genomic_Prediction_RF/black_test_Write_FS_script_RF.py
 Scripts/Genomic_Prediction_RF/yapf_Write_FS_script_RF.py
@@ -78,6 +81,7 @@ Scripts/Data_Vis/*.out
 Scripts/Data_Vis/*.csv
 Scripts/Data_Vis/*.pdf
 Scripts/Data_Vis/*.txt
+Scripts/Data_Vis/*.tsv
 Scripts/Data_Vis/Figures/*.pdf
 Results/*.csv
 Results/*.pdf
