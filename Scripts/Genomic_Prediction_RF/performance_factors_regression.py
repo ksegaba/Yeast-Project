@@ -108,16 +108,65 @@ def linear_mod(X, Y, n, prefix):
 		r2_scores.append(r2_score(Y, yhat))
 	return mod, coefs, yhats, r2_scores
 
-def hyperparameter_tuning(parameters):
-	
-	return best_mod
+def hyperparameter_tuning(reg, params, X_train, y_train):
+	gs = GridSearchCV(estimator = reg,
+		param_grid = param_tuning,
+		scoring = 'neg_mean_squared_error',
+		cv = 5,
+		n_jobs = -1,
+		verbose = 1)
+	fitted_model = gs.fit(X_train,y_train) # fit the model
+	return fitted_model.best_params_, fitted_model.best_estimator_)
 
-def decisionTree_mod(X, Y):
+def decisionTree_mod(X_train, y_train):
 	coefs = pd.DataFrame()
 	yhats = pd.DataFrame()
 	r2_scores = []
+	reg = DecisionTreeRegressor(random_state=random.seed(123))
+	# tune hyperparameters
+	params = {"max_depth":[3, 5, 10, 20],
+		"max_features":[0.1, 0.5, "auto", "sqrt", "log2", None],
+		"ccp_alpha":[0, 0.05, 0.1]}
+	best_params, best_mod = hyperparameter_tuning(reg, params, X_train, y_train)
+	print("Best parameters: ", best_params)
 	for i in range(n):
-		regressor = DecisionTreeRegressor(random_state=0)
+		print(f"Running {i+1} of {n}")
+		reg = DecisionTreeRegressor(random_state=i)
+		# train best estimator
+		cv = StratifiedKFold(n_splits=fold) # stratified samples
+		cv_pred = cross_val_predict(
+			best_mod, X_train, y_train, cv=fold, n_jobs=-1) # predictions
+		# Performance statistics on validation set
+		mse_val = mean_squared_error(y_train, cv_pred)
+		rmse_val = np.sqrt(mean_squared_error(y_train, cv_pred))
+		evs_val = explained_variance_score(y_train, cv_pred)
+		r2_val = r2_score(y_train, cv_pred)
+		cor_val = np.corrcoef(np.array(y_train), cv_pred)
+		print("Val MSE: %f" % (mse_val))
+		print("Val RMSE: %f" % (rmse_val))
+		print("Val R-sq: %f" % (r2_val))
+		print("Val PCC: %f" % (cor_val[0, 1]))
+		result_val = [mse_val, rmse_val, evs_val, r2_val, cor_val[0, 1]]
+		results_cv.append(result_val)
+
+	# Evaluate the model on the test set
+	#best_model.fit(X_train, y_train)
+	y_pred = best_model.predict(X_test)
+
+	# Performance on the test set
+	mse = mean_squared_error(y_test, y_pred)
+	rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+	evs = explained_variance_score(y_test, y_pred)
+	r2 = r2_score(y_test, y_pred)
+	cor = np.corrcoef(np.array(y_test), y_pred)
+	print("Test MSE: %f" % (mse))
+	print("Test RMSE: %f" % (rmse))
+	print("Test R-sq: %f" % (r2))
+	print("Test PCC: %f" % (cor[0, 1]))
+	result_test = [mse, rmse, evs, r2, cor[0, 1]]
+	results_test.append(result_test)
+
+
 	return mod, coefs
 
 
