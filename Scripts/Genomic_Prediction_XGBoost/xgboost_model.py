@@ -26,7 +26,10 @@ __author__ = "Kenia Segura Abá"
 
 from configparser import ExtendedInterpolation
 import sys, os, argparse, time
+<<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 from datetime import datetime
 import random
 from operator import index
@@ -37,11 +40,14 @@ import pickle
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error, r2_score
 <<<<<<< HEAD
+<<<<<<< HEAD
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import cross_val_predict
 from sklearn.model_selection import GridSearchCV
 random.seed(123)
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 from sklearn.metrics import explained_variance_score
 from sklearn.model_selection import RepeatedKFold
 from sklearn.model_selection import StratifiedKFold
@@ -49,12 +55,16 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.model_selection import GridSearchCV
 import matplotlib.pyplot as plt
 import seaborn as sns
+<<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
 # Need to add args
 # Need trait arg bc the for loop may cause it to crash on the command line
 # So I need a slurm script to keep track 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 def hyperparameter_tuning(X_train, y_train):
     # Parameters to tune
@@ -182,6 +192,8 @@ def main():
 if __name__ == "__main__":
     main()
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 def tune_model(xg_reg, X_train, y_train, data_type, trait, fold):
     """ Hyperparameter sweep using grid search with cross-validation """
     start = time.time()
@@ -390,4 +402,7 @@ if __name__ == "__main__":
         {np.mean(results_test.EVS_test)}\t{np.std(results_test.EVS_test)}\t\
         {np.mean(results_test.R2_test)}\t{np.std(results_test.R2_test)}\t\
         {np.mean(results_test.PCC_test)}\t{np.std(results_test.PCC_test)}")
+<<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b

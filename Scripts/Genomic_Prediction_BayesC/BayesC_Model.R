@@ -96,7 +96,10 @@ if (trait == "all") {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
 r2_score <- function(preds, actual) {
 	# This function is comparable to sklearn's r2_score function
@@ -106,7 +109,10 @@ r2_score <- function(preds, actual) {
 	return(1 - (rss/tss)) # return R^2 value
 }
 
+<<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 # BayesC model
 setwd(save_dir)
 start.time <- Sys.time() # start time
@@ -174,21 +180,31 @@ for (i in 1:length(Y)){
         corr_cv <- cor(yhat[which(tst!=0), i], yhat$yhat[which(tst!=0)]) # PCC of validation
 		corr_CV <- c(corr_CV, corr_cv)
 <<<<<<< HEAD
+<<<<<<< HEAD
         Accuracy_CV <- c(Accuracy_CV, corr_cv^2) # R-sq of validation
 =======
         #Accuracy_CV <- c(Accuracy_CV, corr_cv^2) # R-sq of validation
         Accuracy_CV <- c(Accuracy_CV, r2_score(yhat[which(tst!=0), i], yhat$yhat[which(tst!=0)])) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
 >>>>>>> origin/main
+=======
+        #Accuracy_CV <- c(Accuracy_CV, corr_cv^2) # R-sq of validation
+        Accuracy_CV <- c(Accuracy_CV, r2_score(yhat[which(tst!=0), i], yhat$yhat[which(tst!=0)])) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
         
         y_test <- cbind(y_test, rowMeans(y_test)) # mean predicted values
         corr_Test <- cor(yhat[which(tst==0), i], y_test[which(tst==0), ncol(y_test)]) # PCC of test 
 		corr_test <- c(corr_test, corr_Test)
+<<<<<<< HEAD
 <<<<<<< HEAD
         Accuracy_test <- c(Accuracy_test, corr_Test^2) # R-sq of test
 =======
         #Accuracy_test <- c(Accuracy_test, corr_Test^2) # R-sq of test
         Accuracy_test <- c(Accuracy_test, r2_score(yhat[which(tst==0), i], y_test[which(tst==0), ncol(y_test)])) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
 >>>>>>> origin/main
+=======
+        #Accuracy_test <- c(Accuracy_test, corr_Test^2) # R-sq of test
+        Accuracy_test <- c(Accuracy_test, r2_score(yhat[which(tst==0), i], y_test[which(tst==0), ncol(y_test)])) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
         
         Coef <- rbind(Coef, colMeans(Coeff)) # mean feature coefficients
         pred_val <- cbind(pred_val, yhat$yhat[which(tst!=0)]) # predicted values of validation set

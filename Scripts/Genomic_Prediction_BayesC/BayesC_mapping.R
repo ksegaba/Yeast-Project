@@ -14,7 +14,10 @@ y <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv", r
 Xs[1:5,1:5]; y[1:5,1:5]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
 r2_score <- function(preds, actual) {
 	# This function is comparable to sklearn's r2_score function
@@ -23,7 +26,10 @@ r2_score <- function(preds, actual) {
 	tss <- sum((actual - mean(actual)) ^ 2) # total sum of squares
 	return(1 - (rss/tss)) # return R^2 value
 }
+<<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
 ### BayesC on each trait
 ETA <- list(list(X=Xs, model="BayesC", counts=110, probIn=1/100, saveEffects=TRUE))
@@ -57,19 +63,26 @@ dev.off()
 
 # Looking in which iteration the SNP was active in the model
 <<<<<<< HEAD
+<<<<<<< HEAD
 setwd("/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BayesC/Results")
 B=readBinMat("YPDBENOMYL500_bayesC_mapping_12000_ETA_1_b.bin")
 dim(B)
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 #setwd("/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_BayesC/Results")
 B=readBinMat("Results/YPDBENOMYL500_bayesC_mapping_12000_ETA_1_b.bin") # snp effects in each iteration
 dim(B)
 B[1:5,1:5]
+<<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 colnames(B) <- colnames(Xs)[-1]
 which(colMeans(B!=0)>0.5)
 # integer(0)
 which(colMeans(B!=0)>0.3)
+<<<<<<< HEAD
 <<<<<<< HEAD
 # [1] 11154
 
@@ -78,6 +91,8 @@ grep("_33476", colnames(X))
 colnames(X)[14625]
 # [1] "chromosome4_334761"
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 # [1] 33476 50244
 which(colMeans(B!=0)==max(colMeans(B!=0)))
 # [1] 50244
@@ -85,17 +100,24 @@ colnames(X)[50244]
 # [1] "chromosome9_419095"
 colnames(X)[33476]
 # [1] "chromosome7_97836"
+<<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
 pdf("test.pdf")
 plot(B[,11154])
 dev.off()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 pdf("test.pdf") # manhattan plot
 =======
 pdf("test2.pdf") # manhattan plot
 >>>>>>> origin/main
+=======
+pdf("test2.pdf") # manhattan plot
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 plot(colMeans(B!=0))
 abline(v=11154) # SNP 11154
 dev.off()
@@ -115,11 +137,17 @@ bayesc <- function(Y){ # Function to run BayesC on each trait
     dev.off()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     # save model
     saveRDS(fit, paste(Y, "_bayesC_model_12000.rds", sep=""))
     
 >>>>>>> origin/main
+=======
+    # save model
+    saveRDS(fit, paste(Y, "_bayesC_model_12000.rds", sep=""))
+    
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     # collect output
     list(noquote(Y), var(y[Y]), fit$varE, 1-(fit$varE/var(y[Y])), max(fit$ETA[[1]]$d), 
          min(fit$ETA[[1]]$d), sum(fit$ETA[[1]]$d < 0.05), sum(fit$ETA[[1]]$d < 0.01))
@@ -191,11 +219,16 @@ for (f in files){
     pcc <- cor(G, y_test[trait], method="pearson") # Pearson's correlation coefficient
     pcc_sd <- sd(pcc)
 <<<<<<< HEAD
+<<<<<<< HEAD
     r2 <- pcc^2 # R-squared
 =======
     #r2 <- pcc^2 # R-squared
     r2 <- r2_score(G, y_test[trait]) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
 >>>>>>> origin/main
+=======
+    #r2 <- pcc^2 # R-squared
+    r2 <- r2_score(G, y_test[trait]) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     r2_sd <- sd(r2)
 
     # Append results to file

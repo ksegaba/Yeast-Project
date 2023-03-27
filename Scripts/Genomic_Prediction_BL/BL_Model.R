@@ -143,10 +143,17 @@ for (i in 1:length(Y)) { # loop through selected trait(s)
             
             # Build Bayesian LASSO model
             start <- Sys.time()
+<<<<<<< HEAD
             ETA <- list(list(X=X, model="BL", saveEffects=FALSE)) # input genotype data and model type
             model <- BGLR(y=yNA, ETA=ETA, verbose=FALSE, nIter=32000, burnIn=2000, saveAt = paste("BL_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), "_", sep="")) # takes about 13 minutes
             #print("Saving model...")
             #saveRDS(model, file=paste("BL_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".RDS", sep=""))
+=======
+            ETA <- list(list(X=X, model="BL", saveEffects=TRUE)) # input genotype data and model type
+            model <- BGLR(y=yNA, ETA=ETA, verbose=FALSE, nIter=12000, burnIn=2000, saveAt = paste("BL_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), "_", sep="")) # takes about 13 minutes
+            print("Saving model...")
+            saveRDS(model, file=paste("BL_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".RDS", sep=""))
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
             end <- Sys.time() # end time
             print(sprintf("Model elapsed time: %f", end-start))
             
