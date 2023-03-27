@@ -7,8 +7,8 @@
 ### 1. Load packages and data
 library(sommer)
 
-geno <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv", header=T, row.names=1) # Peter 2018 diploid S. cerevisiae isolate biallelic SNPs data
-pheno <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv", header=T, row.names=1) # Peter 2018 diploid S. cerevisiae isolate fitness data
+geno <- read.csv("~/Shiu_Lab/Project/geno.csv", header=T, row.names=1) # Peter 2018 diploid S. cerevisiae isolate biallelic SNPs data
+pheno <- read.csv("~/Shiu_Lab/Project/pheno.csv", header=T, row.names=1) # Peter 2018 diploid S. cerevisiae isolate fitness data
 
 ### 2. Compute relationship matrices
 A <- A.mat(as.matrix(geno)) # additive relationship matrix
