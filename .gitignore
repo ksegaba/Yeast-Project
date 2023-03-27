@@ -102,3 +102,16 @@ Job_Submission_Scripts/ORFs_as_Feat/rrBLUP_ORFs_step14_baseline_45359414
 Scripts/Genomic_Prediction_BayesC/BayesC_mapping.html
 Scripts/Genomic_Prediction_BayesC/BayesC_mapping.Rmd
 Scripts/Genomic_Prediction_BayesC/VariableSelection.Rmd
+Results/BL_average_cv_R2.csv
+Results/BL_average_test_R2.csv
+Results/RF_average_R2_.csv
+Results/rrBLUP_ORF_vs_SNP_test_R2.pdf
+Results/rrBLUP_average_cv_R2.csv
+Results/rrBLUP_average_test_R2.csv
+Scripts/Data_Vis/Figures/geno_isolate_kinship.pdf
+Scripts/Data_Vis/Figures/pheno_envs_corr.pdf
+Scripts/Data_Vis/Figures/pheno_heatmap.pdf
+Scripts/Data_Vis/Figures/pheno_isolates_corr.pdf
+Scripts/Data_Vis/Figures/test_set_pheno_distributions.pdf
+Scripts/Data_Vis/Figures/training_set_pheno_distributions.pdf
+Scripts/Genomic_Prediction_BayesC/BayesC_mapping.html
