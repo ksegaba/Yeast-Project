@@ -1,4 +1,16 @@
 #!/bin/sh --login
+<<<<<<< HEAD
+#SBATCH --time=4:00:00
+#SBATCH --nodes=1 --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=20G
+#SBATCH --job-name xgboost_all_
+#SBATCH --output=%x_%j
+
+module purge
+module load GCC/6.4.0-2.28  OpenMPI/2.1.2  Python/3.6.4
+python xgboost_model.py
+=======
 #SBATCH --array=32
 #SBATCH --time=100:00:00
 #SBATCH --nodes=1 --ntasks=2
@@ -42,5 +54,6 @@ python xgboost_model.py -X $X -Y $y -test $test \
 # python xgboost_model.py -X $pcs -Y $y -test $test \
 #     -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -save ./Results/PCs \
 #     -type PCs
+>>>>>>> origin/main
 
 scontrol show job $SLURM_JOB_ID
