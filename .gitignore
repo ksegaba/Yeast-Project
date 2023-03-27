@@ -51,6 +51,7 @@ Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_*
 Job_Submission_Scripts/SNPs_as_Feat/RF/*.out
 Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_59808023
 Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_59808024
+Job_Submission_Scripts/SNPs_as_Feat/Multi-Output_RF/*.out
 Job_Submission_Scripts/SNPs_as_Feat/BL/*.out
 Job_Submission_Scripts/SNPs_as_Feat/rrBLUP/*.out
 Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_59808023
@@ -95,9 +96,9 @@ Results/*.pdf
 .RData
 .Rhistory
 Rplots.pdf
-
-
-
-
-
-
+Job_Submission_Scripts/ORFs_as_Feat/pheno_training.csv
+Job_Submission_Scripts/ORFs_as_Feat/rrBLUP_ORFs_step9-12_45358058
+Job_Submission_Scripts/ORFs_as_Feat/rrBLUP_ORFs_step14_baseline_45359414
+Scripts/Genomic_Prediction_BayesC/BayesC_mapping.html
+Scripts/Genomic_Prediction_BayesC/BayesC_mapping.Rmd
+Scripts/Genomic_Prediction_BayesC/VariableSelection.Rmd
