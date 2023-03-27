@@ -11,11 +11,19 @@ out = open(sys.argv[2],"w")
 def list2string(s): # 01/27/2022 Kenia: Modified encodings from {0,1} to {0,1,-1}
 	newstr = "" 
 	for ele in s:
+<<<<<<< HEAD
+		if ele == '0':
+			ele = 'AT'
+		elif ele == '1':
+			ele = 'AA'
+		elif ele == '-1':
+=======
 		if ele == '0': # heterozygous
 			ele = 'TA'
 		elif ele == '1': # homozygous minor allele
 			ele = 'AA'
 		elif ele == '-1': # homozygous major allele
+>>>>>>> origin/main
 			ele = 'TT'
 		newstr += ele + "\t"
 	return newstr
