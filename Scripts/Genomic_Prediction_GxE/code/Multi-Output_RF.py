@@ -66,15 +66,13 @@ def GridSearch(hyperparameters, nGS, X_train, y_train, save):
     Perform a repeated hyperparameter sweep using GridSearchCV with 5 folds.
     """
     start_time = time.time()
-
+    
     # Model
     model = MultiOutputRegressor(RandomForestRegressor(random_state=123))
-
+    
     # Dataframe to save gridsearch results to    
     gs_results = pd.DataFrame(
         columns=["mean_test_score", "params"])
-    
-    print("==========PERFORMING GRID SEARCH ON HYPERPARAMETER SPACE ==========")
     for rep in range(nGS):
         print(f"Round {rep+1} of {nGS}")
         gs = GridSearchCV(
@@ -84,16 +82,15 @@ def GridSearch(hyperparameters, nGS, X_train, y_train, save):
             scoring="r2",
             verbose=2,
             n_jobs=-1)
-
         gs.fit(X_train, y_train) # fit to training data
         rep_results = pd.DataFrame(gs.cv_results_)
         gs_results = pd.concat([gs_results, 
             rep_results[["params", "mean_test_score"]]])
-        
+    
     # Break params into seperate columns
     gs_results2 = pd.concat([gs_results.drop(["params"], axis=1),
             gs_results["params"].apply(pd.Series)], axis=1)
-
+    
     # Find the mean scores for each parameter combination across nGS reps
     param_names = list(gs_results2)[1:] # parameters tested
     gs_results_mean = gs_results2.groupby(param_names).mean() # mean of mean test scores 
@@ -102,13 +99,12 @@ def GridSearch(hyperparameters, nGS, X_train, y_train, save):
     top_params = gs_results_mean.index[0] # best parameter combination
     print(gs_results_mean.head()) # print gridsearchcv results
     print(f"Parameter sweep time: {(time.time()- start_time)} seconds") # elapsed time
-
+    
     # Save grid search results
     outName = open(f"{save}_GridSearch.csv", "w")
     outName.write(f"# {(time.time() - start_time)} sec\n")
     gs_results_mean.to_csv(outName)
     outName.close()
-
     return top_params
 
 
@@ -122,9 +118,9 @@ def Run_MultiOutputRF_reg(X, y, test, nGS, nTrain, save):
 
     # Hyperparameter tuning
     hyperparameters = dict(
-        estimator__n_estimators=[100, 300, 500, 700, 1000],
         estimator__max_depth=[3, 5, 10],
-        estimator__max_features=[0.1, 0.5, "sqrt", "log2"])
+        estimator__max_features=[0.1, 0.5, "sqrt", "log2"],
+        estimator__n_estimators=[100, 300, 500, 700, 1000])
     top_params = GridSearch(hyperparameters, nGS, X_train, y_train, save)
 
     print("==========PERFORMING 5-FOLD CV TO TRAIN THE BEST MODEL ==========")
@@ -136,24 +132,26 @@ def Run_MultiOutputRF_reg(X, y, test, nGS, nTrain, save):
     test_preds = {}
     
     # Train the model using 5-fold cross-validation
-    n_estimators, max_depth, max_features = top_params # hyperparameters
+    max_depth, max_features, n_estimators = top_params # hyperparameters
+    
     for rep in range(nTrain):
         print(f"Running {rep+1} of {nTrain}")
         rep_name = f"rep_{str(rep + 1)}"
         imp[rep] = {}
         
         reg = MultiOutputRegressor(RandomForestRegressor(
-            n_estimators=n_estimators,
-            max_depth=max_depth, 
+            max_depth=int(max_depth), 
             max_features=max_features, 
+            n_estimators=int(n_estimators),
             random_state=rep)) # model to train
         
         cv_pred = cross_val_predict(
             estimator=reg, X=X_train, y=y_train, cv=5, n_jobs=5, verbose=2)
         
-        # Get cross validation performance statistics
+        # Get cross validation performance statistics and predicted values
         cv_pred_df = pd.DataFrame(data=cv_pred, index=X_train.index, columns=y_train.columns)
         cv_preds[rep] = cv_pred_df.T.to_dict()
+        
         r2 = r2_score(y_train, cv_pred, multioutput="raw_values")
         mse = mean_squared_error(y_train, cv_pred, multioutput="raw_values")
         evs = explained_variance_score(y_train, cv_pred, multioutput="raw_values")
@@ -161,6 +159,7 @@ def Run_MultiOutputRF_reg(X, y, test, nGS, nTrain, save):
         for trait in range(cv_pred.shape[1]):
             cor.append(corrcoef(np.array(y_train.iloc[:,trait]),
                 np.array(cv_pred_df.iloc[:,trait]))[0, 1])
+        
         result = {}
         for trait in range(y_train.shape[1]):
             result[y_train.columns[trait]] = np.array(
@@ -177,10 +176,11 @@ def Run_MultiOutputRF_reg(X, y, test, nGS, nTrain, save):
         with open(f"{save}_fitted_model.pkl", "wb") as f:
             pickle.dump(reg, f)
 
-        # Get performance statistics on the test set
+        # Get performance statistics on the test set and predicted values
         test_pred_df = pd.DataFrame(
             data=test_pred, index=X_test.index, columns=y_test.columns)
         test_preds[rep] = test_pred_df.T.to_dict()
+        
         r2_test = r2_score(y_test, test_pred, multioutput="raw_values")
         mse_test = mean_squared_error(y_test, test_pred, multioutput="raw_values")
         evs_test = explained_variance_score(y_test, test_pred, multioutput="raw_values")
@@ -188,6 +188,7 @@ def Run_MultiOutputRF_reg(X, y, test, nGS, nTrain, save):
         for trait in range(test_pred.shape[1]):
             cor_test.append(corrcoef(np.array(y_test.iloc[:,trait]),
                 np.array(test_pred_df.iloc[:,trait]))[0, 1])
+        
         result_test = {}
         for trait in range(y_test.shape[1]):
             result_test[y_test.columns[trait]] = np.array(
@@ -217,10 +218,6 @@ if __name__ == "__main__":
     req_group.add_argument(
         "-y", type=str, help="path to label data file", required=True)
     req_group.add_argument(
-        "-label1", type=str, help="")
-    req_group.add_argument(
-        "-label2", type=str, help="")
-    req_group.add_argument(
         "-test", type=str, help="path to file of test set instances", required=True)
     req_group.add_argument(
         "-save", type=str, help="prefix for output files (may include path)", required=True)
@@ -230,6 +227,8 @@ if __name__ == "__main__":
         "-feat", type=str, help="", default="all")
     opt_group.add_argument(
         "-Xindex", type=str, help="name of index column in X", default="ID")
+    opt_group.add_argument(
+        "-labels", type=list, nargs='+', help="Comma delimited column names of label data file", default="all")
     opt_group.add_argument(
         "-nGS", type=int, help="Number of times to repeat grid search", default=10)
     opt_group.add_argument(
@@ -248,8 +247,7 @@ if __name__ == "__main__":
     # y = pd.read_csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv", index_col=0)
     # test = pd.read_csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt", header=None)
     # feat = pd.read_csv("/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs/feat_rf_YPDCUSO410MM_top_1000", header=None)
-    # label1 = "YPDCUSO410MM"
-    # label2 = "YPDBENOMYL500"
+    # labels = ["YPDCUSO410MM", "YPDBENOMYL500"]
     # save = "multi-output-RF-YPDCUSO410MM"
 
     # Read in data
@@ -263,8 +261,18 @@ if __name__ == "__main__":
     if args.feat != "all":
         feat = pd.read_csv(args.feat)
         X = X.loc[:,feat[0]]
-    y = y[[args.label1, args.label2]]
     
+    if args.labels != "all":
+        print(args.labels)
+        labels = []
+        for i in range(len(args.labels)):
+            strng=""
+            for char in args.labels[i]:
+                if char != ",":
+                    strng += char
+            labels.append(strng)
+        y = y[labels]
+
     # Hyperparameter tuning, model training, and evaluation
     results_cv, results_test, imp, cv_preds, test_preds = Run_MultiOutputRF_reg(
         X, y, test, args.nGS, args.nTrain, args.save)
@@ -283,8 +291,8 @@ if __name__ == "__main__":
     imp_df.index.rename(['rep', 'trait'], inplace=True)
     imp_df.to_csv(f"{args.save}_imp.csv")
     cv_preds_df = nestedDict_to_df(cv_preds)
-    cv_preds_df.index.rename(['rep', 'trait'], inplace=True)
+    cv_preds_df.index.rename(['rep', 'instance'], inplace=True)
     cv_preds_df.to_csv(f"{args.save}_preds_cv.csv")
     test_preds_df = nestedDict_to_df(test_preds)
-    test_preds_df.index.rename(['rep', 'trait'], inplace=True)
+    test_preds_df.index.rename(['rep', 'instance'], inplace=True)
     test_preds_df.to_csv(f"{args.save}_preds_test.csv")
