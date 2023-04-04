@@ -1,0 +1,946 @@
+
+ 
+
+YPD42
+[['Y', 'P', 'D', '4', '2'], ['Y', 'P', 'D', 'D', 'M', 'S', 'O']]
+Round 1 of 10
+Fitting 5 folds for each of 60 candidates, totalling 300 fits
+[Parallel(n_jobs=-1)]: Using backend LokyBackend with 20 concurrent workers.
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=700, total=15.8min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=500, total=56.3min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=700, total=29.0min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100, total=21.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500, total=101.3min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700, total=65.4min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300, total=142.6min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300, total= 7.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100, total=11.0min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700, total=79.8min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100, total=20.2min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500, total=106.8min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700, total=64.6min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300, total=132.1min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500, total= 1.6min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700, total= 2.4min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 3.4min
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300, total=  11.1s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300, total=  11.4s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500, total=  17.2s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500, total=  17.3s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700, total=  23.9s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700, total=  23.8s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000, total=  33.6s
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300, total= 6.8min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100, total=11.2min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700, total=78.5min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100, total=19.9min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500, total=99.9min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700, total=65.3min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300, total=132.7min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100, total=  28.2s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100, total=  21.2s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100, total=  23.9s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100, total=  22.3s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100, total=  27.6s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300, total=  58.4s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300, total=  59.9s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300, total= 1.1min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300, total=  57.8s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500, total= 1.6min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700, total= 2.2min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700, total= 2.3min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 3.2min
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300, total=  11.3s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500, total=  17.8s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700, total=  24.0s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700, total=  23.4s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000, total=  41.9s
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300, total= 6.9min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100, total=11.9min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700, total=78.3min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100, total=20.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500, total=102.7min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700, total=66.2min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300, total=132.4min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300, total=  58.3s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500, total= 1.6min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500, total= 1.6min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700, total= 2.5min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 3.6min
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100, total=   5.0s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100, total=   5.0s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100, total=   5.0s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100, total=   5.0s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100, total=   5.3s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300, total=  11.6s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300, total=  11.1s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500, total=  17.7s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500, total=  17.3s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700, total=  23.9s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000, total=  32.6s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000, total=  32.4s
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300, total= 7.0min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100, total=11.7min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700, total=79.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100, total=21.5min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500, total=100.8min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700, total=70.8min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300, total=129.6min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500, total= 1.7min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700, total= 2.3min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 3.3min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 3.1min
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000, total=  37.2s
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500, total=12.2min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300, total=33.3min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100, total=   8.0s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100, total=   7.7s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300, total=  20.3s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500, total=  31.6s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700, total=  43.5s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700, total=  48.4s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.0min
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500, total=  12.6s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700, total=  18.2s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000, total=  23.4s
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100, total= 4.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300, total=12.8min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500, total=20.6min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000, total=43.8min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700, total=137.9min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100, total=43.2min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500, total=218.9min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500, total=11.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300, total=33.9min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100, total=   7.8s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100, total=   8.1s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100, total=   8.1s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300, total=  20.3s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300, total=  20.2s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500, total=  32.1s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700, total=  43.8s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.0min
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100, total=   4.0s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100, total=   4.0s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100, total=   4.0s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100, total=   4.0s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300, total=   8.3s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500, total=  13.4s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700, total=  17.0s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000, total=  23.8s
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100, total= 4.3min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300, total=13.0min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500, total=21.0min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000, total=41.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700, total=141.8min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100, total=46.9min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500, total=216.0min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500, total=11.7min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300, total=34.0min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300, total=  19.8s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500, total=  31.4s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500, total=  31.2s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700, total=  43.6s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.0min
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100, total=   4.1s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300, total=   8.4s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300, total=   8.4s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500, total=  12.7s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700, total=  17.1s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000, total=  23.9s
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100, total= 4.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300, total=12.5min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500, total=20.6min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000, total=41.0min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700, total=142.4min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100, total=44.7min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500, total=220.4min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500, total=11.5min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300, total=36.5min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.0min
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300, total=   8.3s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500, total=  12.7s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700, total=  16.9s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000, total=  23.5s
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100, total= 4.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300, total=12.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500, total=21.0min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000, total=42.6min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700, total=151.3min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100, total=42.9min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500, total=214.8min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500, total=11.4min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300, total=34.4min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300, total=  19.8s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500, total=  45.9s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700, total= 1.0min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.1min
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300, total=   8.4s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500, total=  13.7s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700, total=  17.3s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000, total=  23.8s
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100, total= 4.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300, total=12.6min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500, total=22.3min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000, total=42.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700, total=142.6min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100, total=44.0min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500, total=233.4min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=100, total= 2.4min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=1000, total=24.5min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=1000, total=112.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=1000, total=200.9min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=700, total=304.0min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300, total= 6.9min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100, total=11.5min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700, total=83.7min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=300, total=60.6min
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=300, total=  29.3s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=300, total=  30.6s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=300, total=  29.0s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=500, total=  47.9s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=500, total=  47.4s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=700, total= 1.2min
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.7min
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=100, total=   4.3s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=100, total=   4.2s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=300, total=   8.9s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=300, total=   9.0s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=300, total=   8.9s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=500, total=  13.6s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=700, total=  18.8s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=700, total=  18.2s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=1000, total=  33.4s
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=100, total= 9.2min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=300, total=27.6min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=500, total=46.7min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=1000, total=94.2min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=700, total=298.4min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=100, total= 2.4min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=1000, total=22.8min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=1000, total=114.2min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=1000, total=205.2min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=700, total=302.5min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=100, total= 2.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=1000, total=23.2min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=1000, total=114.5min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=1000, total=201.7min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=700, total=306.2min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=100, total= 2.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=1000, total=23.1min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=1000, total=120.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=1000, total=198.6min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=700, total=327.5min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=700, total=16.2min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=500, total=60.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=700, total=28.5min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=300, total=61.4min
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=700, total= 1.1min
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.7min
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=500, total=  13.7s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=700, total=  18.6s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=1000, total=  27.2s
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=100, total= 9.5min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=300, total=30.0min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=500, total=45.6min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=1000, total=94.1min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=1000, total=424.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=700, total=17.2min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=500, total=55.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=700, total=29.0min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=300, total=60.0min
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=100, total=  19.2s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=100, total=  11.2s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=100, total=  17.8s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=100, total=  11.1s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=100, total=  11.0s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=300, total=  29.7s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=300, total=  30.1s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=500, total=  47.8s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=500, total=  48.2s
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=700, total= 1.1min
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=700, total= 1.1min
+[CV] estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.6min
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=500, total=  13.6s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=700, total=  19.2s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=1000, total=  25.7s
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=100, total=10.3min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=300, total=27.3min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=500, total=47.6min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=1000, total=101.4min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=1000, total=421.4min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=100, total= 2.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=1000, total=23.0min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=1000, total=114.8min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=1000, total=215.5min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=1000, total=425.1min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=700, total=16.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=500, total=56.9min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=700, total=30.0min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=300, total=65.5min
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=100, total=   4.2s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=100, total=   4.2s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=100, total=   4.2s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=300, total=   9.1s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=300, total=   9.2s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=500, total=  14.1s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=500, total=  13.9s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=700, total=  19.8s
+[CV] estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=log2, estimator__n_estimators=1000, total=  25.7s
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=100, total= 9.5min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=300, total=28.7min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=500, total=47.3min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=1000, total=94.1min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=1000, total=431.2min
+Round 2 of 10
+Fitting 5 folds for each of 60 candidates, totalling 300 fits
+[Parallel(n_jobs=-1)]: Done   1 tasks      | elapsed:  2.8min
+[Parallel(n_jobs=-1)]: Done 122 tasks      | elapsed: 130.3min
+[Parallel(n_jobs=-1)]: Done 300 out of 300 | elapsed: 809.4min finished
+[Parallel(n_jobs=-1)]: Using backend LokyBackend with 20 concurrent workers.
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300, total= 6.5min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100, total=11.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700, total=78.8min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100, total=19.8min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500, total=99.9min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700, total=65.9min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300, total=131.9min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100, total=  20.6s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100, total=  20.9s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100, total=  22.0s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100, total=  20.4s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=100, total=  20.7s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300, total=  58.5s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300, total=  59.6s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300, total=  58.4s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500, total= 1.6min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500, total= 1.7min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700, total= 2.3min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700, total= 2.3min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 3.2min
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000, total=  33.8s
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300, total= 6.7min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100, total=11.9min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700, total=78.6min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100, total=20.6min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500, total=102.0min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700, total=64.7min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300, total=132.7min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300, total= 1.0min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=300, total=  58.1s
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500, total= 1.6min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500, total= 1.6min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700, total= 2.3min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 3.2min
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100, total=   5.0s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100, total=   5.0s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300, total=  11.1s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300, total=  11.4s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500, total=  17.3s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500, total=  17.1s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700, total=  23.7s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700, total=  23.5s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000, total=  32.3s
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300, total= 6.6min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100, total=11.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700, total=80.3min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100, total=20.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500, total=106.7min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700, total=64.7min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300, total=131.0min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=500, total= 1.6min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700, total= 2.6min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 3.4min
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300, total=  11.3s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500, total=  17.8s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700, total=  23.6s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700, total=  30.7s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000, total=  38.3s
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=700, total=15.6min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=500, total=55.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=700, total=28.8min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100, total=19.9min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500, total=99.6min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700, total=71.4min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300, total=131.7min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=700, total= 2.2min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 3.2min
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100, total=   5.0s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100, total=   5.3s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=100, total=   5.3s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300, total=  11.4s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=300, total=  11.2s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500, total=  17.5s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=500, total=  17.9s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=700, total=  24.3s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000, total=  32.6s
+[CV] estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=log2, estimator__n_estimators=1000, total=  32.9s
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=300, total= 7.1min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=100, total=11.1min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=700, total=79.5min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=100, total=21.2min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=500, total=100.4min
+[CV] estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700 
+[CV]  estimator__max_depth=10, estimator__max_features=0.1, estimator__n_estimators=700, total=66.3min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=300, total=142.0min
+[CV] estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=10, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 3.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500, total=11.5min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300, total=36.8min
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100, total=   4.0s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100, total=   4.6s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100, total=   4.3s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300, total=   8.9s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300, total=   8.8s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500, total=  13.5s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700, total=  16.9s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000, total=  23.4s
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100, total= 4.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300, total=12.3min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500, total=20.6min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000, total=41.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700, total=141.4min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100, total=43.3min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500, total=216.4min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500, total=11.3min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300, total=33.9min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100, total=   7.8s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300, total=  19.7s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300, total=  21.4s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500, total=  33.3s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700, total=  43.2s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.0min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.0min
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700, total=  16.9s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000, total=  26.4s
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100, total= 4.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300, total=12.3min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500, total=20.9min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000, total=43.9min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700, total=140.4min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100, total=47.0min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500, total=216.4min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500, total=11.9min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300, total=33.3min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100, total=   7.7s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300, total=  20.5s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500, total=  37.1s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500, total=  33.5s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700, total=  43.8s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.1min
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300, total=   8.4s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500, total=  12.7s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500, total=  12.7s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700, total=  17.4s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000, total=  23.4s
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100, total= 4.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300, total=13.3min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500, total=20.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000, total=41.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700, total=150.2min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100, total=43.0min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500, total=215.4min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500, total=11.1min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300, total=33.6min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100, total=  13.9s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100, total=   7.9s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=100, total=   8.0s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300, total=  20.0s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=300, total=  19.9s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500, total=  32.5s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700, total=  43.4s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700, total=  43.6s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.0min
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500, total=  12.7s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700, total=  16.9s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000, total=  24.0s
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100, total= 4.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300, total=12.4min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500, total=20.5min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000, total=42.0min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700, total=142.8min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100, total=43.2min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500, total=223.1min
+[CV] estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=0.1, estimator__n_estimators=500, total=11.5min
+[CV] estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=0.5, estimator__n_estimators=300, total=34.3min
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=500, total=  43.7s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=700, total=  45.2s
+[CV] estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=sqrt, estimator__n_estimators=1000, total= 1.0min
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100, total=   4.2s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=100, total=   4.1s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300, total=   8.3s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=300, total=   8.3s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=500, total=  12.7s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=700, total=  16.9s
+[CV] estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=3, estimator__max_features=log2, estimator__n_estimators=1000, total=  23.5s
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=100, total= 4.2min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=300, total=12.6min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=500, total=22.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000 
+[CV]  estimator__max_depth=5, estimator__max_features=0.1, estimator__n_estimators=1000, total=41.1min
+[CV] estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700 
+[CV]  estimator__max_depth=5, estimator__max_features=0.5, estimator__n_estimators=700, total=141.9min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=100, total=43.7min
+[CV] estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500 
+[CV]  estimator__max_depth=10, estimator__max_features=0.5, estimator__n_estimators=500, total=233.0min
