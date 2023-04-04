@@ -16,7 +16,9 @@
 # line : GO Enrichment (RF after FS models)
 # line : Pathway Enrichment (RF after FS models)
 # line : Gene RF importance scores (after FS) comparisons across data types
-#
+# line : Fitness Factors impacting RF performance
+# line : RF performance comparisons using different test sets (baseline using all features and randomized label)
+# line : Multi-Output RF prediction performances (baseline using all features)
 
 rm(list=ls())
 suppressPackageStartupMessages(library(data.table))
@@ -1276,3 +1278,64 @@ ggplot(toplot, aes(x=YPDCUSO410MM.x, y=YPDCUSO410MM.y) ) +
 ggsave("Scripts/Data_Vis/SNPs_vs_ORF_copy_num_YPDCUSO410MM_imp.pdf")
 
 ## ORF presence/absence to ORF copy number
+
+################################################################################
+# FITNESS FACTORS IMPACTING RF PERFORMANCE
+################################################################################
+## SNPs
+# from linear model regression, mean and Q3 had the highest performances
+# see ../Genomic_Prediction_RF/snps_RF_FS_ols_env_results.txt
+pheno <- read.csv("Data/Peter_2018/pheno.csv", row.names=1) # fitness data
+rf <- read.table("Results/RESULTS_RF_SNPs_FS.txt", sep="\t", header=T)
+performance <- rf[c(1,30)] # select only cond and r2_test
+rownames(performance) <- performance$cond # set cond as row names
+performance <- performance[order(performance$r2_test), ] # sort by increasing performance
+pheno <- pheno[performance$cond] # re-order columns in pheno
+pheno <- reshape2::melt(pheno) # pivot longer
+pheno$variable <- as.factor(pheno$variable) # create factor for plotting
+# make violin plot
+mean <- mean(pheno[pheno$variable=="YPDCAFEIN40",]$value) # mean fitness of YPDCAFEIN40
+q3 <- quantile(pheno[pheno$variable=="YPDCAFEIN40",]$value, 0.75) # 75th percentile of YPDCAFEIN40
+ggplot(pheno, aes(x=variable, y=value)) + 
+        geom_hline(yintercept=mean, linetype="dashed", color="red") + 
+        geom_hline(yintercept=q3, linetype="dashed", color="blue") + 
+        geom_violin() + geom_boxplot(width=0.1) + theme_bw(8) +
+        theme(axis.text.x=element_text(color="black", size=9, angle=45, hjust=1)) +
+        theme(axis.text.y=element_text(color="black", size=9)) + ylab("Fitness") +
+        xlab("Environment")
+ggsave("Scripts/Data_Vis/pheno_violin.pdf", width=10, height=4, device="pdf", useDingbats=FALSE)
+dev.off()
+
+
+## ORFs presence/absence
+
+
+
+## ORFs copy number
+
+
+################################################################################
+# BASELINE RF PERFORMANCE COMPARISONS USING DIFFERENT TEST SETS
+################################################################################
+## SNPs
+
+
+
+## ORFs presence/absence
+
+
+
+## ORFs copy number
+
+################################################################################
+# BASELINE (ALL FEATURES) MULTI-OUTPUT RF PREDICTION PERFORMANCES
+################################################################################
+## SNPs
+
+
+
+## ORFs presence/absence
+
+
+
+## ORFs copy number
