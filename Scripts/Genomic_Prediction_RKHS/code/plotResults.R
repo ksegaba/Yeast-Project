@@ -6,7 +6,11 @@ library(ggplot2)
 
 X=fread('/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv',data.table=FALSE)
 <<<<<<< HEAD
+<<<<<<< HEAD
 # X=fread('/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno_pruned.csv',data.table=FALSE)
+=======
+
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
@@ -25,9 +29,12 @@ MAP$chr=as.integer(getChr(tmp[,1]))
 MAP$pos=as.numeric(tmp[,2])
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # subset MAP (keep only SNPs not pruned)
 MAP <- MAP[MAP$ID %in% colnames(X),]
 
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 Y=read.csv('/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv')
@@ -38,7 +45,10 @@ VAR_COMP=data.frame(trait=colnames(Y)[-1],h2=NA,vG=NA,vE=NA,vQTL=NA)
 
 models=list.files('../output/',recursive=T,full.names=TRUE,pattern='.RData')
 <<<<<<< HEAD
+<<<<<<< HEAD
 # models=list.files('../output/',recursive=T,full.names=TRUE,pattern='pruned.RData')
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
@@ -51,6 +61,7 @@ for(i in unique(MAP$chr)){
 traits=colnames(Y)[-1]
 
 for(i in 1:length(models)){
+<<<<<<< HEAD
 <<<<<<< HEAD
        load(models[i])
        trait=strsplit(models[i], "/")[[1]][4]
@@ -70,6 +81,8 @@ for(i in 1:length(models)){
        
        DS$setPIP=NA # posterior inclusion probability
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
        load(models[i])
        trait=strsplit(models[i], "/")[[1]][4]
@@ -81,6 +94,9 @@ for(i in 1:length(models)){
        DS=segments(LFDR,chr=MAP$chr,bp=MAP$Mbp,threshold=0.97,gap=.05)
        
        DS$setPIP=NA
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
        for(i in 1:nrow(DS)){
          DS$setPIP[i]=mean(apply(FUN=any,X=B[,DS$start[i]:DS$end[i]]!=0,MARGIN=1))
@@ -91,8 +107,13 @@ for(i in 1:length(models)){
        DF=data.frame(Mbp=MAP$Mbp,PIP=colMeans(B),chr=MAP$chr)
        
 <<<<<<< HEAD
+<<<<<<< HEAD
       p=ggplot(DF,aes(x=Mbp,y=PIP,group=chr, col=chr))+
         geom_point(size=.7)+ #color='skyblue',
+=======
+      p=ggplot(DF,aes(x=Mbp,y=PIP,group=chr))+
+        geom_point(color='skyblue',size=.7)+
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
       p=ggplot(DF,aes(x=Mbp,y=PIP,group=chr))+
         geom_point(color='skyblue',size=.7)+
@@ -107,6 +128,7 @@ for(i in 1:length(models)){
       }
        ggsave(p,file=paste0('manhattan_',trait,'_.tiff'),device='tiff')
 <<<<<<< HEAD
+<<<<<<< HEAD
        # ggsave(p,file=paste0('manhattan_',trait,'_pruned.tiff'),device='tiff')
        write.csv(DS,file=paste0('DS_',trait,'_.csv'))
        # write.csv(DS,file=paste0('DS_',trait,'_pruned.csv'))
@@ -116,6 +138,11 @@ for(i in 1:length(models)){
 # consider ld pruning, or do ld blocks and pick a couple of snps per block (can be done in plink)
 # can do by chromosome to make sure blocks don't have snps that are too far away
 # change figure so that it colors by chromosome
+=======
+       write.csv(DS,file=paste0('DS_',trait,'_.csv'))
+     setwd('../')
+}
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
        write.csv(DS,file=paste0('DS_',trait,'_.csv'))
      setwd('../')

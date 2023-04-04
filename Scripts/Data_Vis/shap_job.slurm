@@ -54,7 +54,11 @@ python SHAP_training.py \
 #     -test ${data}/Test.txt \
 #     -model ${scratch}/${TRAITS[${SLURM_ARRAY_TASK_ID}]}_orf_baseline_models.pkl \
 <<<<<<< HEAD
+<<<<<<< HEAD
 #     -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_orf_baseline
+=======
+#     -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_orf
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 #     -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_orf
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
@@ -72,7 +76,11 @@ python SHAP_training.py \
 #     -df2 ${data}/pheno.csv -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
 #     -test ${data}/Test.txt -model ${scratch}/${TRAITS[${SLURM_ARRAY_TASK_ID}]}_cno_baseline_models.pkl \
 <<<<<<< HEAD
+<<<<<<< HEAD
 #     -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_cno_baselines
+=======
+#     -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_cno
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 #     -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_cno
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b

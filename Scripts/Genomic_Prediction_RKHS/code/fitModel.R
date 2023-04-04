@@ -15,8 +15,12 @@ library(data.table)
 library(BGData)
 library(BGLR)
 <<<<<<< HEAD
+<<<<<<< HEAD
 # X=fread('/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv',data.table=FALSE)
 X=fread('/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno_pruned.csv',data.table=FALSE)
+=======
+X=fread('/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv',data.table=FALSE)
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 X=fread('/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv',data.table=FALSE)
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
@@ -53,10 +57,15 @@ fm=BGLR(y=y,ETA=list(
   list(K=G,model='RKHS'),
   list(X=X,model='BayesC',saveEffects=TRUE,probIn=1/100,counts=1e10)),
 <<<<<<< HEAD
+<<<<<<< HEAD
   nIter=32000,burnIn=2000,saveAt='pruned')
   # nIter=32000,burnIn=2000)
 # save(fm,file=paste0('fm_',trait,'.RData'))
 save(fm,file=paste0('fm_',trait,'_pruned.RData'))
+=======
+  nIter=32000,burnIn=2000)
+save(fm,file=paste0('fm_',trait,'.RData'))
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
   nIter=32000,burnIn=2000)
 save(fm,file=paste0('fm_',trait,'.RData'))

@@ -16,7 +16,10 @@ suppressPackageStartupMessages(library(qvalue))
 suppressPackageStartupMessages(library(pvclust))
 suppressPackageStartupMessages(library(gplots))
 <<<<<<< HEAD
+<<<<<<< HEAD
 suppressPackageStartupMessages(library(ggplot2))
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 suppressPackageStartupMessages(library(ComplexHeatmap))
@@ -73,6 +76,7 @@ for(i in 1:nrow(go)){
 }
 # write.csv(go, "Data/yeast_GO/sgd_GO_BP.csv", quote=F, row.names=F)
 <<<<<<< HEAD
+<<<<<<< HEAD
 go <- read.csv("Data/yeast_GO/sgd_GO_BP.csv")
 
 ########################### Map GO terms to SNPs ###########################
@@ -93,6 +97,8 @@ write.table(with_go,
 write.table(no_go, 
     "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_no_go.tsv", sep="\t", 
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
 ########################### Map GO terms to SNPs ###########################
 genes <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt",
@@ -106,6 +112,9 @@ write.table(with_go,
     quote=F, row.names=F)
 write.table(no_go, 
     "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_no_go.csv", sep="\t", 
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     quote=F, row.names=F)
 
@@ -173,6 +182,7 @@ heatmap <- function(toplot, path){
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 heatmap2 <- function(toplot, rownames, path){
     toplot$logP <- 0
     toplot <- toplot[order(toplot$qvalues, decreasing=T),]
@@ -188,10 +198,15 @@ heatmap2 <- function(toplot, rownames, path){
     plotp <- as.matrix(toplot$logP)
     rownames(plotp) <- rownames
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 heatmap2 <- function(toplot, path){
     plotp <- as.matrix(toplot$logP)
     rownames(plotp) <- toplot$BP
     path <- gsub('ORA', 'ORA_hm2', path); path <- gsub('training.', 'training.pdf', path)
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     rdbu_r <- rev(brewer.pal(n=3, "RdBu")) # reversed color palette
     col_fun = colorRamp2(c(-round(max(plotp), 2), 0, round(max(plotp), 2)), rdbu_r)
@@ -212,17 +227,23 @@ heatmap2 <- function(toplot, path){
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 make_contingency <- function(with_go){
     cols <- c("GO", "Gene_top_has_GO", "Gene_not_top_has_GO", "Gene_top_no_GO",
               "Gene_not_top_no_GO", "direction", "p.val", "odds ratio", "qvalues", "lfdr")
     contingency <- data.frame(matrix(0, nrow=length(unique(with_go$GO.ID)),
         ncol=10, dimnames=list(unique(with_go$GO.ID), cols)))
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 make_contingency <- function(all_orfs){
     cols <- c("GO", "ORF_top_has_GO", "ORF_not_top_has_GO", "ORF_top_no_GO",
               "ORF_not_top_no_GO", "direction", "p.val", "odds ratio", "qvalues", "lfdr")
     contingency <- data.frame(matrix(0, nrow=length(unique(all_orfs$GO.ID)),
         ncol=10, dimnames=list(unique(all_orfs$GO.ID), cols)))
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     contingency$GO <- rownames(contingency)
 
@@ -241,6 +262,7 @@ make_contingency <- function(all_orfs){
     return(contingency)
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 ora <- function(with_go, top, bg, path){
     # Overrepresentation Analysis
@@ -303,6 +325,8 @@ ora <- function(with_go, top, bg, path){
         }
         print("   Calculating q values...")
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 ora <- function(with_go, top, bg, contingency, path){
     # Overrepresentation Analysis
     # with_go: dataframe of all genes and GO annotations
@@ -328,11 +352,15 @@ ora <- function(with_go, top, bg, contingency, path){
     contingency$p.val <- as.numeric(contingency$p.val)
     sub <- contingency[!(contingency$p.val==1),] # don't include rows with p_val=1
     if (dim(sub)[1] > 1){
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
         qvals <- qvalue(sub$p.val, lambda=0)
         sub$qvalues <- qvals$qvalues
         sub$lfdr <- qvals$lfdr
         # save contingency table
+<<<<<<< HEAD
 <<<<<<< HEAD
         sub <- sub[order(sub$qvalues),]
         write.table(sub, paste(path, "tsv", sep=""), sep="\t", quote=F, row.names=F)
@@ -358,6 +386,8 @@ ora <- function(with_go, top, bg, contingency, path){
         print(nrow(toplot))
         if (dim(toplot)[1] != 0) heatmap2(toplot, toplot$MF, paste(path, "MF.pdf", sep=""))
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
         out <- rbind(sub, contingency[which(contingency$p.val==1),])
         out <- out[order(out$qvalues),]
         write.table(out, paste(path, "tsv", sep=""), sep="\t", quote=F, row.names=F)
@@ -380,6 +410,9 @@ ora <- function(with_go, top, bg, contingency, path){
         #plotfdr <- as.matrix(cbind(toplot$lfdr, c(1))
     } else {
         write.table(contingency, path, sep="\t", quote=F, row.names=F)
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     }
 }
@@ -388,6 +421,7 @@ go_enrichment <- function(f){
     ### ORA and GSEA of top gene features
     # add gene information to top snp file
     top <- get_genes(f)
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     # drop snps without GO annotations
@@ -400,10 +434,15 @@ go_enrichment <- function(f){
     name <- str_extract(f, "[A-Z0-9]+_[0-9]+[^_training.csv]") # extract file name
     # name <- gsub("_", "_exp_rf_", name)
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     
     # name of importance score file
     name <- str_extract(f, "[A-Z0-9]+_[0-9]+[^_training.csv]") # extract file name
     name <- gsub("_", "_exp_rf_", name)
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     print(paste("File", name, sep=" "))
     
@@ -435,6 +474,7 @@ go_enrichment <- function(f){
     print(paste("   Top Genes: ", length(unique(top$gene)), sep=""))
     print(paste("   Genes not in top: ", length(unique(bg$gene)), sep=""))
 <<<<<<< HEAD
+<<<<<<< HEAD
     print(paste("   Total number of genes is correct: ", length(unique(top$gene))+length(unique(bg$gene))==length(unique(with_go$gene))))
     
     ## Overrepresentation Analysis
@@ -453,6 +493,8 @@ files <- list.files(path=dir, pattern="^SHAP_values_sorted_average_Y",
 mclapply(X=files, FUN=go_enrichment, mc.cores=35) # match go to orfs
 # lapply(files, go_enrichment)
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     
     ## Overrepresentation Analysis
     save <- paste("Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs/ORA_", str_extract(f,
@@ -473,4 +515,7 @@ mclapply(X=files, FUN=go_enrichment, mc.cores=35) # match go to orfs
 
 
 ### Generate a large heatmap combining all SHAP values GO enrichment
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b

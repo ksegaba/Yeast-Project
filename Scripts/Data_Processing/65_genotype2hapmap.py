@@ -13,6 +13,7 @@ def list2string(s): # 01/27/2022 Kenia: Modified encodings from {0,1} to {0,1,-1
 	for ele in s:
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if ele == '0':
 			ele = 'AT'
 		elif ele == '1':
@@ -21,13 +22,18 @@ def list2string(s): # 01/27/2022 Kenia: Modified encodings from {0,1} to {0,1,-1
 =======
 =======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 		if ele == '0': # heterozygous
 			ele = 'TA'
 		elif ele == '1': # homozygous minor allele
 			ele = 'AA'
 		elif ele == '-1': # homozygous major allele
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 			ele = 'TT'

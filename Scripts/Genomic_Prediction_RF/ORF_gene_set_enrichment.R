@@ -15,7 +15,10 @@ suppressPackageStartupMessages(library(qvalue))
 suppressPackageStartupMessages(library(pvclust))
 suppressPackageStartupMessages(library(gplots))
 <<<<<<< HEAD
+<<<<<<< HEAD
 suppressPackageStartupMessages(library(ggplot2))
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 suppressPackageStartupMessages(library(ComplexHeatmap))
@@ -180,7 +183,11 @@ get_go <- function(f, baseline=F){
 # Read in top features' (FS) average SHAP values files
 dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/ORFs/fs" 
 <<<<<<< HEAD
+<<<<<<< HEAD
 files <- list.files(path=dir, pattern="^SHAP_values_sorted_average_Y", full.names=TRUE, 
+=======
+files <- list.files(path=dir, pattern="SHAP_values_sorted_average_Y", full.names=TRUE, 
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 files <- list.files(path=dir, pattern="SHAP_values_sorted_average_Y", full.names=TRUE, 
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
@@ -189,6 +196,7 @@ mclapply(X=files, FUN=get_go, mc.cores=4) # match go to orfs
 
 # Read in list of ORFs
 dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/ORFs/"
+<<<<<<< HEAD
 <<<<<<< HEAD
 # path <- paste(dir,
 #     "baseline/SHAP_values_sorted_average_YPACETATE_orf_training.txt", sep="")
@@ -250,6 +258,8 @@ sum(is.na(with_go$GO.ID)) # 0
 sum(is.na(with_go$gene)) # 0, BP has missing values
 write.table(with_go, "Data/Peter_2018/ORFs_with_GO.tsv", sep="\t", row.names=F, quote=F) # save only ORFs with GO annotations
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 path <- paste(dir,
     "baseline/SHAP_values_sorted_average_YPACETATE_cno_training.txt", sep="/")
 all_orfs <- get_go(path, baseline=T)
@@ -260,6 +270,9 @@ all_orfs <- all_orfs[!duplicated(all_orfs),] # remove duplicate rows
 
 # ORFs mapped to genes and GO terms
 # write.table(all_orfs[-4], "Data/Peter_2018/ORFs_GO_genes.tsv", sep="\t", quote=F, row.names=F) 
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
 ################################################################################
@@ -272,6 +285,7 @@ all_orfs <- all_orfs[!duplicated(all_orfs),] # remove duplicate rows
 ################################################################################
 
 # all ORFs and GO annotations
+<<<<<<< HEAD
 <<<<<<< HEAD
 with_go <- read.csv('Data/Peter_2018/ORFs_with_GO.tsv', sep="\t", header=T) 
 colnames(with_go) <- c("qacc", "sacc", "gene", "GO", "BP")
@@ -287,6 +301,9 @@ get_genes <- function(f) {
     write.csv(out, paste(file.path(path, name), "csv", sep=""), quote=F, row.names=F)
     return(out)
 }
+=======
+all_orfs <- read.delim('Data/Peter_2018/ORFs_GO_genes.tsv', sep="\t", header=T) 
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
 all_orfs <- read.delim('Data/Peter_2018/ORFs_GO_genes.tsv', sep="\t", header=T) 
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
@@ -334,6 +351,7 @@ heatmap <- function(toplot, path){
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 heatmap2 <- function(toplot, rownames, path){
     toplot$logP <- 0
     toplot <- toplot[order(toplot$qvalues),]
@@ -371,6 +389,8 @@ ora <- function(with_go, top, bg, path){
     # Overrepresentation Analysis
     # with_go: dataframe of all ORFs and GO annotations
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 heatmap2 <- function(plotp, path, name, n=3, colors, bound=1, row=T, col=F){
     palette_func <- colorRampPalette(colors)
     palette <- rev(palette_func(n)) # reversed color palette
@@ -396,6 +416,9 @@ heatmap2 <- function(plotp, path, name, n=3, colors, bound=1, row=T, col=F){
 ora <- function(all_orfs, top, bg, path){
     # Overrepresentation Analysis
     # all_orfs: dataframe of all ORFs and GO annotations
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     # top2: dataframe of ORFs of interest
     # bg: dataframe of ORFs in background set
@@ -404,6 +427,7 @@ ora <- function(all_orfs, top, bg, path){
     # make contingency table for overrepresntatino analysis
     cols <- c("GO", "ORF_top_has_GO", "ORF_not_top_has_GO", "ORF_top_no_GO",
               "ORF_not_top_no_GO", "direction", "p.val", "odds ratio", "qvalues", "lfdr")
+<<<<<<< HEAD
 <<<<<<< HEAD
     contingency <- data.frame(matrix(nrow=1, ncol=10))
     colnames(contingency) <- cols
@@ -473,6 +497,8 @@ ora <- function(all_orfs, top, bg, path){
         print(nrow(toplot))
         if (dim(toplot)[1] != 0) heatmap2(toplot, toplot$MF, paste(path, "MF.pdf", sep=""))
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     contingency <- data.frame(matrix(0, nrow=length(unique(all_orfs$GO.ID)),
         ncol=10, dimnames=list(unique(all_orfs$GO.ID), cols)))
     contingency$GO <- rownames(contingency)
@@ -541,6 +567,9 @@ ora <- function(all_orfs, top, bg, path){
         # plotfdr <- as.matrix(cbind(toplot$lfdr, c(1))
     } else {
         write.table(sub, path, sep="\t", quote=F, row.names=F)
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
     }
 }
@@ -591,12 +620,16 @@ go_enrichment <- function(f){
     
     # read in top ORF feature file
 <<<<<<< HEAD
+<<<<<<< HEAD
     top <- get_genes(f)
     
     # drop orfs without GO annotations
     top <- top[which(!is.na(top$GO)),]
     
     # name of importance score file
+=======
+    top <- read.delim(f, sep="\t", header=TRUE) 
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
     top <- read.delim(f, sep="\t", header=TRUE) 
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
@@ -614,7 +647,11 @@ go_enrichment <- function(f){
 
     ### Step 2: calculate the enrichment score
 <<<<<<< HEAD
+<<<<<<< HEAD
     bg <- with_go[!(with_go$qacc %in% top$qacc),] # remove top from background set
+=======
+    bg <- all_orfs[!(all_orfs$qacc %in% top$qacc),] # remove top from background set
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 =======
     bg <- all_orfs[!(all_orfs$qacc %in% top$qacc),] # remove top from background set
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
@@ -625,6 +662,7 @@ go_enrichment <- function(f){
     print(paste("   Top genes: ", length(unique(top$gene)), sep=""))
     print(paste("   Genes not in top: ", length(unique(bg$gene)), sep=""))
 <<<<<<< HEAD
+<<<<<<< HEAD
     print(paste("   Total number of ORFs is correct: ", length(unique(top$qacc))+length(unique(bg$qacc))==length(unique(with_go$qacc))))
     
     ## Overrepresentation Analysis
@@ -632,11 +670,16 @@ go_enrichment <- function(f){
         "SHAP_values_sorted_average_[A-Z0-9]+_[a-z]+_[0-9]+_training[^txt]"), sep="")
     ora(with_go, top, bg, path)
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
     ## Overrepresentation Analysis
     save <- paste("Scripts/Genomic_Prediction_RF/SHAP/ORFs/fs/ORA_", str_extract(f,
         "SHAP_values_sorted_average_[A-Z0-9]+_[a-z]+_[0-9]+_training.tsv"), sep="")
     ora(all_orfs, top, bg, save)
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
     ## Gene Set Enrichment Analysis
@@ -644,6 +687,7 @@ go_enrichment <- function(f){
 }
 
 ## create topGO mapping file
+<<<<<<< HEAD
 <<<<<<< HEAD
 # map <- all_orfs %>% group_by(qacc) %>% dplyr::summarize(GO = toString(GO))
 # write.table(map, "Data/Peter_2018/ORFs_GO_genes.map", sep="\t", quote=F, row.names=F, col.names=F)
@@ -656,6 +700,8 @@ write.table(go2orfs, "Data/Peter_2018/ORFs_with_GO_reduced_map.tsv", sep="\t", q
 dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/ORFs/fs" # path to FS average SHAP files
 files <- list.files(path=dir, pattern="^SHAP_values_sorted_average_Y", 
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 map <- all_orfs %>% group_by(qacc) %>% dplyr::summarize(GO = toString(GO))
 # write.table(map, "Data/Peter_2018/ORFs_GO_genes.map", sep="\t", quote=F, row.names=F, col.names=F)
 
@@ -666,6 +712,9 @@ go2orfs <- all_orfs %>% group_by(GO) %>% dplyr::summarize(ORFs=toString(qacc))
 ## top features' (FS) average SHAP values files w/GO annotations for each env
 dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/ORFs/fs" # path to FS average SHAP files
 files <- list.files(path=dir, pattern="GO_SHAP_values_sorted_average_Y", 
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
                     full.names=TRUE, recursive=FALSE)
 mclapply(X=files, FUN=go_enrichment, mc.cores=35) # match go to orfs
@@ -922,6 +971,7 @@ for(i in 1:nrow(master_go_cno)){
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 toplot <- as.matrix(master_go_orf[2:36]) # ORF presence/absence Log Odds Ratio
 toplot[toplot>10] <- 10 # to avoid Inf issue
 toplot[is.na(toplot)] <- 0 # no mising values
@@ -944,6 +994,8 @@ p <- plot_hm(toplot, col_fun, n=2, rl=master_go_cno$BP, s=10,
     h=7*unit(0.5, "cm"), w=35*unit(0.5, "cm"),
     name="Odds Ratio", at=c(0,10))
 =======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 toplot <- as.matrix(master_go_orf[5:39]) # ORF presence/absence Log Odds Ratio
 col_fun <- colorRampPalette(c("blue", "white", "red"))  
 path <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/ORFs/fs/orf_go_all.pdf"
@@ -961,6 +1013,9 @@ pdf(path, height=unit(7, "in"), width=unit(11, "in"))# file to save
 p <- plot_hm(toplot, col_fun, n=3, rl=master_go_cno$BP, s=10,
     h=7*unit(0.5, "cm"), w=35*unit(0.5, "cm"),
     name="Log Odds Ratio", at=c(-7,0,7))
+<<<<<<< HEAD
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
 >>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 draw(p)
 dev.off()
