@@ -36,9 +36,27 @@ def main():
 			for n in tem[4:]:
 				if n != './././.' and n != './.':
 					keep += 1
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+					### here, take tetraploid as the same as octoploid
+					if len(n.split('/')) == 2:
+						n = '%s/%s/%s/%s'%(n.split('/')[0],n.split('/')[0],n.split('/')[1],n.split('/')[1])
+=======
 					### here, take tetraploid as the same as octoploid # commented this out 10/17/2022
 					# if len(n.split('/')) == 2:
 					# 	n = '%s/%s/%s/%s'%(n.split('/')[0],n.split('/')[0],n.split('/')[1],n.split('/')[1])
+>>>>>>> origin/main
+=======
+					### here, take tetraploid as the same as octoploid # commented this out 10/17/2022
+					# if len(n.split('/')) == 2:
+					# 	n = '%s/%s/%s/%s'%(n.split('/')[0],n.split('/')[0],n.split('/')[1],n.split('/')[1])
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+					### here, take tetraploid as the same as octoploid # commented this out 10/17/2022
+					# if len(n.split('/')) == 2:
+					# 	n = '%s/%s/%s/%s'%(n.split('/')[0],n.split('/')[0],n.split('/')[1],n.split('/')[1])
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 					### count the frequency of each allele
 					for allele in n.split('/'):
 						if allele not in var:
@@ -51,10 +69,30 @@ def main():
 					L.append(var[allele])
 				L.sort()
 				### if missing data < 20%, MAF(the second most common allele) > 0.05
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+				if float(keep)/(len(tem)-4) >= 0.8 and float(L[-2])/(keep*4) > 0.05:
+					out.write(inl)
+					out.flush()
+		inl = inp.readline()
+
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 				if float(keep)/(len(tem)-4) >= 0.8 and float(L[-2])/(keep*2) > 0.05: # 10/17/2022 In original code: keep*4
 					out.write(inl)
 					out.flush()
 		inl = inp.readline()
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 	out.close()
 
 if __name__ == '__main__':

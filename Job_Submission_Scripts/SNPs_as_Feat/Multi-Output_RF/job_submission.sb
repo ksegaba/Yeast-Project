@@ -1,0 +1,28 @@
+#!/bin/sh --login
+#SBATCH --array=0-1189:2
+#SBATCH --time=150:00:00
+#SBATCH --nodes=1 --ntasks=10
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=20G
+#SBATCH --job-name morf_baseline
+#SBATCH --output=%x_%A_%a.out
+
+module purge
+module load GCC/6.4.0-2.28  OpenMPI/2.1.2  Python/3.6.4
+
+pipe=/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_GxE/code
+X=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv
+y=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv
+test=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt
+pairs=($(</mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_GxE/data/env_fitness_pairs.txt))
+nGS=10
+nTrain=10
+
+i=${SLURM_ARRAY_TASK_ID} # job ID
+labels=(${pairs[$i]} ${pairs[$((i+1))]}) # traits
+echo "$labels" # only prints the first element
+save=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_MORF_results/MORF_${pairs[$i]}_${pairs[$((i+1))]}_baseline
+python ${pipe}/Multi-Output_RF.py -X $X -y $y -test $test -labels ${labels[@]} \
+    -nGS $nGS -nTrain $nTrain -save $save
+
+scontrol show job ${SLURM_ARRAY_TASK_ID}

@@ -2,7 +2,18 @@
 library(data.table)
 library(gplots)
 library(ggplot2)
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
 library(gridExtra)
+>>>>>>> origin/main
+=======
+library(gridExtra)
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+library(gridExtra)
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 library(viridis)
 library(MASS)
 library(dplyr)
@@ -28,6 +39,15 @@ new_cond <- c("YP Acetate 2%", "YPD 14C", "YPD 40C", "YPD 42C", "YPD 6-Azauracil
         "YPD NaCl 1.5M", "YPD NaCl 1M", "YPD Nystatin 10µg/ml", "YPD SDS 0.2%", 
         "YPD Sodium metaarsenite 2.5mM", "YP Ethanol 2%", "YP Galactose 2%", "YP Ribose 2%",
         "YP Glycerol 2%", "YP Xylose 2%", "YP Sorbitol 2%")
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+conds <- as.data.frame(cbind(cond, new_cond))
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 new_cond2 <- c("YP Acetate 2%", "YPD 14ºC", "YPD 40ºC", "YPD 42ºC", "YPD 6-Azauracile 600 µg/ml",
         "YPD Anisomycin 10 µg/ml", "YPD Anisomycin 20 µg/ml", "YPD Anisomycin 50 µg/ml",
         "YPD Benomyl 200 µg/ml", "YPD Benomyl 500 µg/ml", "YPD Caffeine 40 mM", "YPD Caffeine 50 mM",
@@ -38,6 +58,13 @@ new_cond2 <- c("YP Acetate 2%", "YPD 14ºC", "YPD 40ºC", "YPD 42ºC", "YPD 6-Az
         "YPD Sodium metaarsenite 2.5 mM", "YP Ethanol 2%", "YP Galactose 2%", "YP Ribose 2%",
         "YP Glycerol 2%", "YP Xylose 2%", "YP Sorbitol 2%")
 conds <- as.data.frame(cbind(cond, new_cond, new_cond2))
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
 #--------- LD Decay ---------#
 ld <- fread("Data/Peter_2018/geno_LD_window_50.txt") # Window size 50, TASSEL5 output
@@ -66,6 +93,48 @@ hm <- heatmap.2(kin,
                 dendrogram = "none",
                 Rowv = TRUE,
                 Colv = TRUE,
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+                notecex = 0.4,
+                cex.axis = 0.4,
+                cexRow = 0.5,
+                cexCol = 0.4,
+                key.title = "Kinship")
+dev.off()
+
+#--------- FITNESS CORRELATIONS ---------#
+pCorEnvs <- read.csv("Data/Peter_2018/pheno_corr_envs.csv", header=T, row.names=1) # Correlation between conditions
+pCorIso <- read.csv("Data/Peter_2018/pheno_corr_isolates.csv", header=T, row.names=1) # Correlation between isolates across all conditions
+
+pdf("Scripts/Data_Vis/pheno_corr_isolates.pdf")
+hm2 <- heatmap.2(as.matrix(pCorIso),
+                col = colorRampPalette(c("blue","white","red"))(21),
+                trace="none",
+                dendrogram="none",
+                Rowv=hm$rowDendrogram,
+                Colv=hm$rowDendrogram,
+                labRow = FALSE,
+                labCol = FALSE,
+                #notecex=0.4,
+                #cex.axis=0.4,
+                #cexRow=0.5,
+                #cexCol=0.4,
+                keysize=1.4,
+                key.title="PCC",
+                key.par = list(cex=36), 
+                mar=c(2,0,2,0))
+dev.off()
+
+pdf("Scripts/Data_Vis/pheno_corr_envs.pdf")
+hm3 <- heatmap.2(as.matrix(pCorEnvs),
+                col = colorRampPalette(c("blue","white","red"))(21),
+                hclustfun = function(x) hclust(x, method="median"),
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
                 notecex = 1,
                 cex.axis = 1,
                 cexRow = 1,
@@ -126,20 +195,76 @@ pdf("Scripts/Data_Vis/pheno_corr_envs_v2.pdf")
 hm3 <- heatmap.2(as.matrix(pCorEnvs),
                 col = colorRampPalette(c("blue","white","red"))(21),
                 #hclustfun = function(x) hclust(x, method="complete"),
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
                 trace = "none",
                 dendrogram = "none",
                 notecex = 1,
                 cex.axis = 1,
                 cexRow = 0.6,
                 cexCol = 0.6,
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+                keysize = 0.8,
+                key.title = "PCC",
+                key.ytickfun = NA,
+                key.par = list(cex=0.6),
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
                 density.info = "none",
                 keysize = 1,
                 key.title = "PCC",
                 key.par = list(cex=1, mar=c(3,1,3,0)),
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
                 margins = c(11,11))
 dev.off()
 
 #--------- ISOLATE FITNESS CORRELATION VS KINSHIP ---------#
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+k_bin <- reshape2::melt(kin) # reshape kinship matrix
+k_quant <- quantile(k_bin, seq(0,1,0.05)) # kinship quantiles
+k_bin$bin <- cut(k_bin$value, breaks=k_quant) # bins
+k_bin$bin <- as.character(lapply(strsplit(as.character(k_bin$bin),split=","),head,n=1)) # rename bins
+k_bin$bin <- gsub("\\(", "", k_bin$bin) # remove (
+k_bin$bin <- as.numeric(k_bin$bin) # convert to numeric
+
+pCorIso <- as.matrix(pCorIso)
+i_bin <- reshape2::melt(pCorIso) # reshape fitness across isolates correlation matrix
+i_quant <- quantile(i_bin$value, seq(0,1,0.05)) # pCor quantiles
+i_bin$bin <- cut(i_bin$value, breaks=i_quant)
+i_bin$bin <- as.character(lapply(strsplit(as.character(i_bin$bin),split=","),head,n=1))
+i_bin$bin <- gsub("\\(", "", i_bin$bin)
+i_bin$bin <- as.numeric(i_bin$bin)
+
+k_i_bin <- merge(k_bin, i_bin, by=c("Var1", "Var2")) # merge dataframes
+names(k_i_bin) <- c("Isolate 1", "Isolate 2", "Kinship", "Kinship bin", "pCor", "pCor bin")
+
+k.i.cor <- cor(k_i_bin$Kinship, k_i_bin$pCor, method="spearman") # Spearman correlation
+k_i_bin_count <- aggregate(cbind(count = `Isolate 2`) ~ `Kinship bin`, # bin counts
+        data=k_i_bin, FUN=function(x){NROW(x)})
+k_i_bin_median <- k_i_bin %>% group_by(`Kinship bin`) %>% summarise(median=median(pCor)) # bin pCor median
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 add_bins <- function(mat, step) {
         to_bin <- reshape2::melt(mat) # reshape kinship matrix
         #quants <- quantile(i_bin$value, seq(0,1,0.05)) # pCor quantiles
@@ -166,12 +291,65 @@ k.i.cor <- cor(k_i_bin$Kinship, k_i_bin$pCor, method="spearman") # Spearman corr
 k_i_bin_count <- aggregate(cbind(count = `Isolate 2`) ~ `Kinship bin`, # Kinship bin counts
         data=k_i_bin, FUN=function(x){NROW(x)})
 k_i_bin_median <- k_i_bin %>% group_by(`Kinship bin`) %>% summarise(median=median(pCor)) # median pCor per kinship bin 
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
 get_density <- function(x, y, ...) { # density
   dens <- MASS::kde2d(x, y, ...)
   ix <- findInterval(x, dens$x)
   iy <- findInterval(y, dens$y)
   ii <- cbind(ix, iy)
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+  return(dens$z[ii])}
+k_i_bin$density <- get_density(k_i_bin$Kinship, k_i_bin$pCor, n=100)
+
+# 5% and 95% quantiles for each kinship bin
+quants <- as.data.frame(do.call("rbind", tapply(k_i_bin$pCor, k_i_bin$`Kinship bin`, quantile, c(0.05, 0.95))))
+names(quants) <- c("x5","x95")
+quants$`Kinship bin` <- as.numeric(row.names(quants))
+
+# Density scatter plot
+ggplot(k_i_bin, aes(x=Kinship, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
+        geom_smooth(method="lm", formula=y~x, se=FALSE) +
+        scale_color_viridis(direction=-1) + theme_bw(8)
+ggsave("Scripts/Data_Vis/kinpCorIso_Density.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+
+ggplot(k_i_bin, aes(x=Kinship, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
+        scale_color_viridis(direction=-1) + theme_bw(8) +
+        geom_line(data=k_i_bin_median, aes(x=`Kinship bin`, y=median, group=1), color="red") +
+        annotate(geom="text", x=3, y=-0.3, label=paste("Spearman's rank cor = ", round(k.i.cor, digits=2),sep=""))
+ggsave("Scripts/Data_Vis/kinpCorIso_Density_median.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+
+ggplot(k_i_bin, aes(x=`Kinship bin`, y=pCor, color=density)) + geom_point(size=0.2, alpha=0.2) +
+        scale_color_viridis(direction=-1) + theme_bw(8) + 
+        geom_line(data=k_i_bin_median, aes(x=`Kinship bin`, y=median, group=1), color="red")
+ggsave("Scripts/Data_Vis/kinpCorIso_Density_median_bin.pdf", width=5, height=4, device="pdf", useDingbats=FALSE)
+
+# Binned plot with quantiles
+ggplot(data = k_i_bin, aes(x=`Kinship bin`, y=pCor, group=`Kinship bin`))  + geom_violin() +
+        geom_boxplot(outlier.shape=NA) + theme_bw(10) +
+        geom_line(data=quants, aes(x=`Kinship bin`, y=x95, group = 1), color="red") +
+        geom_line(data=quants, aes(x=`Kinship bin`, y=x5, group = 1), color="blue")
+ggsave("Scripts/Data_Vis/kinpCorIso_Distribution.pdf", width=4, height = 4, device="pdf", useDingbats=FALSE)
+
+# Bin counts plot
+ggplot(k_i_bin_count, aes(x=`Kinship bin`, y=log(count))) + theme_bw(10) +geom_bar(stat="identity", position= "dodge")
+ggsave("Scripts/Data_Vis/kinpCorIso_BinCount.pdf", width=3.42, height = 2.42, device="pdf", useDingbats=FALSE)
+
+#--------- HERITABILITY ---------#
+
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
   return(dens$z[ii])
 }
 
@@ -350,6 +528,13 @@ ggplot(h2, aes(x=new_cond, y=h2, fill="#F8766D")) + theme_bw(8) +
         theme(axis.text.x = element_text(angle=45, hjust=1)) +
         theme(axis.text.y = element_text(size=9, color="black"))
 ggsave("Scripts/Data_Vis/h2_conditions.pdf", width=10, height=4, device="pdf", useDingbats=FALSE)
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
 #--------- FITNESS VARIANCE ACROSS CONDITIONS ---------#
 y <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv", row.names=1)
@@ -383,7 +568,19 @@ ggplot(snp_n, aes(x=Freq)) + geom_histogram(bins=40) +
         labs(x="Number of SNPs", y="Counts")
 ggsave("Scripts/Data_Vis/snp_counts_dist_genes.pdf", device="pdf", useDingbats=FALSE)
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+#--------- GENOMIC PREDICTION ACCURACY ---------#
+=======
 #--------- BASELINE GENOMIC PREDICTION ACCURACY ---------#
+>>>>>>> origin/main
+=======
+#--------- BASELINE GENOMIC PREDICTION ACCURACY ---------#
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+#--------- BASELINE GENOMIC PREDICTION ACCURACY ---------#
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 # Read in SNP-based model results
 rrBLUP_PCs_cv = read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Results/rrBLUP_PCs_average_cv_R2.csv") # rrBLUP population structure validation
 rrBLUP_PCs_test = read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Results/rrBLUP_PCs_average_test_R2.csv") # rrBLUP pop. struc. test
@@ -415,11 +612,31 @@ cno_xgb <- merge(conds, cno_xgb, by.x="cond", by.y="Trait")
 orf_xgb <- orf_xgb[,c(2,9)]
 cno_xgb <- cno_xgb[,c(2,9)]
 ORF_RF = read.csv("/mnt/scratch/seguraab/yeast_project/ORF_yeast_RF_results/RESULTS_reg.txt", sep="\t")
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+orf_rf <- ORF_RF[grep("2022-04-2[5-8]",ORF_RF$DateTime),]
+orf_rf <- ORF_RF[grep("_orf_",ORF_RF$ID),]
+cno_rf <- ORF_RF[grep("_cno_",ORF_RF$ID),] # need YPDSODIUMMETAARSENITE, YPDNACL1M, YPDANISO20, YPDDMSO
+orf_rf <- orf_rf[36:78, c(1,3,29)] ; orf_rf <- orf_rf %>% group_by(ID) %>% summarise_all(mean)
+cno_rf <- cno_rf[36:67,c(1,3,29)] ; cno_rf <- cno_rf %>% group_by(ID) %>% summarise_all(mean)
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 ORF_RF <- ORF_RF[grep("2022-0[4-6]-[0-2][5-9]",ORF_RF$DateTime),]
 orf_rf <- ORF_RF[grep("_orf_",ORF_RF$ID),]
 cno_rf <- ORF_RF[grep("_cno_",ORF_RF$ID),] # need YPDSODIUMMETAARSENITE, YPDNACL1M, YPDANISO20, YPDDMSO
 orf_rf <- orf_rf[, c(1,3,29)] ; orf_rf <- orf_rf %>% group_by(ID) %>% summarise_all(mean)
 cno_rf <- cno_rf[,c(1,3,29)] ; cno_rf <- cno_rf %>% group_by(ID) %>% summarise_all(mean)
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 orf_rf$ID <- gsub("_orf_baseline", "", orf_rf$ID)
 cno_rf$ID <- gsub("_cno_baseline", "", cno_rf$ID)
 orf_rf <- merge(conds, orf_rf, by.x="cond", by.y="ID")
@@ -527,6 +744,14 @@ heatmap.2(as.matrix(cnos_test),           # cell labeling
           key.title="R-squared")
 dev.off()
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 # Random forest SNPs, ORFs, CNVs baseline model performances
 combined <- reshape2::melt(combined)
 med_snps <- median(combined[combined$variable=="SNPs","value"]) # median SNPs performance
@@ -543,6 +768,13 @@ ggplot(combined, aes(x=Conditions, y=value, fill=variable)) + geom_bar(stat="ide
 ggsave("Scripts/Data_Vis/RF_performances_snps_orfs_bar.pdf", device="pdf", useDingbats=FALSE,
         width=18, height=22, units="cm")
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 par(mar=c(30,30,30,30)+1) #bottom,left,top,right
 pdf("Scripts/Data_Vis/RF_performances_snps_orfs.pdf", height=400, width=400)
 heatmap.2(as.matrix(combined), # the values are not matching the resulting image
@@ -576,6 +808,29 @@ Heatmap(as.matrix(combined), cluster_columns=F, col=col_fun_prop,
         title_gp=gpar(fontsize="36"), labels_gp = gpar(fontsize = 36,fontface = "bold"))
 graphics.off()
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+#--------- ACCURACY VS NARROW-SENSE HERITABILITY ---------#
+accuracy <- read.csv("Scripts/Data_Vis/RF_performances_snps_orfs.csv") # random forest R-squared values
+heritability <- read.csv("yeast_rrBLUP_results/SNPs_as_Features/Heritability_h2_H2_sommer.csv") # sommer narrow and broad sense heritability
+heritability <- merge(conds, heritability, by.x="cond", by.y="Conditions")
+data <- merge(heritability, accuracy, by.x="new_cond", by.y="Conditions")
+data$new_cond <- factor(data$new_cond)
+ggplot(data, aes(x=SNPs, y=h2, color=new_cond, shape=new_cond)) + 
+        scale_shape_manual(values=1:nlevels(data$new_cond)/2) +
+        geom_point(size=2)
+ggsave("Scripts/Data_Vis/accuracy_vs_h2_sommer.pdf", width=7, height=4,
+                device="pdf", useDingbats=FALSE)
+
+#--------- FEATURE SELECTION ---------#
+fs <- read.delim("/mnt/scratch/seguraab/yeast_project/yeast_rf_results/RESULTS_reg.txt", sep="\t")
+fs <- fs[order(fs$ID),]
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 #--------- NARROW-SENSE HERITABILITY VS BASELINE ACCURACY ---------#
 accuracy <- read.csv("Scripts/Data_Vis/RF_performances_snps_orfs.csv") # random forest R-squared values
 accuracy <- merge(conds, accuracy, by.x="new_cond", by.y="X")
@@ -592,6 +847,13 @@ ggsave("Scripts/Data_Vis/accuracy_vs_h2_sommer.pdf", width=8, height=5,
         device="pdf", useDingbats=FALSE)
 
 #--------- RANDOM FOREST FEATURE SELECTION CURVES---------#
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 adj_r2 <- function(n, p, r2){
         # Adjusted R-squared
         # n is number of instances
@@ -600,6 +862,54 @@ adj_r2 <- function(n, p, r2){
         return ( 1-(((1-r2)*(n-1))/(n-p-1)) )
 }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+# 500 to 50k features
+for (i in 1:length(cond)){
+        print(cond[i])
+        print(new_cond[i])
+        df <- fs[grep(cond[i],fs$ID),] # subset data corresponding to condition
+        ggplot(tmp, aes(x=FeatureNum, y=r2_test)) + geom_line(color="red") + theme_bw() + 
+                labs(title=new_cond[i],x="Features", y = "Performance") +
+                geom_line(aes(x=FeatureNum, y=r2_val), color="black")
+        ggsave(paste("Scripts/Data_Vis/",cond[i],"_FS.pdf", sep=""), width=7, height=4,
+                device="pdf", useDingbats=FALSE)
+        # adjusted r-squared 
+        adj.r2_test <- adj_r2(125, df$FeatureNum, df$r2_test)
+        adj.r2_val <- adj_r2(625, df$FeatureNum, df$r2_val)
+        ggplot(df, aes(x=FeatureNum, y=adj.r2_test)) + geom_line(color="red") + theme_bw() + 
+                labs(title=new_cond[i],x="Features", y = "Adjusted R-squared") +
+                geom_line(aes(x=FeatureNum, y=adj.r2_val), color="black")
+        ggsave(paste("Scripts/Data_Vis/",cond[i],"_FS_adj_r.pdf", sep=""), width=7, height=4,
+                device="pdf", useDingbats=FALSE)
+}
+
+# 2 to 2064 features
+sub <- fs[grep("_exp_", fs$ID),]
+for (i in 1:length(cond)){
+        print(cond[i])
+        print(new_cond[i])
+        sub_df <- sub[grep(cond[i],sub$ID),]
+        ggplot(sub_df, aes(x=FeatureNum, y=r2_test)) + geom_line(color="red") + theme_bw() + 
+                labs(title=new_cond[i],x="Features", y = "Performance") +
+                geom_line(aes(x=FeatureNum, y=r2_val), color="black")
+        ggsave(paste("Scripts/Data_Vis/",cond[i],"_exp_FS.pdf", sep=""), width=7, height=4,
+                device="pdf", useDingbats=FALSE)
+        # adjusted r-squared 
+        adj.r2_test <- adj_r2(125, sub_df$FeatureNum, sub_df$r2_test)
+        adj.r2_val <- adj_r2(625, sub_df$FeatureNum, sub_df$r2_val)
+        ggplot(sub_df, aes(x=FeatureNum, y=adj.r2_test)) + geom_line(color="red") + theme_bw() + 
+                labs(title=new_cond[i],x="Features", y = "Adjusted R-squared") +
+                geom_line(aes(x=FeatureNum, y=adj.r2_val), color="black")
+        ggsave(paste("Scripts/Data_Vis/",cond[i],"_exp_FS_adj_r.pdf", sep=""), width=7, height=4, 
+                device="pdf", useDingbats=FALSE)
+}
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 plot_fs <- function(fs, save){
         for (i in 1:length(cond)){
                 sprintf("%s",cond[i]) ; sprintf("%s",new_cond2[i])
@@ -649,6 +959,13 @@ plot_fs(sub, "_cno_FS.pdf")
 #-------- NARROW-SENSE HERITABILITY VS ACCURACY AFTER FEATURE SELECTION ---------#
 
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
 #--------- SNP IMPORTANCE VARIATION ACROSS CONDITIONS ---------#
 # read importance score files
@@ -656,6 +973,14 @@ plot_fs(sub, "_cno_FS.pdf")
 # rank SNPs
 
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 #--------- ORF IMPORTANCE vs % PRESENCE ----------#
 # Read in ORF presence/absence data
 orfs <- read.csv("Data/Peter_2018/ORFs_pres_abs.csv", header=T, row.names=1)
@@ -724,6 +1049,13 @@ p <- lapply(1:35, plot_density)
 ggsave('Scripts/Data_Vis/RF_orf_imp_vs_presence_density.pdf', 
         plot=marrangeGrob(p, nrow=7, ncol=5, top=NULL), width=18, 
         height=22, unit="cm")
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 
 #--------- PATHWAY INFORMATION ----------#
 pwys <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/biallelic_snps_diploid_S288C_genes_pwys_unique_descriptions.csv")
@@ -752,6 +1084,16 @@ write.csv(sshap, "Scripts/Data_Vis/00_shap_ypdcafein50_pathways.csv", quote=F, r
 
 
 #------------ GENE COPY NUMBER DISTRIBUTION
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/main
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 cno <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/ORFs_no_NA.csv")
 orf <- read.csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/ORFs_pres_abs.csv")
 
@@ -765,5 +1107,18 @@ ggsave("Scripts/Data_Vis/orf_copy_number_dist.pdf", device="pdf", useDingbats=FA
 ggplot(orf, aes(x=value)) + geom_histogram(bins=40) + 
         labs(x="ORF presence/absence", y="Counts")
 ggsave("Scripts/Data_Vis/orf_pres_abs_dist.pdf", device="pdf", useDingbats=FALSE)
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
 
 
+>>>>>>> origin/main
+=======
+
+
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+=======
+
+
+>>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
