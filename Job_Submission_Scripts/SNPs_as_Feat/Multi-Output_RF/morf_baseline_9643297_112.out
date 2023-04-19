@@ -1,8 +1,0 @@
-
- 
-
-YPDANISO20
-[['Y', 'P', 'D', 'A', 'N', 'I', 'S', 'O', '2', '0'], ['Y', 'P', 'D', 'F', 'O', 'R', 'M', 'A', 'M', 'I', 'D', 'E', '4']]
-Round 1 of 10
-Fitting 5 folds for each of 60 candidates, totalling 300 fits
-[Parallel(n_jobs=-1)]: Using backend LokyBackend with 20 concurrent workers.

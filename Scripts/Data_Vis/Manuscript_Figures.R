@@ -36,6 +36,7 @@ suppressPackageStartupMessages(library(matrixStats))
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(RColorBrewer))
+suppressPackageStartupMessages(library(gridtext))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(ggpmisc))
 
@@ -94,6 +95,7 @@ ggplot() + geom_point(aes(x=sd, y=mean, group=Condition, alpha=0.1), stats)
 ggsave("Data/Peter_2018/1002_pheno_all_conditions_4Rep_40h_only_diploids_stdev.pdf")
 
 # FITNESS CORRELATIONS
+
 pCorEnvs <- read.csv("Data/Peter_2018/pheno_corr_envs.csv", row.names=1) # Correlation between conditions
 colnames(pCorEnvs) <- rownames(pCorEnvs)
 pCorIso <- read.csv("Data/Peter_2018/pheno_corr_isolates.csv", row.names=1) # Correlation between isolates across all conditions
@@ -505,21 +507,32 @@ pcs %>% ggplot(aes(x=PC1, y=PC5, col=`Geographical origins`)) + geom_point() + t
 dev.off()
 
 ################################################################################
-# RANDOM FOREST PREDICTION PERFORMANCE (figures in excel)
+# BASELINE RANDOM FOREST PREDICTION PERFORMANCE (figures in excel)
 ################################################################################
-# SNP Models
+## PC Models
+# These results were originally with the SNP results but I took them out and moved them to a new file
+# path <- "/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results"
+# rf_fs <- read.csv(file.path(path, "RESULTS_reg.txt"), sep="\t")
+# rf_pc <- rf_fs[grep("PCs", rf_fs$ID),]# population structure results
+# rf_pc <- right_join(conds, rf_pc, by=c("cond"="Y")) # add full condition names
+# write.table(rf_pc, "Results/RESULTS_RF_PCs.txt", sep="\t", row.names=F, quote=F)
+path <- "/mnt/home/seguraab/Shiu_Lab/Project/Results/RESULTS_RF_PCs.txt"
+rf_pc <- read.csv(path, sep="\t")
+rf_pc <- rf_pc[order(rf_pc$r2_test, decreasing=T),]
+cond_order <- rf_pc$cond
+write.table(rf_pc, "Results/RESULTS_RF_PCs_sorted.txt", sep="\t", row.names=F, quote=F)
+
+## SNP Models
 path <- "/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results"
 rf_base <- read.csv(file.path(path, "baseline/RESULTS_reg_baseline.txt"), sep="\t")
-rf_base <- right_join(conds, rf_base, by=c("cond"="Y")) # add full condition names
+rf_base$cond <- gsub("_rf_baseline", "", rf_base$ID)
+rf_base <- right_join(conds, rf_base, by="cond") # add full condition names
+rownames(rf_base) <- rf_base$cond
+rf_base <- rf_base[cond_order,]
+#  rownames(rf_base)==cond_order
 write.table(rf_base, "Results/RESULTS_RF_SNPs_baseline.txt", sep="\t", row.names=F, quote=F)
 
-# PC Models
-rf_fs <- read.csv(file.path(path, "RESULTS_reg.txt"), sep="\t")
-rf_pc <- rf_fs[grep("PCs", rf_fs$ID),]# population structure results
-rf_pc <- right_join(conds, rf_pc, by=c("cond"="Y")) # add full condition names
-write.table(rf_pc, "Results/RESULTS_RF_PCs.txt", sep="\t", row.names=F, quote=F)
-
-# ORF Copy Number Models
+## ORF Copy Number Models
 path <- "/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results"
 rf_orf <- read.csv(file.path(path, "RESULTS_reg.txt"), sep="\t")
 rf_orf <- rf_orf[grep("2022-0[4-6]-[0-2][5-9]",rf_orf$DateTime),] # extract correct runs by date
@@ -527,17 +540,22 @@ rf_cnv <- rf_orf[grep("_cno_baseline", rf_orf$ID),] # ORF copy number models
 which(duplicated(rf_cnv$ID)) # YPDDANISO20 is duplicated (almost exact numbers due to the nature of the algorithm)
 rf_cnv <- rf_cnv[!duplicated(rf_cnv$ID),] # remove the 2022-06-09 run; keep april date for consistency purposes
 rf_cnv <- right_join(conds, rf_cnv, by=c("cond"="Y")) # add full condition names
+rownames(rf_cnv) <- rf_cnv$cond
+rf_cnv <- rf_cnv[cond_order,]
+# rownames(rf_cnv)==cond_order
 write.table(rf_cnv, "Results/RESULTS_RF_CNVs_baseline.txt", sep="\t", row.names=F, quote=F)
 
-# ORF Presence/Absence Models
+## ORF Presence/Absence Models
 rf_orf <- rf_orf[grep("_orf_baseline", rf_orf$ID),] # ORF presence/absence
-rf_orf[which(duplicated(rf_orf$ID)),] # 8 traits duplicated
+# rf_orf[which(duplicated(rf_orf$ID)),] # 8 traits duplicated
 rf_orf <- rf_orf[!duplicated(rf_orf$ID),] # remove duplicates that are later by date
 rf_orf <- right_join(conds, rf_orf, by=c("cond"="Y")) # add full condition names & remove duplicate rows
+rownames(rf_orf) <- rf_orf$cond
+rf_orf <- rf_orf[cond_order,]
 write.table(rf_orf, "Results/RESULTS_RF_ORFs_baseline.txt", sep="\t", row.names=F, quote=F)
 
 ################################################################################
-# RANDOM FOREST FEATURE SELECTION CURVES
+# RANDOM FOREST FEATURE SELECTION CURVES & PERFORMANCES (figures in excel)
 ################################################################################
 plot_fs <- function(fs, save){
         for (i in 1:length(cond)){
@@ -574,7 +592,12 @@ get_opt_feat <- function(fs){
         return(out)
 }
 
-# SNP Models
+## PC models
+path <- "/mnt/home/seguraab/Shiu_Lab/Project/Results/RESULTS_RF_PCs_sorted.txt"
+rf_pc <- read.csv(path, sep="\t")
+cond_order <- rf_pc$cond
+
+## SNP Models
 path <- "/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs"
 rf <- read.csv(file.path(path, "RESULTS_reg.txt"), sep="\t")
 rf_fs <- rf[grep("rf_[0-9]+", rf$ID),] # SNP feature selection results
@@ -582,68 +605,75 @@ rf_fs <- right_join(conds, rf_fs, by=c("cond"="Y"))
 plot_fs(rf_fs, "_FS.pdf") # 2 to 40k features
 rf_exp_fs <- rf_fs[grep("exp", rf_fs$ID),] 
 plot_fs(rf_exp_fs, "_exp_FS.pdf") # 2 to 2048 features
+rf_fs <- rbind(rf_fs, rf_exp_fs)
 out <- get_opt_feat(rf_fs) # optimal models
+sum(duplicated(out$cond)) # check for duplicate rows (0)
+out <- out[!duplicated(out),] # remove duplicates
+rownames(out) <- out$cond
+out <- out[cond_order,] # set to PC env order
 write.table(out, "Results/RESULTS_RF_SNPs_FS.txt", sep="\t", row.names=F, quote=F)
 
-# ORF Copy Number Models
+## ORF Copy Number Models
 path <- "/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results"
 rf_orf <- read.csv(file.path(path, "RESULTS_reg.txt"), sep="\t")
 rf_cnv_fs <- rf_orf[grep("_cno_[^b]", rf_orf$ID),]
 plot_fs(rf_cnv_fs, "_cnv_FS.pdf")
 out <- get_opt_feat(rf_cnv_fs) # optimal models
+out <- right_join(conds, out, by=c("cond"="Y"))
+rownames(out) <- out$cond
+out <- out[cond_order,] # same order as PCs
 write.table(out, "Results/RESULTS_RF_CNVs_FS.txt", sep="\t", row.names=F, quote=F)
 
-# ORF Presence/Absence Models
+## ORF Presence/Absence Models
 rf_orf_fs <- rf_orf[grep("_orf_[0-9]+", rf_orf$ID),]
 plot_fs(rf_orf_fs, "_orf_FS.pdf")
 out <- get_opt_feat(rf_orf_fs) # optimal models
+out <- right_join(conds, out, by=c("cond"="Y"))
+rownames(out) <- out$cond
+out <- out[cond_order,]
 write.table(out, "Results/RESULTS_RF_ORFs_FS.txt", sep="\t", row.names=F, quote=F)
 
 ################################################################################
 # RANDOM FOREST AFTER FEATURE SELECTION: TEST SET PERFORMANCE COMPARISONS
 ################################################################################
-pcs <- read.table("Results/RESULTS_RF_PCs.txt", sep="\t", header=T, row.names=3)
-snp <- read.table("Results/RESULTS_RF_SNPs_FS.txt", sep="\t", header=T, row.names=2)
-orf <- read.table("Results/RESULTS_RF_ORFs_FS.txt", sep="\t", header=T)
-cnv <- read.table("Results/RESULTS_RF_CNVs_FS.txt", sep="\t", header=T)
-orf <- right_join(conds, orf, by=c("cond"="Y"))
-rownames(orf) <- orf$new_cond
-cnv <- right_join(conds, cnv, by=c("cond"="Y"))
-rownames(cnv) <- cnv$new_cond
+pcs <- read.table("Results/RESULTS_RF_PCs_sorted.txt", sep="\t", header=T, row.names=1)
+snp <- read.table("Results/RESULTS_RF_SNPs_FS.txt", sep="\t", header=T, row.names=1)
+orf <- read.table("Results/RESULTS_RF_ORFs_FS.txt", sep="\t", header=T, row.names=1)
+cnv <- read.table("Results/RESULTS_RF_CNVs_FS.txt", sep="\t", header=T, row.names=1)
 
-# Bar plots with validation and PC performances for SNPs, ORFs, and CNVs
-pcs <- pcs[order(rownames(pcs)),] # ensure all environments are in the same order
-snp <- snp[rownames(pcs),]
-orf <- orf[rownames(pcs),]
-cnv <- cnv[rownames(pcs),]
-rownames(pcs)==rownames(snp)
+# Bar plots with test, validation and PC performances for SNPs, ORFs, and CNVs
+rownames(pcs)==rownames(snp) # ensure all environments are in the same order
 rownames(pcs)==rownames(orf)
 rownames(pcs)==rownames(cnv)
 
 ggplot() + geom_bar(aes(x=new_cond,y=r2_val), snp, fill="#90CE4F", stat="identity") +
         geom_errorbar(aes(x=new_cond, ymin=r2_val-r2_val_sd, 
                 ymax=r2_val+r2_val_sd), snp, width=0.2) +
-        geom_point(aes(x=rownames(pcs), y=r2_test), pcs, size=2.5, col="#702EA0") +
+        geom_point(aes(x=new_cond, y=r2_test), pcs, size=2.5, col="#702EA0") +
         geom_tile(aes(x=new_cond, y=r2_test, width=.9, height=.005), snp, fill="black") +
         theme_bw(10) + theme(axis.text.x=element_text(angle=45, hjust=1))
 ggsave("Scripts/Data_Vis/snp_RF_performance_after_fs.pdf", width=8, height=4, units="in")
+dev.off()
 
 ggplot() + geom_bar(aes(x=new_cond,y=r2_val), orf, fill="#FFC000", stat="identity") +
         geom_errorbar(aes(x=new_cond, ymin=r2_val-r2_val_sd, 
                 ymax=r2_val+r2_val_sd), orf, width=0.2) +
-        geom_point(aes(x=rownames(pcs), y=r2_test), pcs, size=2.5, col="#702EA0") +
+        geom_point(aes(x=pcs$new_cond, y=r2_test), pcs, size=2.5, col="#702EA0") +
         geom_tile(aes(x=new_cond, y=r2_test, width=.9, height=.005), orf, fill="black") +
         theme_bw(10) + theme(axis.text.x=element_text(angle=45, hjust=1))
 ggsave("Scripts/Data_Vis/orf_RF_performance_after_fs.pdf", width=8, height=4, units="in")
+dev.off()
 
 ggplot() + geom_bar(aes(x=new_cond,y=r2_val), cnv, fill="#5B9BD5", stat="identity") +
         geom_errorbar(aes(x=new_cond, ymin=r2_val-r2_val_sd, 
                 ymax=r2_val+r2_val_sd), cnv, width=0.2) +
-        geom_point(aes(x=rownames(pcs), y=r2_test), pcs, size=2.5, col="#702EA0") +
+        geom_point(aes(x=pcs$new_cond, y=r2_test), pcs, size=2.5, col="#702EA0") +
         geom_tile(aes(x=new_cond, y=r2_test, width=.9, height=.005), cnv, fill="black") +
         theme_bw(10) + theme(axis.text.x=element_text(angle=45, hjust=1))
 ggsave("Scripts/Data_Vis/cnv_RF_performance_after_fs.pdf", width=8, height=4, units="in")
+dev.off()
 
+# Scatter plots comparing test performances between data types
 # Combine performances
 test <- list(pcs[c(1,31)], snp[c(1,31)], orf[c(1,31)], cnv[c(1,31)]) %>% 
         purrr::reduce(left_join, by="cond")
@@ -732,7 +762,7 @@ plot_lm(as.data.frame(df), "Results/SNPs_v_CNVs_RF_FS.pdf")
 ################################################################################
 h2 <- read.csv("Results/Heritability_h2_H2_sommer.csv") # heritability data
 h2 <- merge(conds, h2, by.x="cond", by.y="Conditions")
-h2 <- h2[order(h2$h2),] # sort in ascending order
+h2 <- h2[order(h2$h2, descending=True),] # sort in ascending order
 h2$new_cond <- factor(h2$new_cond, levels = h2$new_cond)
 test <- read.csv("Results/RESULTS_RF_FS_ALL.txt", sep="\t") # performance data
 h2 <- merge(h2, test, by.x="cond", by.y="cond")
@@ -1116,95 +1146,202 @@ write.csv(df_logQ_cnv, "Scripts/Data_Vis/ORFs_copy_num_PWY_logQ_genes.csv", quot
 # GENE IMPORTANCE SCORE (AFTER FS) COMPARISONS ACROSS DATA TYPES (what about across envs per data type? too much?)
 ################################################################################
 ## SNPs
-traits <- c("YPACETATE", "YPD6AU", "YPD14", "YPD40", "YPD42", "YPDANISO10", 
-        "YPDANISO20", "YPDANISO50", "YPDBENOMYL200", "YPDBENOMYL500", 
-        "YPDCAFEIN40", "YPDCAFEIN50", "YPDCHX1", "YPDCHX05", "YPDCUSO410MM", 
-        "YPDDMSO", "YPDETOH", "YPDFLUCONAZOLE", "YPDFORMAMIDE4", "YPDFORMAMIDE5", 
-        "YPDHU", "YPDKCL2M", "YPDLICL250MM", "YPDMV", "YPDNACL1M", "YPDNACL15M", 
-        "YPDNYSTATIN", "YPDSDS", "YPDSODIUMMETAARSENITE", "YPETHANOL", 
-        "YPGALACTOSE", "YPGLYCEROL", "YPRIBOSE", "YPSORBITOL", "YPXYLOSE")
-feats <- c(64, 3000, 512, 1024, 2000, 2000, 2000, 256, 1024, 4000, 3000, 2000, 
-        512, 256, 1000, 512, 256, 1000, 128, 1024, 512, 512, 512, 1000, 3000, 
-        1024, 32, 1000, 256, 1024, 512, 256, 512, 1000, 256)
-map <- read.csv(
-        "~/Shiu_Lab/Project/Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt",
-        header=F) # snp to gene map
+snp <- read.csv("Results/RESULTS_RF_SNPs_FS.txt", sep="\t", header=T)
+map <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt", header=F) # snp to gene map
 colnames(map) <- c("snp", "chr", "pos", "gene")
-# figure: how many snps per gene
+
+# Figure: how many snps per gene
 counts <- map %>% group_by(gene) %>% tally()
 ggplot(counts, aes(n)) + geom_histogram(bins=100) + xlim(c(0,100))
 ggsave("Scripts/Data_Vis/SNPs_per_gene_counts.pdf")
+dev.off()
 table(counts$n) # most genes have about 40 or less snps
 
-dir <- "/mnt/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs" # data directory
-imp_df <- read.csv(file.path(dir,"YPACETATE_exp_rf_64_imp"), sep="\t") # first trait
-colnames(imp_df) <- c("snp", "YPACETATE")
-dim(imp_df)
-imp_df <- imp_df[order(imp_df$YPACETATE, decreasing=T),]
-
-combine <- function(imp_df, traits, feats, map, col, save){
-        # function to combine the rest of the traits with imp_df
-        for (i in 2:length(traits)){
-                # df <- read.csv(list.files(
-                #         dir, paste(traits[i], "[exp_rf]+", feats[i], "imp", sep="_"), #"orf"
-                #         full.names=T, recursive=F), sep="\t")
-                df <- read.csv(list.files(
-                        dir, paste(traits[i], "cno", feats[i], "imp", sep="_"),
-                        full.names=T, recursive=F), sep="\t")
-                # select top 20 only and combine
-                df <- df[order(df$mean_imp, decreasing=T),]
-                colnames(df) <- c(col, traits[i])
-                imp_df <- full_join(imp_df, df[1:20,], by=col)
-                # somehow need to incorporate percentile information to make heatmap look better
-        }
-        print(dim(imp_df))
-        
-        # set NAs to zero, since they are not considered "top predictors"
-        imp_df[is.na(imp_df)] <- 0
-
-        # add gene info and aggregate by gene
-        imp_df <- left_join(imp_df, map[c(col, "gene")], by=col)
-        imp_df_gene <- imp_df[-1] %>% group_by(gene) %>% 
-                summarise_all(median) %>% # list(median, mean, min, max, sd)
+# Combine feature importance files to make a heatmap
+dir <- "/mnt/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs/" # data directory
+files <- paste(dir, snp$ID, "_imp", sep="") # path to feature selection importance score files
+save_names <- paste("Scripts/Data_Vis/", snp$ID, "_imp.tsv", sep="") # new file names
+# read in the first file
+imp_df <- read.csv(files[1], sep="\t")
+imp_df <- imp_df[order(imp_df$mean_imp, decreasing=T),] # sort by mean importance score
+# add gene information and calculate max score per gene
+imp_df <- left_join(imp_df, map[,c(1,4)], by=c("X"="snp"))
+imp_df <- imp_df %>% group_by(gene) %>% 
+        dplyr::mutate(count=n(), max=max(mean_imp)) %>%  #, mean=mean(mean_imp), se=std.err(mean_imp)) %>%
+        as.data.frame()
+colnames(imp_df) <- c("snp", "mean_imp", "gene", "snp_count", "max")
+write.table(imp_df, save_names[1], sep="\t", quote=F, row.names=F) # save to file before subsetting columns
+# bin the gene level max importance scores by percentiles
+imp_df_sub <- imp_df[,c('gene', 'max')] # subset
+imp_df_sub <- imp_df_sub[!duplicated(imp_df_sub),] # remove duplicate genes
+imp_df_sub$gene_bin <- cut(imp_df_sub$max,
+        breaks=quantile(imp_df_sub$max, c(0, 0.95, 0.99, 1)),
+        labels=c("(0,95]", "(95,99]", "(99,100]"), include.lowest=T)
+imp_df_sub <- imp_df_sub[order(imp_df_sub$max, decreasing=T),] # re-order by gene level mean imp
+# subset imp_df_sub for combining with the rest of the environments
+imp_df_sub2 <- imp_df_sub[,c("gene", "gene_bin")] # keep only gene and bin columns
+colnames(imp_df_sub2) <- c("gene", str_extract(files[1],"(?<=/)[A-Z0-9]+(?=_rf|_exp)"))
+imp_df_sub3 <- imp_df_sub[,c("gene", "max")] # keep only gene and max mean_imp columns
+colnames(imp_df_sub3) <- c("gene", str_extract(files[1],"(?<=/)[A-Z0-9]+(?=_rf|_exp)"))
+# combine dataframes
+for (i in 2:length(files)){
+        df <- read.csv(files[i], sep="\t")
+        df <- df[order(df$mean_imp, decreasing=T),] # sort by mean importance score
+        # add gene information and calculate mean and standard error of mean scores per gene
+        df <- left_join(df, map[,c(1,4)], by=c("X"="snp"))
+        df <- df %>% group_by(gene) %>% 
+                dplyr::mutate(count=n(), max=max(mean_imp)) %>%
                 as.data.frame()
-        imp_df_gene <- imp_df_gene %>% group_by(gene) %>% 
-                summarise_all(median) %>% # list(median, mean, min, max, sd)
-                as.data.frame() # drop duplicate genes
-        print(dim(imp_df_gene))
-        imp_df_gene <- imp_df_gene[!is.na(imp_df_gene$gene),]
-        print(dim(imp_df_gene))
-        
-        # write.csv(imp_df_gene, "Scripts/Data_Vis/SNPs_top20_all_env_imp.csv", quote=F, row.names=F)
-        write.csv(imp_df_gene, "Scripts/Data_Vis/ORFs_pres_abs_top20_all_env_imp.csv", quote=F, row.names=F)
-        write.csv(imp_df_gene, "Scripts/Data_Vis/ORFs_copy_num_top20_all_env_imp.csv", quote=F, row.names=F)
-        
-        rownames(imp_df_gene) <- imp_df_gene$gene
-        imp_df_gene <- imp_df_gene[-1]
-        
-        
-        # heatmap of importance scores
-        palette_func <- colorRampPalette(c("red", "white"))
-        palette <- rev(palette_func(2)) 
-        col_fun <- colorRamp2(c(0, max(imp_df_gene)), palette)
-        p <- Heatmap(as.matrix(imp_df_gene), 
-                col=col_fun,
-                na_col="grey",
-                cluster_rows=F, 
-                show_row_dend=F,
-                cluster_columns=F,
-                show_column_dend=F,
-                row_names_side="left",
-                row_names_gp = gpar(fontsize=8),
-                column_names_gp = gpar(fontize=8),
-                border_gp = gpar(col="black", lty=1),
-                name="log10(q-values)",
-                heatmap_legend_param=list(title="Feature Importance", 
-                at=c(0, max(imp_df_gene))))
-        pdf(save, height=unit(30, "in"), width=unit(10, "in"))
-        draw(p)
-        dev.off()
+        colnames(df) <- c("snp", "mean_imp", "gene", "snp_count", "max")
+        write.table(df, save_names[i], sep="\t", quote=F, row.names=F) # save to file before subsetting columns
+        # bin the gene level max importance scores by percentiles
+        df_sub <- df[,c('gene', 'max')] # subset
+        df_sub <- df_sub[!duplicated(df_sub),] # remove duplicate genes
+        df_sub$gene_bin <- cut(df_sub$max,
+                breaks=quantile(df_sub$max, c(0, 0.95, 0.99, 1)),
+                labels=c("(0,95]", "(95,99]", "(99,100]"), include.lowest=T)
+        df_sub <- df_sub[order(df_sub$max, decreasing=T),] # re-order by gene level mean imp
+        # subset imp_df_sub for combining with the rest of the environments
+        df_sub2 <- df_sub[,c("gene", "gene_bin")] # keep only gene and bin columns
+        colnames(df_sub2) <- c("gene", str_extract(files[i],"(?<=/)[A-Z0-9]+(?=_rf|_exp)"))
+        df_sub3 <- df_sub[,c("gene", "max")] # keep only gene and max mean_imp columns
+        colnames(df_sub3) <- c("gene", str_extract(files[i],"(?<=/)[A-Z0-9]+(?=_rf|_exp)"))
+        # combine with imp_df_sub
+        imp_df_sub2 <- full_join(imp_df_sub2, df_sub2, by="gene") # percentiles
+        imp_df_sub3 <- full_join(imp_df_sub3, df_sub3, by="gene") # importance scores
 }
-imp_df_orf <- combine(imp_df_orf[1:20,], traits, feats, "orf", "Scripts/Data_Vis/ORFs_top20_all_env_imp.pdf")
+# save combined data
+write.table(imp_df_sub2, "Scripts/Data_Vis/SNPs_imp_percentile_all_sorted.tsv", sep="\t", quote=F, row.names=F)
+write.table(imp_df_sub3, "Scripts/Data_Vis/SNPs_imp_max_all_sorted.tsv", sep="\t", quote=F, row.names=F)
+
+# heatmap of importance scores
+imp_df_sub2 <- imp_df_sub # duplicate data
+fac_cols <- sapply(imp_df_sub, is.factor) # identify all factor columns
+imp_df_sub2[fac_cols] <- lapply(imp_df_sub2[fac_cols], as.character) # convert all factors to characters
+imp_df_sub2[is.na(imp_df_sub2)] <- "0" # replace string values to plot heatmap
+imp_df_sub2[imp_df_sub2=="(0,95]"] <- "1"
+imp_df_sub2[imp_df_sub2=="(95,99]"] <- "2"
+imp_df_sub2[imp_df_sub2=="(99,100]"] <- "3"
+rownames(imp_df_sub2) <- imp_df_sub2$gene # set rownames
+imp_df_sub2 <- imp_df_sub2[,-1] # remove gene column
+imp_df_sub2_num <- matrix(as.numeric(as.matrix(imp_df_sub2)), ncol = ncol(imp_df_sub2)) # convert to numeric matrix
+rownames(imp_df_sub2_num) <- rownames(imp_df_sub2)
+colnames(imp_df_sub2_num) <- colnames(imp_df_sub2)
+col_fun = colorRamp2(c(0, 1, 2, 3), c("#fff8fe", "#b898cf", "#ce0b87", "#6b2700"))
+# clustered heatmap
+p <- Heatmap(imp_df_sub2_num,
+        col=col_fun,
+        # na_col="grey",
+        cluster_rows=T, 
+        show_row_dend=F,
+        cluster_columns=T,
+        show_column_dend=F,
+        show_row_names=F,
+        show_column_names=T,
+        column_names_side="top",
+        column_names_gp = gpar(fontize=7),
+        border_gp = gpar(col="black", lty=1),
+        use_raster=T,
+        name="Importance percentiles",
+        heatmap_legend_param=list(title="Importance percentiles",
+                color_bar = "discrete", 
+                labels = gt_render(c("missing", "(0,95]", "(95,99]", "(99,100]"))))
+pdf("Scripts/Data_Vis/SNPs_imp_percentile_all_clustered.pdf", height=unit(8.75, "in"), width=unit(7.5, "in"))
+draw(p)
+dev.off()
+
+# sorted heatmap
+p <- Heatmap(imp_df_sub2_num,
+        col=col_fun,
+        # na_col="grey",
+        cluster_rows=F, 
+        show_row_dend=F,
+        cluster_columns=F,
+        show_column_dend=F,
+        show_row_names=F,
+        show_column_names=T,
+        column_names_side="top",
+        column_names_gp = gpar(fontize=7),
+        border_gp = gpar(col="black", lty=1),
+        use_raster=T,
+        name="Importance percentiles",
+        heatmap_legend_param=list(title="Importance percentiles",
+                color_bar = "discrete", 
+                labels = gt_render(c("missing", "(0,95]", "(95,99]", "(99,100]"))))
+pdf("Scripts/Data_Vis/SNPs_imp_percentile_all_sorted.pdf", height=unit(8.75, "in"), width=unit(7.5, "in"))
+draw(p)
+dev.off()
+
+# Histogram of the number of environments each gene is a top predictor for
+imp_df_sub2_num[imp_df_sub2_num > 1] <- 1 # set all non-zero values to 1
+num_envs <- rowSums(imp_df_sub2_num)# get the number of envs for each gene
+write.table(num_envs, "Scripts/Data_Vis/SNPs_top_genes_num_env.tsv", sep="\t", quote=F)
+num_envs <- num_envs[which(names(num_envs)!="intergenic")] # remove intergenic category
+ggplot(as.data.frame(num_envs), aes(x=num_envs)) + geom_histogram(bins=35) + 
+        xlab("Number of Environments") + ylab("Number of Genes") + 
+        scale_x_continuous(breaks = scales::pretty_breaks(n = 7)) +
+        scale_y_continuous(breaks = scales::pretty_breaks(n = 8)) +
+        theme_bw()
+ggsave("Scripts/Data_Vis/SNPs_top_genes_num_env.pdf", height=unit(3.5, "in"), width=unit(3.5, "in"))
+dev.off()
+
+### ADDITIONAL FIGURES TO MAKE: SUBSET THE GENES (top 10, 50, 100) and see how the heatmaps change; do this for ORF and CNV too
+### ALSO, CAN HAVE 35 SMALLER HEATMAPS ALL NEXT TO EACH OTHER, EACH WITH A COLUMN FOR SNP, ORF, CNV
+### MAKE A UMAP FIGURE WITH ADJACENCY MATRIX using all the gene in imp_df_sub and the GI matrix
+### CREATE A FIGURE WITH COUNTS, how many environments are genes top predictors in? (done see line 1269)
+### FOR THE FEATURE SELECTION CURVES, I NEED TO PLOT A SCATTER PLOT AND FIT A CURVE 
+###### (THIS IS HOW I DETERMINE THE NUMBER OF TOP FEATURES. I WILL PROBABLY NEED TO
+###### REMAKE THE FIGURES IN THIS SECTION, BUT THEY SHOULDN'T CHANGE MUCH AND
+###### NEITHER SHOULD THE OPTIMAL NUMBER OF FEATURES IN EACH ENVIRONMENT
+
+        # print(dim(imp_df))
+        
+        # # set NAs to zero, since they are not considered "top predictors"
+        # imp_df[is.na(imp_df)] <- 0
+
+        # # add gene info and aggregate by gene
+        # imp_df <- left_join(imp_df, map[c(col, "gene")], by=col)
+        # imp_df_gene <- imp_df[-1] %>% group_by(gene) %>% 
+        #         summarise_all(median) %>% # list(median, mean, min, max, sd)
+        #         as.data.frame()
+        # imp_df_gene <- imp_df_gene %>% group_by(gene) %>% 
+        #         summarise_all(median) %>% # list(median, mean, min, max, sd)
+        #         as.data.frame() # drop duplicate genes
+        # print(dim(imp_df_gene))
+        # imp_df_gene <- imp_df_gene[!is.na(imp_df_gene$gene),]
+        # print(dim(imp_df_gene))
+        
+        # # write.csv(imp_df_gene, "Scripts/Data_Vis/SNPs_top20_all_env_imp.csv", quote=F, row.names=F)
+        # write.csv(imp_df_gene, "Scripts/Data_Vis/ORFs_pres_abs_top20_all_env_imp.csv", quote=F, row.names=F)
+        # write.csv(imp_df_gene, "Scripts/Data_Vis/ORFs_copy_num_top20_all_env_imp.csv", quote=F, row.names=F)
+        
+        # rownames(imp_df_gene) <- imp_df_gene$gene
+        # imp_df_gene <- imp_df_gene[-1]
+        
+        
+        # # heatmap of importance scores
+        # palette_func <- colorRampPalette(c("red", "white"))
+        # palette <- rev(palette_func(2)) 
+        # col_fun <- colorRamp2(c(0, max(imp_df_gene)), palette)
+        # p <- Heatmap(as.matrix(imp_df_gene), 
+        #         col=col_fun,
+        #         na_col="grey",
+        #         cluster_rows=F, 
+        #         show_row_dend=F,
+        #         cluster_columns=F,
+        #         show_column_dend=F,
+        #         row_names_side="left",
+        #         row_names_gp = gpar(fontsize=8),
+        #         column_names_gp = gpar(fontize=8),
+        #         border_gp = gpar(col="black", lty=1),
+        #         name="log10(q-values)",
+        #         heatmap_legend_param=list(title="Feature Importance", 
+        #         at=c(0, max(imp_df_gene))))
+        # pdf(save, height=unit(30, "in"), width=unit(10, "in"))
+        # draw(p)
+        # dev.off()
+
+imp_df_orf <- combine(imp_df_orf[1:20,], files, "orf", "Scripts/Data_Vis/ORFs_top20_all_env_imp.pdf")
 
 ## ORF presence/absence
 feats <- c(250, 1250, 250, 500, 250, 500, 500, 250, 750, 250, 500, 500, 250, 
@@ -1337,5 +1474,38 @@ dev.off()
 ## ORFs presence/absence
 
 
+
+## ORFs copy number
+
+
+################################################################################
+# BASELINE (ALL FEATURES) MULTI-TRAIT BAYESIAN MODEL PREDICTION PERFORMANCES
+################################################################################
+# Generate subsets of environments to build multi-trait models with
+pheno <- read.csv("Data/Peter_2018/pheno.csv", row.names=1) # fitness data
+pCorEnvs <- data.frame(matrix(nrow=0, ncol=4)) # collect correlation statistics
+colnames(pCorEnvs) <- c("Env1", "Env2", "PCC", "p.value")
+i <- 0
+for (env1 in colnames(pheno)){ # calculate env pair fitness based pearson's r
+        for (env2 in colnames(pheno)){
+                if (env1 != env2){
+                        res <- cor.test(pheno[,env1], pheno[,env2])
+                        pCorEnvs[i,] <- c(env1, env2, res$estimate, res$p.value)
+                        i = i + 1
+                }
+        }
+}
+pCorEnvs$p.value <- as.numeric(pCorEnvs$p.value)
+pCorEnvs$PCC <- as.numeric(pCorEnvs$PCC)
+pCorEnvs <- pCorEnvs[order(pCorEnvs$p.value, decreasing=F),]
+tmp <- as.data.frame(t(apply(pCorEnvs[1:2], 1, sort))) # sort env pair names
+pCorEnvs$Env1 <- tmp$V1 # set sorted env pair columns to remove duplicates later
+pCorEnvs$Env2 <- tmp$V2
+pCorEnvs <- pCorEnvs[!duplicated(pCorEnvs[,1:2]),] # remove duplicate pairs
+write.csv(pCorEnvs,"Scripts/Data_Vis/pheno_pairs_cor.csv", quote=F, row.names=F)
+
+## SNPs
+
+## ORFs presence/absence
 
 ## ORFs copy number
