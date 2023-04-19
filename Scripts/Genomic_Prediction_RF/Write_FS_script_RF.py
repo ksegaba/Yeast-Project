@@ -3,27 +3,30 @@
 This code generates slurm job submission scripts for feature selection (FS)
 and random forest (RF) using the FS files for each trait. 
 
-Arguments:
+Required Arguments:
     path1 (str): path to RF pipeline scripts
     path2 (str): path to save FS files & RF output
     path3 (str): path to RF input files
     save (str): path to save job_submission files
-    start (int): minimum number of features
-    stop (int): maximum number of features
-    step (int): step size (generate a FS file at each step)
-    batch (int): number of features each array task gets
-    base (int): base (generate a FS file from base**start to base**stop)
+
+Optional Arguments:
+    suffix (str): suffix to add to file names, default is ''
+    start (int): minimum number of features, default is 1000
+    stop (int): maximum number of features, default is 40000
+    step (int): step size (generate a FS file at each step), default is
+    batch (int): number of features each array task gets, default is 5000
+    base (int): base (generate a FS file from base**start to base**stop), default is 2
     runFS (str): make FS files slurm scripts (y/n), default is n
     runExpFS (str): make FS slurm scripts based on exponentially picking features, default is n
     runRF (str): make RF slurm scripts (y/n), default is n
-    snp (str): set to True if features are SNPs, default is False
-    orf (str): set to True if features are ORF presence/absence, default is False
-    cno (str): set to True if features are ORF copy number, default is False
+    snp (bool): set to True if features are SNPs, default is False
+    orf (bool): set to True if features are ORF presence/absence, default is False
+    cno (bool): set to True if features are ORF copy number, default is False
     submit (str): submit slurm scripts (y/n), default is n
 
 Returns:
-    [1] Script to generate feature selection files containing a subset of features
-    [2] Script to run RF on each of the feature selection files.
+    [1] SLURM scripts to generate feature selection files containing a subset of features
+    [2] SLURM scripts to run RF on each of the feature selection files.
 
 Examples:
 # For SNP-based RF
@@ -31,6 +34,7 @@ path1=/mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline
 path2=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results
 path3=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
 save=/mnt/home/seguraab/Shiu_Lab/Project/Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/RF
+python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -suffix _250to5000 -start 250 -stop 5000 -step 250 -batch 250 -runFS y -snp True -submit y
 python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 1000 -stop 40000 -step 1000 -batch 5000 -runFS y -snp True -submit y
 python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 1000 -stop 40000 -step 1000 -batch 5000 -runRF y -snp True -submit y
 python /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/Write_FS_script_RF.py -path1 ${path1} -path2 ${path2} -path3 ${path3} -save ${save} -start 1 -stop 11 -base 2 -runExpFS y -snp True -submit y
@@ -65,14 +69,14 @@ def warn(*args, **kwargs):
 warnings.warn = warn
 
 
-def make_FS_files(path1, path2, path3, save, trait, start, stop, step, batch, snp=False, orf=False, cno=False):
+def make_FS_files(path1, path2, path3, save, suffix, trait, start, stop, step, batch, snp=False, orf=False, cno=False):
     """ Write feature selection slurm job submission script """
     if snp:
-        name1 = '%s/FS_files_for_RF_%s.slurm' % (save, trait)
+        name1 = '%s/FS_files_for_RF_%s%s.slurm' % (save, trait, suffix)
     if orf:
-        name1 = '%s/FS_files_for_RF_orf_%s.slurm' % (save, trait)
+        name1 = '%s/FS_files_for_RF_orf_%s%s.slurm' % (save, trait, suffix)
     if cno:
-        name1 = '%s/FS_files_for_RF_cno_%s.slurm' % (save, trait)
+        name1 = '%s/FS_files_for_RF_cno_%s%s.slurm' % (save, trait, suffix)
     out1 = open(name1, 'w')
     out1.write(f'#!/bin/sh --login \
                 \n#SBATCH --array={start}-{stop}:{batch} \
@@ -104,14 +108,14 @@ def make_FS_files(path1, path2, path3, save, trait, start, stop, step, batch, sn
     return name1
 
 
-def make_exp_FS_files(path1, path2, path3, save, trait, start, stop, base, snp=False, orf=False, cno=False):
+def make_exp_FS_files(path1, path2, path3, save, suffix, trait, start, stop, base, snp=False, orf=False, cno=False):
     """ Write feature selection slurm job submission script """
     if snp:
-        name1 = '%s/FS_exp_files_for_RF_%s.slurm' % (save, trait)
+        name1 = '%s/FS_exp_files_for_RF_%s%s.slurm' % (save, trait, suffix)
     if orf:
-        name1 = '%s/FS_exp_files_for_RF_orf_%s.slurm' % (save, trait)
+        name1 = '%s/FS_exp_files_for_RF_orf_%s%s.slurm' % (save, trait, suffix)
     if cno:
-        name1 = '%s/FS_exp_files_for_RF_cno_%s.slurm' % (save, trait)
+        name1 = '%s/FS_exp_files_for_RF_cno_%s%s.slurm' % (save, trait, suffix)
 
     feats = [base**i for i in range(start, stop)]  # No. of features
     out1 = open(name1, 'w')
@@ -144,14 +148,14 @@ def make_exp_FS_files(path1, path2, path3, save, trait, start, stop, base, snp=F
     return name1
 
 
-def make_RF_files(path1, path2, path3, save, trait, start, stop, step, batch, snp=False, orf=False, cno=False):
+def make_RF_files(path1, path2, path3, save, suffix, trait, start, stop, step, batch, snp=False, orf=False, cno=False):
     """ Write RF slurm job submission script """
     if snp:
-        name2 = '%s/RF_FS_job_%s.sb' % (save, trait)
+        name2 = '%s/RF_FS_job_%s%s.sb' % (save, trait, suffix)
     if orf:
-        name2 = '%s/RF_FS_job_orf_%s.sb' % (save, trait)
+        name2 = '%s/RF_FS_job_orf_%s%s.sb' % (save, trait, suffix)
     if cno:
-        name2 = '%s/RF_FS_job_cno_%s.sb' % (save, trait)
+        name2 = '%s/RF_FS_job_cno_%s%s.sb' % (save, trait, suffix)
     out2 = open(name2, 'w')
     out2.write(f'#!/bin/sh --login \
                 \n#SBATCH --array={start}-{stop}:{batch} \
@@ -191,38 +195,41 @@ def main():
     # Required input
     req_group = parser.add_argument_group(title='REQUIRED INPUT')
     req_group.add_argument(
-        '-path1', help='path to RF pipeline scripts', required=True)
+        '-path1', type=str, help='path to RF pipeline scripts', required=True)
     req_group.add_argument(
-        '-path2', help='path to save feature selection files & RF output', required=True)
+        '-path2', type=str, help='path to save feature selection files & RF output', required=True)
     req_group.add_argument(
-        '-path3', help='path to RF input files (genomic)', required=True)
+        '-path3', type=str, help='path to RF input files (genomic)', required=True)
     req_group.add_argument(
         '-save', help='path to save job_submission files', required=True)
     # Optional input
-    req_group.add_argument(
-        '-start', help='minimum number of features', default=1000)
-    req_group.add_argument(
-        '-stop', help='maxiumum number of features', default=40000)
-    req_group.add_argument(
-        '-step', help='step size (generate a FS file at each step)', default=1000)
-    req_group.add_argument(
-        '-batch', help='number of features each array task gets e.g. 5000', default=5000)
-    req_group.add_argument(
-        '-base', help='base (generate a FS file from base ** start to base ** stop) e.g. 2', default=2)
-    req_group.add_argument(
-        '-runFS', help='make FS files slurm scripts (y/n)', default='n')
-    req_group.add_argument(
-        '-runExpFS', help='make FS files slurm scripts based on exponentially picking features, default is n', default='n')
-    req_group.add_argument(
-        '-runRF', help='make RF slurm scripts (y/n)', default='n')
-    req_group.add_argument(
-        '-snp', help='set to True if features are SNPs', default=False)
-    req_group.add_argument(
-        '-orf', help='set to True if features are ORF presence/absence', default=False)
-    req_group.add_argument(
-        '-cno', help='set to True if features are copy number', default=False)
-    req_group.add_argument(
-        '-submit', help='submit slurm scripts (y/n)', default='n')
+    opt_group = parser.add_argument_group(title='OPTIONAL INPUT')
+    opt_group.add_argument(
+        '-suffix', type=str, help='suffix to add to file names', default='')
+    opt_group.add_argument(
+        '-start', type=int, help='minimum number of features', default=1000)
+    opt_group.add_argument(
+        '-stop', type=int, help='maxiumum number of features', default=40000)
+    opt_group.add_argument(
+        '-step', type=int, help='step size (generate a FS file at each step)', default=1000)
+    opt_group.add_argument(
+        '-batch', type=int, help='number of features each array task gets e.g. 5000', default=5000)
+    opt_group.add_argument(
+        '-base', type=int, help='base (generate a FS file from base ** start to base ** stop) e.g. 2', default=2)
+    opt_group.add_argument(
+        '-runFS', type=str, help='make FS files slurm scripts (y/n)', default='n')
+    opt_group.add_argument(
+        '-runExpFS', type=str, help='make FS files slurm scripts based on exponentially picking features, default is n', default='n')
+    opt_group.add_argument(
+        '-runRF', type=str, help='make RF slurm scripts (y/n)', default='n')
+    opt_group.add_argument(
+        '-snp', type=bool, help='set to True if features are SNPs', default=False)
+    opt_group.add_argument(
+        '-orf', type=bool, help='set to True if features are ORF presence/absence', default=False)
+    opt_group.add_argument(
+        '-cno', type=bool, help='set to True if features are copy number', default=False)
+    opt_group.add_argument(
+        '-submit', type=str, help='submit slurm scripts (y/n)', default='n')
     # Help
     if len(sys.argv) == 1:
         parser.print_help()
@@ -234,11 +241,12 @@ def main():
     path2 = args.path2
     path3 = args.path3
     save = args.save
-    start = int(args.start)
-    stop = int(args.stop)
-    step = int(args.step)
-    batch = int(args.batch)
-    base = int(args.base)
+    suffix = args.suffix
+    start = args.start
+    stop = args.stop
+    step = args.step
+    batch = args.batch
+    base = args.base
 
     # Write slurm scripts
     traits = ['YPACETATE', 'YPDCAFEIN40', 'YPDHU', 'YPETHANOL', 'YPD14', 'YPDCAFEIN50', 'YPDKCL2M', 'YPGALACTOSE', 'YPD40', 'YPDCHX05', 'YPDLICL250MM', 'YPGLYCEROL', 'YPD42', 'YPDCHX1', 'YPDMV', 'YPRIBOSE', 'YPD6AU', 'YPDCUSO410MM', 'YPDNACL15M',
@@ -247,19 +255,19 @@ def main():
         print(trait)
         # Submit the slurm scripts
         if (args.runFS == 'y'):
-            name = make_FS_files(path1, path2, path3, save, trait, start,
+            name = make_FS_files(path1, path2, path3, save, suffix, trait, start,
                                  stop, step, batch, snp=args.snp, orf=args.orf, cno=args.cno)
             if (args.submit == 'y'):
                 # to create feature selection files
                 os.system(f'sbatch {name}')
         if (args.runExpFS == 'y'):
-            name = make_exp_FS_files(path1, path2, path3, save, trait,
+            name = make_exp_FS_files(path1, path2, path3, save, suffix, trait,
                                      start, stop, base, snp=args.snp, orf=args.orf, cno=args.cno)
             if (args.submit == 'y'):
                 # to create feature selection files
                 os.system(f'sbatch {name}')
         if (args.runRF == 'y'):
-            name = make_RF_files(path1, path2, path3, save, trait, start,
+            name = make_RF_files(path1, path2, path3, save, suffix, trait, start,
                                  stop, step, batch, snp=args.snp, orf=args.orf, cno=args.cno)
             if (args.submit == 'y'):
                 os.system(f'sbatch {name}')  # to run feature selection on RF
