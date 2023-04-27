@@ -1,0 +1,31 @@
+#!/bin/sh --login
+#SBATCH --array=0-34
+#SBATCH --time=30:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=36G
+#SBATCH --job-name BayesC_after_fs
+#SBATCH --output=%x_%j.out
+
+cd /mnt/home/seguraab/Shiu_Lab/Project
+module purge
+module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
+
+TRAITS=($(awk  -F'\t' '{if (NR!=1) print $1}' Results/RESULTS_RF_SNPs_FS.txt))
+FEATS=($(awk -F'\t' '{if (NR!=1) print $9}' Results/RESULTS_RF_SNPs_FS.txt))
+
+echo "${TRAITS[${SLURM_ARRAY_TASK_ID}]}; ${FEATS[${SLURM_ARRAY_TASK_ID}]}"
+
+PIPE=Scripts/Genomic_Prediction_BayesC
+DATA=Data/Peter_2018
+MARK=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs
+
+# Using only a subset of features
+save=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_BayesC_results/fs
+Rscript ${PIPE}/BayesC_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv ${MARK}/feat*_rf_${TRAITS[${SLURM_ARRAY_TASK_ID}]}_top_${FEATS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 BayesC_top${FEATS[${SLURM_ARRAY_TASK_ID}]} $save
+
+# Baseline
+save=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_BayesC_results/baseline
+Rscript ${PIPE}/BayesC_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 BayesC_baseline $save
+
+scontrol show job $SLURM_JOB_ID
