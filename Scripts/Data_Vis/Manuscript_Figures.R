@@ -10,6 +10,7 @@
 # line : Kinship and ORF dataset correlations
 # line : TASSEL5 Principal Component Analysis (PCA) plots
 # line : Random Forest (RF) prediction performances (baseline using all features)
+# line : Prediction performances of all algorithms (using RF feature selection features)
 # line : RF feature selection (FS) curves
 # line : RF after FS: Test set performance comparisons
 # line : Heritability $ RF FS performance comparison
@@ -553,6 +554,123 @@ rf_orf <- right_join(conds, rf_orf, by=c("cond"="Y")) # add full condition names
 rownames(rf_orf) <- rf_orf$cond
 rf_orf <- rf_orf[cond_order,]
 write.table(rf_orf, "Results/RESULTS_RF_ORFs_baseline.txt", sep="\t", row.names=F, quote=F)
+
+################################################################################
+# PREDICTION PERFORMANCES OF ALL ALGORITHMS (USING RF FEATURE SELECTION FEATURES)
+################################################################################
+## SNP
+# read in results files for each algorithm
+dir <- "/mnt/gs21/scratch/seguraab/yeast_project/"
+rf_snp <- read.csv("Results/RESULTS_RF_SNPs_FS.txt", sep="\t") # Random Forest results
+xgb_snp <- read.csv(paste(
+        dir,"SNP_yeast_XGBoost_results/fs/RESULTS_xgboost.txt", sep=""), sep="\t") # XGBoost results
+bl_snp <- read.csv(paste(
+        dir, "SNP_yeast_BL_results/fs/RESULTS_BL.txt", sep=""), sep="\t") # Bayesian LASSO results
+bayesc_snp_files <- list.files() # BayesC results
+gblup_snp_files <- list.files() # gBLUP results
+rrblup_snp_files_val <- paste(dir,
+        "SNP_yeast_rrBLUP_results/R2_cv_results_rrBLUP_top", rf_snp$FeatureNum,
+        "_", rf_snp$cond, ".csv", sep="") # rrBLUP validation results files
+rrblup_snp_files_test <- paste(dir,
+        "SNP_yeast_rrBLUP_results/R2_test_results_rrBLUP_top", rf_snp$FeatureNum,
+        "_", rf_snp$cond, ".csv", sep="") # rrBLUP test results files
+rrblup_snp_preds_val <- paste(dir,
+        "SNP_yeast_rrBLUP_results/Predict_value_cv_rrBLUP_top", rf_snp$FeatureNum,
+        "_", rf_snp$cond, ".csv", sep="") # rrBLUP predicted labels of validation set
+rrblup_snp_preds_test <- paste(dir,
+        "SNP_yeast_rrBLUP_results/Predict_value_test_rrBLUP_top", rf_snp$FeatureNum,
+        "_", rf_snp$cond, ".csv", sep="") # rrBLUP predicted labels of test set
+
+# add missing columns to xgb_snp
+xgb_snp <- left_join(
+        rf_snp[,c("cond", "new_cond", "Tag", "NumInstances", "FeatureNum", "CVfold", "CV_rep")],
+        xgb_snp, by=c("cond"="Trait"))
+colnames(xgb_snp) <- c("cond", "new_cond", "Tag", "NumInstances", "FeatureNum",
+        "CVfold", "CV_rep", "DateTime", "RunTime", "Data", "MSE_val", "MSE_val_sd",
+        "RMSE_val", "RMSE_val_sd", "EVS_val", "EVS_val_sd","r2_val", "r2_val_sd",
+        "PCC_val", "PCC_val_sd", "MSE_test", "MSE_test_sd", "RMSE_test",
+        "RMSE_test_sd", "EVS_test", "EVS_test_sd", "r2_test", "r2_test_sd",
+        "PCC_test", "PCC_test_sd") # set same as rf_snp
+write.table(xgb_snp, "Results/RESULTS_XGB_SNPs_FS.txt", sep="\t", quote=F, row.names=F)
+
+# combine rf, xgb, and bl
+all <- as.data.frame(rbind.fill(rf_snp, xgb_snp))
+all <- dplyr::select(all,-c("DateTime", "RunTime", "Tag", "Data", "EVS_val",
+        "EVS_val_sd", "EVS_val_se", "EVS_test", "EVS_test_sd", "EVS_test_se",
+        "RMSE_val", "RMSE_val_sd", "RMSE_test", "RMSE_test_sd")) # drop unnecessary columns and fill in missing info
+all[is.na(all$ID), "ID"] <- gsub("rf", "xgboost", all[!is.na(all$ID), "ID"])
+all[is.na(all$Alg), "Alg"] <- "XGBoost"
+all[is.na(all$MSE_val_se), "MSE_val_se"] <- all[all$Alg=="XGBoost", "MSE_val_sd"]/sqrt(10)
+all[is.na(all$r2_val_se), "r2_val_se"] <- all[all$Alg=="XGBoost", "r2_val_sd"]/sqrt(10)
+all[is.na(all$PCC_val_se), "PCC_val_se"] <- all[all$Alg=="XGBoost", "PCC_val_sd"]/sqrt(10)
+all[is.na(all$MSE_test_se), "MSE_test_se"] <- all[all$Alg=="XGBoost", "MSE_test_sd"]/sqrt(10)
+all[is.na(all$r2_test_se), "r2_test_se"] <- all[all$Alg=="XGBoost", "r2_test_sd"]/sqrt(10)
+all[is.na(all$PCC_test_se), "PCC_test_se"] <- all[all$Alg=="XGBoost", "PCC_test_sd"]/sqrt(10)
+bl_snp <- left_join(conds, bl_snp, by=c("cond"="Trait"))
+bl_snp <- tibble::add_column(bl_snp, CVfold = 5, .before = "MSE_val")
+bl_snp <- tibble::add_column(bl_snp, CV_rep = 10, .before = "MSE_val")
+write.table(bl_snp, "Results/RESULTS_BL_SNPs_FS.txt", sep="\t", quote=F, row.names=F)
+all <- as.data.frame(rbind.fill(all, dplyr::select(bl_snp, -c("Date", "RunTime"))))
+
+# combine rrblup_snp_files_val and _test results
+rrblup_snp <- data.frame(matrix(nrow=1, ncol=length(colnames(all)))) # rrBLUP results
+colnames(rrblup_snp) <- colnames(all)
+mse <- function(preds, actual){ return(mean((actual-preds)^2)) }
+se <- function(vector){ return(sd(vector)/length(vector)) }
+pheno <- read.csv("Data/Peter_2018/pheno.csv", row.names=1)
+for (i in 1:length(rrblup_snp_files_val)){
+        r2_val <- read.csv(rrblup_snp_files_val[i])
+        r2_test <- read.csv(rrblup_snp_files_test[i])
+        cond <- colnames(r2_val)
+        preds_val <- read.csv(rrblup_snp_preds_val[i], row.names=1)
+        preds_test <- read.csv(rrblup_snp_preds_test[i], row.names=1)
+        actual_val <- pheno[rownames(preds_val), cond]
+        actual_test <- pheno[rownames(preds_test), cond]
+        mse_val <- apply(preds_val, 2, mse, actual_val)
+        mse_test <- apply(preds_test, 2, mse, actual_test)
+        pcc_val <- apply(preds_val, 2, cor, actual_val)
+        pcc_test <- apply(preds_test, 2, cor, actual_test)
+        rrblup_snp <- rbind(rrblup_snp, list(cond, "", "", "rrBLUP", 625,
+                0, 5, 10, mean(mse_val), sd(mse_val), se(mse_val),
+                mean(as.matrix(r2_val)), sd(as.matrix(r2_val)),
+                se(as.matrix(r2_val)), mean(pcc_val), sd(pcc_val), se(pcc_val),
+                mean(mse_test), sd(mse_test), se(mse_test),
+                mean(as.matrix(r2_test)), sd(as.matrix(r2_test)),
+                se(as.matrix(r2_val)), mean(pcc_test), sd(pcc_test),
+                se(pcc_test)))
+}
+rrblup_snp <- rrblup_snp[-1,] # drop first row of NAs
+rrblup_snp$new_cond <- ifelse(rrblup_snp$cond==rf_snp$cond, rf_snp$new_cond, NA)
+rrblup_snp$FeatureNum <- ifelse(rrblup_snp$cond==rf_snp$cond, rf_snp$FeatureNum, NA)
+rrblup_snp$ID <- paste(rrblup_snp$cond, "rrblup", rrblup_snp$FeatureNum, sep="_")
+write.table(rrblup_snp, "Results/RESULTS_rrBLUP_SNPs_FS.txt", sep="\t", quote=F, row.names=F)
+
+# combine bayesc_snp_files results
+
+# combine gblup_snp_files results
+
+# combine them into one data matrix
+all <- as.data.frame(rbind.fill(all, rrblup_snp)) # combine all and rrblup
+all <- as.data.frame(rbind.fill(all, bayesc_snp) # combine all and bayesc
+all <- as.data.frame(rbind.fill(all, gblup_snp) # combine all and gblup
+write.table(all, "Results/RESULTS_ALL_ALG_FS.txt", sep="\t", quote=F, row.names=F)
+
+all <- as.data.frame(rbind.fill(all, bl_snp[-1,])) # combine all and bayesian lasso
+# fill in missing info
+all[which(all$Alg=="Bayesian LASSO"), "new_cond"] <- all[which(all$Alg=="RF"), "new_cond"]
+all[which(all$Alg=="Bayesian LASSO"), "ID"] <- gsub("rf", "bl", all[which(all$Alg=="RF"), "ID"])
+all[which(all$Alg=="Bayesian LASSO"), "FeatureNum"] <- all[which(all$Alg=="RF"), "FeatureNum"]
+all <- as.data.frame(rbind.fill(all, bl_snp) # combine all and bayesian lasso
+all <- as.data.frame(rbind.fill(all, gblup_snp) # combine all and gblup
+all <- as.data.frame(rbind.fill(all, bayesc_snp) # combine all and bayesc
+write.table(all, "Results/RESULTS_ALL_ALG_FS.txt", sep="\t", quote=F, row.names=F)
+
+## ORF Copy Number
+
+
+
+## ORF Presence/Absence
+
 
 ################################################################################
 # RANDOM FOREST FEATURE SELECTION CURVES & PERFORMANCES (figures in excel)
@@ -1143,7 +1261,7 @@ df_logQ_cnv <- df_logQ_cnv[!duplicated(df_logQ_cnv),]
 write.csv(df_logQ_cnv, "Scripts/Data_Vis/ORFs_copy_num_PWY_logQ_genes.csv", quote=F, row.names=F)
 
 ################################################################################
-# GENE IMPORTANCE SCORE (AFTER FS) COMPARISONS ACROSS DATA TYPES (what about across envs per data type? too much?)
+# GENE RF IMPORTANCE SCORES (AFTER FS) COMPARISONS ACROSS DATA TYPES
 ################################################################################
 ## SNPs
 snp <- read.csv("Results/RESULTS_RF_SNPs_FS.txt", sep="\t", header=T)
@@ -1173,6 +1291,7 @@ colnames(imp_df) <- c("snp", "mean_imp", "gene", "snp_count", "max")
 write.table(imp_df, save_names[1], sep="\t", quote=F, row.names=F) # save to file before subsetting columns
 # bin the gene level max importance scores by percentiles
 imp_df_sub <- imp_df[,c('gene', 'max')] # subset
+imp_df_sub <- imp_df_sub[which(imp_df_sub$gene!="intergenic"),] # drop intergenic snps
 imp_df_sub <- imp_df_sub[!duplicated(imp_df_sub),] # remove duplicate genes
 imp_df_sub$gene_bin <- cut(imp_df_sub$max,
         breaks=quantile(imp_df_sub$max, c(0, 0.95, 0.99, 1)),
@@ -1180,9 +1299,11 @@ imp_df_sub$gene_bin <- cut(imp_df_sub$max,
 imp_df_sub <- imp_df_sub[order(imp_df_sub$max, decreasing=T),] # re-order by gene level mean imp
 # subset imp_df_sub for combining with the rest of the environments
 imp_df_sub2 <- imp_df_sub[,c("gene", "gene_bin")] # keep only gene and bin columns
-colnames(imp_df_sub2) <- c("gene", str_extract(files[1],"(?<=/)[A-Z0-9]+(?=_rf|_exp)"))
+colnames(imp_df_sub2) <- c("gene", str_extract(files[1],"(?<=/)[A-Z0-9]+(?=_rf|_exp)")) # add env name
 imp_df_sub3 <- imp_df_sub[,c("gene", "max")] # keep only gene and max mean_imp columns
 colnames(imp_df_sub3) <- c("gene", str_extract(files[1],"(?<=/)[A-Z0-9]+(?=_rf|_exp)"))
+imp_df_sub2_top10 <- imp_df_sub2[1:10,] # take the top 10 genes
+imp_df_sub3_top10 <- imp_df_sub3[1:10,]
 # combine dataframes
 for (i in 2:length(files)){
         df <- read.csv(files[i], sep="\t")
@@ -1196,6 +1317,7 @@ for (i in 2:length(files)){
         write.table(df, save_names[i], sep="\t", quote=F, row.names=F) # save to file before subsetting columns
         # bin the gene level max importance scores by percentiles
         df_sub <- df[,c('gene', 'max')] # subset
+        df_sub <- df_sub[which(df_sub$gene!="intergenic"),] # drop intergenic snps
         df_sub <- df_sub[!duplicated(df_sub),] # remove duplicate genes
         df_sub$gene_bin <- cut(df_sub$max,
                 breaks=quantile(df_sub$max, c(0, 0.95, 0.99, 1)),
@@ -1209,14 +1331,21 @@ for (i in 2:length(files)){
         # combine with imp_df_sub
         imp_df_sub2 <- full_join(imp_df_sub2, df_sub2, by="gene") # percentiles
         imp_df_sub3 <- full_join(imp_df_sub3, df_sub3, by="gene") # importance scores
+        # take the top 10 genes
+        df_sub2_top10 <- df_sub2[1:10,]
+        df_sub3_top10 <- df_sub3[1:10,]
+        imp_df_sub2_top10 <- full_join(imp_df_sub2_top10, df_sub2_top10, by="gene") # combine with imp_df_sub_top10
+        imp_df_sub3_top10 <- full_join(imp_df_sub3_top10, df_sub3_top10, by="gene")
+        
 }
 # save combined data
 write.table(imp_df_sub2, "Scripts/Data_Vis/SNPs_imp_percentile_all_sorted.tsv", sep="\t", quote=F, row.names=F)
 write.table(imp_df_sub3, "Scripts/Data_Vis/SNPs_imp_max_all_sorted.tsv", sep="\t", quote=F, row.names=F)
+write.table(imp_df_sub2_top10, "Scripts/Data_Vis/SNPs_imp_percentile_top10_sorted.tsv", sep="\t", quote=F, row.names=F)
+write.table(imp_df_sub3_top10, "Scripts/Data_Vis/SNPs_imp_max_top10_sorted.tsv", sep="\t", quote=F, row.names=F)
 
-# heatmap of importance scores
-imp_df_sub2 <- imp_df_sub # duplicate data
-fac_cols <- sapply(imp_df_sub, is.factor) # identify all factor columns
+# heatmap of importance scores for all the top genes in each environment
+fac_cols <- sapply(imp_df_sub2, is.factor) # identify all factor columns
 imp_df_sub2[fac_cols] <- lapply(imp_df_sub2[fac_cols], as.character) # convert all factors to characters
 imp_df_sub2[is.na(imp_df_sub2)] <- "0" # replace string values to plot heatmap
 imp_df_sub2[imp_df_sub2=="(0,95]"] <- "1"
@@ -1272,6 +1401,63 @@ pdf("Scripts/Data_Vis/SNPs_imp_percentile_all_sorted.pdf", height=unit(8.75, "in
 draw(p)
 dev.off()
 
+# heatmap of importance scores for top 10 genes in each environment
+fac_cols <- sapply(imp_df_sub2_top10, is.factor) # identify all factor columns
+imp_df_sub2_top10[fac_cols] <- lapply(imp_df_sub2_top10[fac_cols], as.character) # convert all factors to characters
+imp_df_sub2_top10[is.na(imp_df_sub2_top10)] <- "0" # replace string values to plot heatmap
+imp_df_sub2_top10[imp_df_sub2_top10=="(0,95]"] <- "1"
+imp_df_sub2_top10[imp_df_sub2_top10=="(95,99]"] <- "2"
+imp_df_sub2_top10[imp_df_sub2_top10=="(99,100]"] <- "3"
+rownames(imp_df_sub2_top10) <- imp_df_sub2_top10$gene # set rownames
+imp_df_sub2_top10 <- imp_df_sub2_top10[,-1] # remove gene column
+imp_df_sub2_top10_num <- matrix(as.numeric(as.matrix(imp_df_sub2_top10)), ncol = ncol(imp_df_sub2_top10)) # convert to numeric matrix
+rownames(imp_df_sub2_top10_num) <- rownames(imp_df_sub2_top10)
+colnames(imp_df_sub2_top10_num) <- colnames(imp_df_sub2_top10)
+col_fun = colorRamp2(c(0, 1, 2, 3), c("#fff8fe", "#b898cf", "#ce0b87", "#6b2700"))
+# clustered heatmap
+p <- Heatmap(imp_df_sub2_top10_num,
+        col=col_fun,
+        # na_col="grey",
+        cluster_rows=T, 
+        show_row_dend=F,
+        cluster_columns=T,
+        show_column_dend=F,
+        show_row_names=F,
+        show_column_names=T,
+        column_names_side="top",
+        column_names_gp = gpar(fontize=7),
+        border_gp = gpar(col="black", lty=1),
+        use_raster=T,
+        name="Importance percentiles",
+        heatmap_legend_param=list(title="Importance percentiles",
+                color_bar = "discrete", 
+                labels = gt_render(c("missing", "(0,95]", "(95,99]", "(99,100]"))))
+pdf("Scripts/Data_Vis/SNPs_imp_percentile_top10_clustered.pdf", height=unit(8.75, "in"), width=unit(7.5, "in"))
+draw(p)
+dev.off()
+
+# sorted heatmap
+p <- Heatmap(imp_df_sub2_top10_num,
+        col=col_fun,
+        # na_col="grey",
+        cluster_rows=F, 
+        show_row_dend=F,
+        cluster_columns=F,
+        show_column_dend=F,
+        show_row_names=F,
+        show_column_names=T,
+        column_names_side="top",
+        column_names_gp = gpar(fontize=7),
+        border_gp = gpar(col="black", lty=1),
+        use_raster=T,
+        name="Importance percentiles",
+        heatmap_legend_param=list(title="Importance percentiles",
+                color_bar = "discrete", 
+                labels = gt_render(c("missing", "(0,95]", "(95,99]", "(99,100]"))))
+pdf("Scripts/Data_Vis/SNPs_imp_percentile_top10_sorted.pdf", height=unit(8.75, "in"), width=unit(7.5, "in"))
+draw(p)
+dev.off()
+
 # Histogram of the number of environments each gene is a top predictor for
 imp_df_sub2_num[imp_df_sub2_num > 1] <- 1 # set all non-zero values to 1
 num_envs <- rowSums(imp_df_sub2_num)# get the number of envs for each gene
@@ -1285,10 +1471,10 @@ ggplot(as.data.frame(num_envs), aes(x=num_envs)) + geom_histogram(bins=35) +
 ggsave("Scripts/Data_Vis/SNPs_top_genes_num_env.pdf", height=unit(3.5, "in"), width=unit(3.5, "in"))
 dev.off()
 
-### ADDITIONAL FIGURES TO MAKE: SUBSET THE GENES (top 10, 50, 100) and see how the heatmaps change; do this for ORF and CNV too
+### ADDITIONAL FIGURES TO MAKE: SUBSET THE GENES (top 10) and see how the heatmaps change <<<DONE for SNPs>>>; do this for ORF and CNV too
 ### ALSO, CAN HAVE 35 SMALLER HEATMAPS ALL NEXT TO EACH OTHER, EACH WITH A COLUMN FOR SNP, ORF, CNV
-### MAKE A UMAP FIGURE WITH ADJACENCY MATRIX using all the gene in imp_df_sub and the GI matrix
-### CREATE A FIGURE WITH COUNTS, how many environments are genes top predictors in? (done see line 1269)
+### MAKE A UMAP FIGURE WITH ADJACENCY MATRIX using all the gene in imp_df_sub and the GI matrix <<<DONE>>>
+### CREATE A FIGURE WITH COUNTS, how many environments are genes top predictors in? <<<DONE see line 1269>>>
 ### FOR THE FEATURE SELECTION CURVES, I NEED TO PLOT A SCATTER PLOT AND FIT A CURVE 
 ###### (THIS IS HOW I DETERMINE THE NUMBER OF TOP FEATURES. I WILL PROBABLY NEED TO
 ###### REMAKE THE FIGURES IN THIS SECTION, BUT THEY SHOULDN'T CHANGE MUCH AND
@@ -1344,13 +1530,41 @@ dev.off()
 imp_df_orf <- combine(imp_df_orf[1:20,], files, "orf", "Scripts/Data_Vis/ORFs_top20_all_env_imp.pdf")
 
 ## ORF presence/absence
-feats <- c(250, 1250, 250, 500, 250, 500, 500, 250, 750, 250, 500, 500, 250, 
-        250, 500, 500, 250, 250, 250, 250, 250, 250, 750, 250, 250, 250, 750, 
-        250, 250, 250, 500, 250, 250, 250, 250)
+setwd("/mnt/home/seguraab/Shiu_Lab/Project/")
+orf <- read.csv("Results/RESULTS_RF_ORFs_FS.txt", sep="\t", header=T)
+dir <- "/mnt/scratch/seguraab/yeast_project/ORF_yeast_RF_results/fs/" # data directory
+files <- paste(dir, orf$ID, "_imp", sep="") # path to feature selection importance score files
+save_names <- paste("Scripts/Data_Vis/", orf$ID, "_imp.tsv", sep="") # new file names
+
 map <- read.csv("~/Shiu_Lab/Project/Data/Peter_2018/ORFs_GO_genes.tsv", sep="\t")
 map <- map[c("qacc", "gene")]
 map <- map[!duplicated(map),]
 colnames(map) <- c("orf", "gene")
+
+# read in the first file
+for (i in 1:length(files)){
+        imp_df <- read.csv(files[i], sep="\t")
+        imp_df <- imp_df[order(imp_df$mean_imp, decreasing=T),] # sort by mean importance score
+        # add gene information and calculate max score per gene
+        imp_df <- left_join(imp_df, map, by=c("X"="orf"))
+        write.table(imp_df, save_names[i], sep="\t", quote=F, row.names=F)
+}
+
+cnv <- read.csv("Results/RESULTS_RF_CNVs_FS.txt", sep="\t", header=T)
+files <- paste(dir, cnv$ID, "_imp", sep="") # path to feature selection importance score files
+save_names <- paste("Scripts/Data_Vis/", cnv$ID, "_imp.tsv", sep="") # new file names
+# read in the first file
+for (i in 1:length(files)){
+        imp_df <- read.csv(files[i], sep="\t")
+        imp_df <- imp_df[order(imp_df$mean_imp, decreasing=T),] # sort by mean importance score
+        # add gene information and calculate max score per gene
+        imp_df <- left_join(imp_df, map, by=c("X"="orf"))
+        write.table(imp_df, save_names[i], sep="\t", quote=F, row.names=F)
+}
+############
+
+
+
 dir <- "/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results" # data directory
 imp_df_orf <- read.csv(file.path(dir,"YPACETATE_cno_250_imp"), sep="\t") # first trait
 colnames(imp_df_orf) <- c("orf", "YPACETATE")
@@ -1509,3 +1723,64 @@ write.csv(pCorEnvs,"Scripts/Data_Vis/pheno_pairs_cor.csv", quote=F, row.names=F)
 ## ORFs presence/absence
 
 ## ORFs copy number
+
+
+
+
+
+###############################################################################
+# Get the genes, GO, and pwy info for benomyl top 10 genes
+setwd("/mnt/home/seguraab/Shiu_Lab/Project/")
+library(tidyverse)
+go <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go_all.tsv", sep="\t")
+go_orf <- read.csv("Data/Peter_2018/ORFs_GO_genes.tsv", sep="\t")
+master_pwy <- read.csv("/mnt/home/seguraab/Shiu_Lab/Co-function/Data/MetaCyc/All-pathways-S288c_descriptions.txt", sep="\t")
+pwy <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_pwy_all.csv")
+pwy_orf <- read.csv("Data/Peter_2018/ORFs_and_S288C_genes_pwy_all.csv")
+snp_shap <- list.files("Scripts/Data_Vis/SNP_Figures/SHAP", "median", full.names=T)
+orf_shap <- list.files("Scripts/Data_Vis/ORF_CNV_Figures/SHAP_orf_presence_absence", "median", full.names=T)
+cnv_shap <- list.files("Scripts/Data_Vis/ORF_CNV_Figures/SHAP_orf_copy_number", "median", full.names=T)
+
+myfunc <- function(path, snp='y'){
+        df <- read.csv(path, sep="\t")
+        if (snp=='y') {
+                df2 <- left_join(df, go[,c('snp', 'gene', 'BP', 'CC', 'MF')],
+                        by=c('X'='snp'))
+                df3 <- df2[c("gene", "BP", "CC", "MF")] # subset (will add shap values later)
+                df3 <- df3[!duplicated(df3),] # drop dupes before joining to pwy
+                df3 <- merge(df3, pwy[,c('Accession.1', 'Pathways.of.gene')],
+                        by.x="gene", by.y="Accession.1", all.x=T) # add pathway IDs
+                df3 <- df3[!duplicated(df3),] # drop duplicates
+                df3 <- merge(df2[,c("X", "X0", "gene")], df3, by.x="gene",
+                        by.y="gene", all.x=T) # add snps & shap values
+                df3 <- merge(df3, master_pwy[,c("Object.ID", "Pathways")],
+                        by.x="Pathways.of.gene", by.y="Object.ID", all.x=T) # add pathway description
+                df3 <- df3[!duplicated(df3),] # drop duplicates
+                df3 <- df3[order(df3$X0, decreasing=T),] # sort by shap value
+                path <- gsub(".tsv", "_go_pwy.txt", path)
+                write.table(df3, path, quote=F, sep="\t", row.names=F)
+        }
+        if (snp=='n') {
+                df2 <- left_join(df, go_orf[c('qacc', 'gene', 'BP')],
+                        by=c('X'='qacc'))
+                df3 <- df2[c("gene", "BP")] # subset (will add shap values later)
+                df3 <- df3[!duplicated(df3),] # drop dupes before joining to pwy
+                df3 <- merge(df3, pwy_orf[,c('Accession.1', 'Pathways.of.gene')],
+                        by.x="gene", by.y="Accession.1", all.x=T) # add pathway IDs
+                df3 <- df3[!duplicated(df3),] # drop duplicates
+                df3 <- merge(df2[,c("X", "X0", "gene")], df3, by.x="gene",
+                        by.y="gene", all.x=T) # add snps & shap values
+                df3 <- merge(df3, master_pwy[,c("Object.ID", "Pathways")],
+                        by.x="Pathways.of.gene", by.y="Object.ID", all.x=T) # add pathway description
+                df3 <- df3[!duplicated(df3),] # drop duplicates
+                df3 <- df3[order(df3$X0, decreasing=T),] # sort by shap value
+                path <- gsub(".txt", "_go_pwy.tsv", path)
+                write.table(df3, path, quote=F, sep="\t", row.names=F)
+        }
+}
+
+for (i in 1:length(orf_shap)){
+        myfunc(snp_shap[i], snp='y')
+        myfunc(orf_shap[i], snp='n')
+        myfunc(cnv_shap[i], snp='n')
+}
