@@ -1,7 +1,5 @@
 ##################################################################################################
-# Description: BayesC Single Trait Model with Variable Selection 
-# Not yet: within a cross-validation (cv) scheme
-# Not yet: incorporate multi-trait capabilty
+# Description: BayesC Single Trait Model with Variable Selection within a cross-validation (cv) scheme
 #
 # Arguments:
 #   [1] X_file:     genotype matrix
@@ -18,8 +16,12 @@
 # Output:
 #   [1] BGLR object as .RDS file
 #   [2] Feature coefficients file
-#   [3] R-squared values for each cross-validation repetition and of test set
-#   [4] Predicted values for each cross-validation repetition and of test set
+#   [3] BGLR marker effects file (ETA_1_b.bin)
+#   [4] BGLR lambda parameters file (ETA_1_lambda.dat)
+#   [5] BGLR mu file (mu.dat)
+#   [6] BGLR varE file (varE.dat)
+#   [7] R-squared values for each cross-validation repetition and of test set
+#   [8] Predicted values for each cross-validation repetition and of test set
 #
 # Modified by: Kenia Segura Abá
 ##################################################################################################
@@ -27,9 +29,8 @@
 # Load necessary packages
 library(BGLR)
 library(data.table)
-library('parallel')
 
-set.seed(42) # for reproducibility
+set.seed(20230427) # for reproducibility
 
 # Read in arguments
 args = commandArgs(trailingOnly=TRUE)
@@ -47,18 +48,6 @@ if (length(args) < 10) {
     save_name <- args[9]
     save_dir <- args[10]
 }
-
-# Arguments for debugging
-# X_file <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv"
-# Y_file <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv"
-# test_file <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt"
-# cvf_file <- "/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/CVFs.csv"
-# feat_file <- "all"
-# trait <- "YPACETATE"
-# fold <- 5
-# number <- 10
-# save_dir <- "/mnt/scratch/seguraab/yeast_project/yeast_BayesC_results"
-# i <- 1; k <- 1; j <- 1
 
 # Read in data
 print("Reading in data...")
@@ -95,15 +84,21 @@ if (trait == "all") {
     Y <- Y[trait]
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
-=======
->>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
-# 08/16/2022 Kenia: Added coefficient of determination (R^2) function
+# Collect results
+setwd(save_dir) # set output directory as working directory
+file <- "RESULTS_BayesC.txt"
+if (!file.exists(file)) {
+    cat("Date", "RunTime", "Trait", "ID", "Alg", "NumInstances", "FeatureNum",
+        "CVfold", "CV_rep", "MSE_val", "MSE_val_sd", "MSE_val_se", "r2_val",
+        "r2_val_sd", "r2_val_se", "PCC_val", "PCC_val_sd","PCC_val_se",
+        "MSE_test", "MSE_test_sd", "MSE_test_se", "r2_test", "r2_test_sd",
+        "r2_test_se", "PCC_test", "PCC_test_sd", "PCC_test_se\n", file=file,
+        append=FALSE, sep="\t")
+} else {message("RESULTS_BayesC.txt exists") }
+
+# Evaluation metrics
+mse <- function(preds, actual){ return(mean((actual-preds)^2)) } # mean squared error
+se <- function(vector){ return(sd(vector)/length(vector)) } # standard error
 r2_score <- function(preds, actual) {
 	# This function is comparable to sklearn's r2_score function
 	# It computes the coefficient of determination (R^2)
@@ -112,41 +107,22 @@ r2_score <- function(preds, actual) {
 	return(1 - (rss/tss)) # return R^2 value
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> origin/main
-=======
->>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
-=======
->>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
+`%notin%` <- Negate(`%in%`)
+
 # BayesC model
-setwd(save_dir)
-start.time <- Sys.time() # start time
-PCC_cv <- c() # CV Pearson Correlation Coefficient (PCC)
-PCC_test <- c() # Test set PCC
-R2_cv <- c() # CV performance R-squared
-R2_test <- c() # Test set performance R-squared
-Predict_validation <- c() # Predicted label for CV
-Predict_test <- c() # Predicted label for test set
 for (i in 1:length(Y)){
     print(sprintf("Modeling trait %s...", names(Y)[i]))
-    corr_CV <- c() # PCC of cross-validation
-    corr_test <- c() # PCC of test set
-    Accuracy_CV <- c() # R-sq of cross-validation (performance)
-    Accuracy_test <- c() # R-sq of test set (performance)
     Coef <- c() # feature coefficients
     pred_val <- c() # predicted value of validation
     pred_test <- c() # predicted value of test set
+    Start <- sys.tiem() # start time
     for (k in 1:number) { # cross-validation repetitions
         print(sprintf("CV repetition number %i", k))
         tst <- cvs_all[,k] # column from cvs_all that specifies sample folds for this repetition
         Coeff <- c() # model coefficients for this repetition
-        #~~~~~~~# Need to figure out what other model paramters I need to save
-        y_test <- c() # predicted values of test set
-        yhat <- data.frame(cbind(Y, yhat=0, yhat_sd = 0)) # dataframe to hold predicted values
-        yhat$yhat <- as.numeric(yhat$yhat)
-        yhat$yhat_sd <- as.numeric(yhat$yhat_sd)
-        row.names(yhat) <- row.names(Y)
+        yhat_val <- data.frame(Y[i], yhat=0, row.names=row.names(Y)) # dataframe to hold predicted values
+        yhat_test <- data.frame(Y[Test,i], row.names=Test)
+        colnames(yhat_test) <- colnames(Y[i])
         for (j in 1:fold) { # cross-validion fold number
             print(sprintf("CV fold number %i", j))
             validation <- which(tst==j) # validation set for this fold
@@ -158,8 +134,8 @@ for (i in 1:length(Y)){
             
             # Build BayesC model
             start <- Sys.time() # start time
-            ETA <- list(list(X=X, model="BayesC", saveEffects=TRUE)) # regression function
-            model <- BGLR(y=yNA, ETA=ETA, verbose=FALSE, nIter=12000, burnIn=2000, saveAt = paste("BayesC_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), "_", sep="")) # about 12 minutes
+            ETA <- list(list(X=X, model="BayesC", probIn=1/100, counts=1e10, saveEffects=TRUE)) # regression function
+            model <- BGLR(y=yNA, ETA=ETA, verbose=FALSE, nIter=32000, burnIn=3200, saveAt = paste("BayesC_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), "_", sep="")) # about 12 minutes
             end <- Sys.time() # end time
             print("Saving model...")
             saveRDS(model, file=paste("BayesC_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".RDS", sep=""))
@@ -175,88 +151,38 @@ for (i in 1:length(Y)){
 
             # Extract results from model
             Coeff <- rbind(Coeff, model$ETA[[1]]$d) # feature coefficients (what is b? the estimated coeffs, d is the posterior probs)
-            yhat$yhat[validation] <- model$yHat[validation] # predicted labels for validation set
-            yhat$yhat_sd[validation] <- model$SD.yHat[validation] # standard deviation of predicted labels
-            yhat$yhat[test] <- model$yHat[test] # predicted labels for test set
-            yhat$yhat_sd[test] <- model$SD.yHat[test] # standard deviation of predicted labels
-            y_test <- cbind(y_test, yhat$yhat) # collect predicted labels
+            yhat_val$yhat[validation] <- model$yHat[validation] # predicted labels for validation set
+            yhat_test[paste("rep",j,sep="_")] <- model$yHat[test] # collect predicted labels
         }
-        # Performance measures per repetition
-        print("Calculating performance...")
-        corr_cv <- cor(yhat[which(tst!=0), i], yhat$yhat[which(tst!=0)]) # PCC of validation
-		corr_CV <- c(corr_CV, corr_cv)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        Accuracy_CV <- c(Accuracy_CV, corr_cv^2) # R-sq of validation
-=======
-        #Accuracy_CV <- c(Accuracy_CV, corr_cv^2) # R-sq of validation
-        Accuracy_CV <- c(Accuracy_CV, r2_score(yhat[which(tst!=0), i], yhat$yhat[which(tst!=0)])) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
->>>>>>> origin/main
-=======
-        #Accuracy_CV <- c(Accuracy_CV, corr_cv^2) # R-sq of validation
-        Accuracy_CV <- c(Accuracy_CV, r2_score(yhat[which(tst!=0), i], yhat$yhat[which(tst!=0)])) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
->>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
-=======
-        #Accuracy_CV <- c(Accuracy_CV, corr_cv^2) # R-sq of validation
-        Accuracy_CV <- c(Accuracy_CV, r2_score(yhat[which(tst!=0), i], yhat$yhat[which(tst!=0)])) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
->>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
-        
-        y_test <- cbind(y_test, rowMeans(y_test)) # mean predicted values
-        corr_Test <- cor(yhat[which(tst==0), i], y_test[which(tst==0), ncol(y_test)]) # PCC of test 
-		corr_test <- c(corr_test, corr_Test)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        Accuracy_test <- c(Accuracy_test, corr_Test^2) # R-sq of test
-=======
-        #Accuracy_test <- c(Accuracy_test, corr_Test^2) # R-sq of test
-        Accuracy_test <- c(Accuracy_test, r2_score(yhat[which(tst==0), i], y_test[which(tst==0), ncol(y_test)])) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
->>>>>>> origin/main
-=======
-        #Accuracy_test <- c(Accuracy_test, corr_Test^2) # R-sq of test
-        Accuracy_test <- c(Accuracy_test, r2_score(yhat[which(tst==0), i], y_test[which(tst==0), ncol(y_test)])) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
->>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
-=======
-        #Accuracy_test <- c(Accuracy_test, corr_Test^2) # R-sq of test
-        Accuracy_test <- c(Accuracy_test, r2_score(yhat[which(tst==0), i], y_test[which(tst==0), ncol(y_test)])) # 08/16/2022 Kenia: Added coefficient of determination (R^2) function
->>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
-        
         Coef <- rbind(Coef, colMeans(Coeff)) # mean feature coefficients
-        pred_val <- cbind(pred_val, yhat$yhat[which(tst!=0)]) # predicted values of validation set
-        pred_test <- cbind(pred_test, y_test[which(tst==0), ncol(y_test)]) # predicted values of test set
+        pred_val <- cbind(pred_val, yhat_val$yhat[which(yhat_val$yhat!=0)]) # predicted values of validation set
+        pred_test <- cbind(pred_test, rowMeans(yhat_test[2:fold+1])) # predicted values of test set
     }
-    # Overall performance
-    PCC_cv <- cbind(PCC_cv, corr_CV) # cross-validation PCC
-	PCC_test <- cbind(PCC_test, corr_test) # test set PCC
-    R2_cv <- cbind(R2_cv, Accuracy_CV) # cross-validation accuracy
-    R2_test <- cbind(R2_test, Accuracy_test) # test set accuracy
-    write.csv(Coef, paste("Posterior_", save_name, "_", names(Y)[i], ".csv", sep=""), row.names=FALSE, quote=FALSE) # coefficients
-    colnames(pred_val) <- paste(names(Y)[i], "_", 1:number, sep="") # columns for predicted values for each repetition
-    Predict_validation <- cbind(Predict_validation, pred_val) # validation predicted values
-    colnames(pred_test) <- paste(names(Y)[i], "_", 1:number, sep="") # columns for predicted values for each repetition
-    Predict_test <- cbind(Predict_test, pred_test) # test set predicted values
+    # save average feature coefficients
+    write.csv(Coef, paste("Coef_", save_name, "_", names(Y)[i], ".csv", sep=""),
+        row.names=FALSE, quote=FALSE)
+    
+    # save predicted values
+    write.csv(pred_test, paste("Predict_value_cv_", save_name, "_", names(Y)[i],
+        ".csv", sep=""), row.names=FALSE, quote=FALSE)
+    write.csv(pred_val, paste("Predict_value_test_", save_name, "_", names(Y)[i],
+        ".csv", sep=""), row.names=FALSE, quote=FALSE)
+
+    # save model performances
+    print("Writing model results to file...")
+    RunTime <- Sys.time()-Start
+    ID <- paste(names(Y)[i], save_name, sep="_")
+    NumInstances <- nrow(X)-length(Test)
+    mse_val <- apply(pred_val, 2, mse, Y[which(rownames(Y) %notin% Test),i])
+    r2_val <- apply(pred_val, 2, r2_score, Y[which(rownames(Y) %notin% Test),i])
+    pcc_val <- apply(pred_val, 2, cor, Y[which(rownames(Y) %notin% Test),i])
+    mse_test <- apply(pred_test, 2, mse, Y[which(rownames(Y) %in% Test),i])
+    r2_test <- apply(pred_test, 2, r2_score, Y[which(rownames(Y) %in% Test),i])
+    pcc_test <- apply(pred_test, 2, cor, Y[which(rownames(Y) %in% Test),i])
+    cat(paste(Sys.time(), RunTime, names(Y)[i], ID, "BayesC", NumInstances,
+        ncol(X), fold, number, mean(mse_val), sd(mse_val), se(mse_val),
+        mean(r2_val), sd(r2_val), se(r2_val), mean(pcc_val), sd(pcc_val),
+        se(pcc_val), mean(mse_test), sd(mse_test), se(mse_test), mean(r2_test),
+        sd(r2_test), se(r2_test), mean(pcc_test), sd(pcc_test), se(pcc_test),
+        sep="\t"), file=file, append=T, sep="\n")
 }
-print("Complete.")
-end.time <- Sys.time() # end time
-print(sprintf("Total elapsed time: %f", end.time-start.time))
-
-# Save results to files
-print("Saving results files...")
-colnames(PCC_cv) <- names(Y)
-write.csv(PCC_cv,paste('PCC_cv_results_',save_name,'_',trait,'.csv',sep=''),row.names=FALSE,quote=FALSE)
-
-colnames(PCC_test) <- names(Y)
-write.csv(PCC_test,paste('PCC_test_results_',save_name,'_',trait,'.csv',sep=''),row.names=FALSE,quote=FALSE)
-
-colnames(R2_cv) <- names(Y) #c(paste(names(Y), "_PCC", sep=""), paste(names(Y), "_R2", sep=""))
-write.csv(R2_cv,paste("R2_cv_results_", save_name, "_", trait, ".csv", sep=""), row.names=FALSE, quote=FALSE)
-
-colnames(R2_test) <- names(Y) #c(paste(names(Y), "_PCC", sep=""), paste(names(Y), "_R2", sep=""))
-write.csv(R2_test,paste("R2_test_results_", save_name, "_", trait, ".csv", sep=""), row.names=FALSE, quote=FALSE)
-
-rownames(Predict_validation) <- rownames(X)[which(tst!=0)]
-write.csv(Predict_validation,paste("Predict_value_cv_", save_name, "_", trait, ".csv", sep=""), row.names=TRUE, quote=FALSE)
-
-rownames(Predict_test) <- rownames(X)[test]
-write.csv(Predict_test,paste("Predict_value_test_", save_name, "_", trait, ".csv", sep=""), row.names=TRUE, quote=FALSE)
