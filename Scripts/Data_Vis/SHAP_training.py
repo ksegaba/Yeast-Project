@@ -171,19 +171,26 @@ def main():
 	explainer = shap.Explainer(my_model)
 	# prediction on test
 	shap_values = explainer(X_train)
-	plt.clf()
-	shap.plots.beeswarm(shap_values,max_display=21,show=False)
-	plt.savefig("SHAP_beeswarm_%s_training_top20.pdf"%args.save)
+	# plt.clf() # these are out of order
+	# shap.plots.beeswarm(shap_values,max_display=11,show=False)
+	# plt.savefig("SHAP_beeswarm_%s_training_top10.pdf"%args.save)
+	# shap.plots.beeswarm(shap_values,max_display=21,show=False)
+	# plt.savefig("SHAP_beeswarm_%s_training_top20.pdf"%args.save)
 	values = pd.DataFrame(shap_values.values)
 	values.index = X_train.index
 	values.columns = X_train.columns
-	#values.to_csv('SHAP_values_%s.txt'%args.save,sep='\t',header=True,index=True)
+	# values.to_csv('SHAP_values_%s_training.tsv'%args.save,sep='\t',header=True,index=True)
 	
 	# calculate the average absolute SHAP value of a column, and then rank the features based on this average abs SHAP value
 	values_abs = abs(values)
-	values_abs_mean = values_abs.mean(axis=0)
-	values_abs_mean_sorted = values_abs_mean.sort_values(ascending = False)
-	values_abs_mean_sorted.to_csv('SHAP_values_sorted_average_%s_training.txt'%args.save,sep='\t',header=True,index=True)
+	# values_abs_mean = values_abs.mean(axis=0)
+	# values_abs_mean_sorted = values_abs_mean.sort_values(ascending = False)
+	# values_abs_mean_sorted.to_csv('SHAP_values_sorted_average_%s_training.txt'%args.save,sep='\t',header=True,index=True)
+
+	# Calculate the median absolute SHAP value of a column, and then rank the features based on this median abs SHAP value
+	values_abs_med = values_abs.median(axis=0)
+	values_abs_med_sorted = values_abs_med.sort_values(ascending = False)
+	values_abs_med_sorted.to_csv('SHAP_values_sorted_median_%s_training.tsv'%args.save,sep='\t',header=True,index=True)
 
 	###### genes: add args.gene to specify if I want to do the mapping
 	#genes = pd.read_csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt", header=None)
@@ -193,51 +200,53 @@ def main():
 	#out.to_csv('SHAP_top_snps_genes_sorted_%s_training.txt'%args.save,sep='\t',header=True,index=True)
 
 	# sort the column in the SHAP value matrix according to the average absolute values
-	values_sorted = values[values_abs_mean_sorted.index]
-	values_sorted.to_csv('SHAP_values_sorted_%s_training.txt'%args.save,sep='\t',header=True,index=True)
+	# values_sorted = values[values_abs_mean_sorted.index]
+	values_sorted = values[values_abs_med_sorted.index]
+	values_sorted.to_csv('SHAP_values_sorted_%s_training.tsv'%args.save,sep='\t',header=True,index=True)
 
 	# reorder the X_training, and remake the shape_values. Otherwise in the following figure, the feature names would be wrong.
-	X_train = X_train[values_abs_mean_sorted.index]
+	# X_train = X_train[values_abs_mean_sorted.index]
+	X_train = X_train[values_abs_med_sorted.index]
 	explainer = shap.Explainer(my_model)
 	shap_values = explainer(X_train)
 
-	#### 03/28/2022: Additions by Kenia Segura Abá  ####
-	## Bar chart of mean abs importance
-	# This takes the average of the absolute value of SHAP value magnitudes across the dataset
-	# and plots it as a simple bar chart.
-	plt.clf()
-	shap.plots.bar(shap_values)
-	#shap.summary_plot(shap_values.abs.max(0), X_train, plot_type="bar")
-	plt.savefig("SHAP_%s_training_mean_importance.pdf"%args.save)
+	# #### 03/28/2022: Additions by Kenia Segura Abá  ####
+	# ## Bar chart of mean abs importance
+	# # This takes the average of the absolute value of SHAP value magnitudes across the dataset
+	# # and plots it as a simple bar chart.
+	# plt.clf()
+	# shap.plots.bar(shap_values)
+	# #shap.summary_plot(shap_values.abs.max(0), X_train, plot_type="bar")
+	# plt.savefig("SHAP_%s_training_mean_importance.pdf"%args.save)
 
-	## Bar chart of max abs importance
-	# Take the max of the absolute value of the SHAP values across the dataset
-	plt.clf()
-	shap.plots.bar(shap_values.abs.max(0))
-	#shap.summary_plot(shap_values.values, X_train, plot_type="bar")
-	plt.savefig("SHAP_%s_training_max_importance.pdf"%args.save)
+	# ## Bar chart of max abs importance
+	# # Take the max of the absolute value of the SHAP values across the dataset
+	# plt.clf()
+	# shap.plots.bar(shap_values.abs.max(0))
+	# #shap.summary_plot(shap_values.values, X_train, plot_type="bar")
+	# plt.savefig("SHAP_%s_training_max_importance.pdf"%args.save)
 
-	## SHAP heatmap
-	plt.clf()
-	shap.plots.heatmap(shap_values)
-	plt.savefig("SHAP_%s_training_heatmap.pdf"%args.save)
+	# ## SHAP heatmap
+	# plt.clf()
+	# shap.plots.heatmap(shap_values)
+	# plt.savefig("SHAP_%s_training_heatmap.pdf"%args.save)
 	
-	## SHAP summary plot
-	# A density scatter plot of SHAP values for each feature to identify how much 
-	# impact each feature has on the model output for individuals in the validation dataset. 
-	# Features are sorted by the sum of the SHAP value magnitudes across all samples.
-	plt.clf()
-	shap.summary_plot(shap_values.values, X_train)
-	plt.savefig("SHAP_%s_training_summary.pdf"%args.save)
+	# ## SHAP summary plot
+	# # A density scatter plot of SHAP values for each feature to identify how much 
+	# # impact each feature has on the model output for individuals in the validation dataset. 
+	# # Features are sorted by the sum of the SHAP value magnitudes across all samples.
+	# plt.clf()
+	# shap.summary_plot(shap_values.values, X_train)
+	# plt.savefig("SHAP_%s_training_summary.pdf"%args.save)
 
-	## SHAP dependence plots
-	# Shows the effect of a single feature across the whole dataset.
-	# Accounts for the interaction effects present in the features (vertical dispersion)
-	#for name in X_train.columns[0:int(args.top)]:
-	#	plt.clf()
-	#	shap.dependence_plot(name, shap_values.values, X_train, display_features=X_train)
-	#	plt.savefig("SHAP_%s_%s_training_dependence.pdf"%(args.save,name))
-	####################################################
+	# ## SHAP dependence plots
+	# # Shows the effect of a single feature across the whole dataset.
+	# # Accounts for the interaction effects present in the features (vertical dispersion)
+	# #for name in X_train.columns[0:int(args.top)]:
+	# #	plt.clf()
+	# #	shap.dependence_plot(name, shap_values.values, X_train, display_features=X_train)
+	# #	plt.savefig("SHAP_%s_%s_training_dependence.pdf"%(args.save,name))
+	# ####################################################
 	
 	# get rid of the features beyond top # features
 	values_top = values_sorted.iloc[:,0:int(args.top)]
@@ -250,7 +259,9 @@ def main():
 	
 	plt.clf()
 	shap.plots.beeswarm(shap_values,max_display=int(args.top) + 1,show=False)
+	plt.tight_layout()
 	plt.savefig("SHAP_beeswarm_%s_training_top%s_without_other_features.pdf"%(args.save,args.top))
+	plt.close()
 
 	values_normalized = values_top.copy()
 	for col in values_top.columns.to_list():
@@ -265,8 +276,9 @@ def main():
 	shap_values.values = values_normalized_np
 	plt.clf()
 	shap.plots.beeswarm(shap_values,max_display=int(args.top) + 1,show=False)
+	plt.tight_layout()
 	plt.savefig("SHAP_beeswarm_%s_training_normalized_top%s.pdf"%(args.save,args.top))
-
+	plt.close()
 
 	
 if __name__ == '__main__':
