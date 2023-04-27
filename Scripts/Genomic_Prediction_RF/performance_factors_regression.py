@@ -15,6 +15,7 @@ import copy
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 from sklearn.decomposition import PCA
@@ -89,17 +90,18 @@ def process_data(df):
 	# cov = df.cov() # fitness environment covariance
 	# cov = cov.add_prefix(prefix="cov_")
 	var = df.var(axis=0) # variance in fitness per environment
-	var.name = "fitness_variance"
+	var.name = "var" # fitness_variance
 	med = df.median(axis=0) # median fitness per environment
-	med.name = "median_fitness"
-	to_cluster = df.describe().transpose()
-	to_cluster.insert(3, "median", med)
-	to_cluster.insert(1, "var", var)
+	med.name = "median" # median fitness
+	to_cluster = pd.concat([var, med], axis=1)
+	# to_cluster = df.describe().transpose() # summary statistics
+	# to_cluster.insert(3, "median", med)
+	# to_cluster.insert(1, "var", var)
+	# to_cluster.drop("count", axis=1, inplace=True)
 	# Assign environments to a level of severity by K-means clustering
 	to_cluster, cluster_labels = kmeans_clustering(to_cluster, 2, 15)
 	# make final feature table
-	to_cluster.insert(10, "severity", cluster_labels) # level of stress severity
-	to_cluster.drop("count", axis=1, inplace=True)
+	to_cluster.insert(to_cluster.shape[1], "severity", cluster_labels) # level of stress severity
 	# X = pd.concat([cor, cov, to_cluster], axis=1) # feature table
 	# return X
 	return to_cluster
@@ -407,7 +409,7 @@ if __name__ == "__main__":
 	y = y.loc[:,args.y_col] # keep only dependent variable column
 	X = process_data(df)  # make the feature table
 	X = pd.concat([h2.h2, X], axis=1) # add heritabilities
-	X.to_csv("Scripts/Genomic_Prediction_RF/factors_features.csv")# 11 factors
+	X.to_csv(f"{args.prefix}_factors_features.csv")# 11 factors
 	# X.to_csv("Scripts/Genomic_Prediction_RF/factors_features_for_pca.csv") # 81 factors
 
 	# Build models
