@@ -9,6 +9,7 @@ yeast_rrBLUP_results/
 Scripts/All_Algorithms/
 Scripts/Data_Vis/Data_Vis_Figures_64k_geno/
 Scripts/Data_Vis/ORF_CNO_Figures/
+Scripts/Data_Vis/ORF_CNV_Figures/
 Scripts/Data_Vis/SNP_Figures/
 Scripts/Data_Vis/Pheno_Figures/
 Scripts/Data_Vis/_umap_default/
@@ -41,6 +42,7 @@ Job_Submission_Scripts/SNPs_as_Feat/*.out
 Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/*.out
 Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/rrBLUP/*.out
 Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/BL/*.out
+Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/BayesC/*.out
 Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/XGBoost/*.out
 Job_Submission_Scripts/SNPs_as_Feat/RF/rf_PCs_baseline_*
 Job_Submission_Scripts/SNPs_as_Feat/RF/*.out
@@ -94,9 +96,15 @@ Scripts/Data_Vis/*.txt
 Scripts/Data_Vis/*.tsv
 Scripts/Data_Vis/Data_Vis_Figures_64k_geno.tar.gz
 Scripts/Data_Vis/Figures/*.pdf
+Scripts/Data_Vis/ORF_CNV_Figures/*.pdf
+Scripts/Data_Vis/ORF_CNV_Figures/FS/*.pdf
+Scripts/Data_Vis/ORF_CNV_Figures/*.pdf
+Scripts/Data_Vis/ORF_CNV_Figures/SHAP_orf_copy_number/*.pdf
+Scripts/Data_Vis/ORF_CNV_Figures/SHAP_orf_copy_number/*.tsv
+Scripts/Data_Vis/ORF_CNV_Figures/SHAP_orf_presence_absence/*.pdf
+Scripts/Data_Vis/ORF_CNV_Figures/SHAP_orf_presence_absence/*.tsv
 Results/*.csv
 Results/*.pdf
 .RData
 .Rhistory
 Rplots.pdf
-
