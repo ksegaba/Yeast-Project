@@ -115,7 +115,7 @@ for (i in 1:length(Y)){
     Coef <- c() # feature coefficients
     pred_val <- c() # predicted value of validation
     pred_test <- c() # predicted value of test set
-    Start <- sys.tiem() # start time
+    Start <- Sys.time() # start time
     for (k in 1:number) { # cross-validation repetitions
         print(sprintf("CV repetition number %i", k))
         tst <- cvs_all[,k] # column from cvs_all that specifies sample folds for this repetition
