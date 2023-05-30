@@ -11,7 +11,7 @@
 #   [7] fold:       cross-validation fold number
 #   [8] number:     number of cross-validation repetitions
 #   [9] save_name:  output file save name
-#   [10] save_dir:   directory to save output file
+#   [10] save_dir:  directory to save output file
 # 
 # Output:
 #   [1] Fitted BL model object as .RDS file
@@ -156,9 +156,9 @@ for (i in 1:length(Y)) { # loop through selected trait(s)
         row.names=FALSE, quote=FALSE)
     
     # save predicted values
-    write.csv(pred_test, paste("Predict_value_cv_", save_name, "_", names(Y)[i],
+    write.csv(pred_val, paste("Predict_value_cv_", save_name, "_", names(Y)[i],
         ".csv", sep=""), row.names=FALSE, quote=FALSE)
-    write.csv(pred_val, paste("Predict_value_test_", save_name, "_", names(Y)[i],
+    write.csv(pred_test, paste("Predict_value_test_", save_name, "_", names(Y)[i],
         ".csv", sep=""), row.names=FALSE, quote=FALSE)
     
     # save model performances

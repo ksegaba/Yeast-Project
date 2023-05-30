@@ -36,6 +36,7 @@ Scripts/Genomic_Prediction_BayesC/Results_YPDCAFEIN40_chr12/
 Scripts/Genomic_Prediction_RKHS/logs
 Scripts/Genomic_Prediction_RKHS/output
 Scripts/Genomic_Prediction_RKHS/data
+Scripts/Genomic_Prediction_GxE/logs
 
 # Files to ignore
 Job_Submission_Scripts/SNPs_as_Feat/*.out
