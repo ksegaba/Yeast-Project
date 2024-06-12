@@ -1,0 +1,34 @@
+biopython @ file:///work/ci_py311/biopython_1676846981018/work
+Bottleneck @ file:///work/ci_py311/bottleneck_1676827011612/work
+certifi @ file:///croot/certifi_1707229174982/work/certifi
+contourpy @ file:///work/ci_py311/contourpy_1676827066340/work
+cycler @ file:///home/conda/feedstock_root/build_artifacts/cycler_1635519461629/work
+datatable @ file:///croot/datatable_1705093036324/work
+fonttools==4.25.0
+joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1691577114857/work
+kiwisolver @ file:///work/ci_py311/kiwisolver_1676827230232/work
+matplotlib @ file:///croot/matplotlib-suite_1693812469450/work
+mkl-fft @ file:///croot/mkl_fft_1695058164594/work
+mkl-random @ file:///croot/mkl_random_1695059800811/work
+mkl-service==2.4.0
+munkres==1.1.4
+numexpr @ file:///croot/numexpr_1683221822650/work
+numpy @ file:///croot/numpy_and_numpy_base_1695830428084/work/dist/numpy-1.26.0-cp311-cp311-linux_x86_64.whl#sha256=184178a893ff0b5e0cb1b0b7a0dddff49dc91424c4e4a01e29bcb05f27a698a6
+packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1681337016113/work
+pandas @ file:///croot/pandas_1692289311655/work
+Pillow @ file:///croot/pillow_1695134008276/work
+ply==3.11
+pyparsing @ file:///home/conda/feedstock_root/build_artifacts/pyparsing_1652235407899/work
+PyQt5-sip==12.11.0
+python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1626286286081/work
+pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1693930252784/work
+scikit-learn @ file:///croot/scikit-learn_1684954695550/work
+scipy @ file:///croot/scipy_1691606680890/work/dist/scipy-1.11.1-cp311-cp311-linux_x86_64.whl#sha256=ba491c7d30a02bb93027e90b0aa58c0fe8d1e0fc3ddfe3469178740bd150aa45
+seaborn==0.13.2
+sip @ file:///work/ci_py311/sip_1676825117084/work
+six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
+threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1689261241048/work
+toml @ file:///home/conda/feedstock_root/build_artifacts/toml_1604308577558/work
+tornado @ file:///croot/tornado_1690848263220/work
+tzdata @ file:///home/conda/feedstock_root/build_artifacts/python-tzdata_1680081134351/work
+xlrd==2.0.1

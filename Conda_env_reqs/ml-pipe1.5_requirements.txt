@@ -1,0 +1,37 @@
+certifi @ file:///croot/certifi_1717618050233/work/certifi
+cloudpickle==3.0.0
+contourpy @ file:///home/conda/feedstock_root/build_artifacts/contourpy_1712429897138/work
+cycler @ file:///home/conda/feedstock_root/build_artifacts/cycler_1696677705766/work
+datatable @ file:///croot/datatable_1705093036324/work
+fonttools @ file:///home/conda/feedstock_root/build_artifacts/fonttools_1717209181406/work
+future==1.0.0
+hyperopt==0.2.7
+joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1714665484399/work
+kiwisolver @ file:///home/conda/feedstock_root/build_artifacts/kiwisolver_1695379920604/work
+matplotlib @ file:///home/conda/feedstock_root/build_artifacts/matplotlib-suite_1715976244352/work
+munkres==1.1.4
+networkx==3.3
+numpy @ file:///home/conda/feedstock_root/build_artifacts/numpy_1707225376651/work/dist/numpy-1.26.4-cp311-cp311-linux_x86_64.whl#sha256=d08e1c9e5833ae7780563812aa73e2497db1ee3bd5510d3becb8aa18aa2d0c7c
+packaging @ file:///home/conda/feedstock_root/build_artifacts/packaging_1710075952259/work
+pandas @ file:///home/conda/feedstock_root/build_artifacts/pandas_1715897625506/work
+patsy @ file:///home/conda/feedstock_root/build_artifacts/patsy_1704469236901/work
+pillow @ file:///home/conda/feedstock_root/build_artifacts/pillow_1712154447422/work
+ply @ file:///home/conda/feedstock_root/build_artifacts/ply_1712242996588/work
+py4j==0.10.9.7
+pyparsing @ file:///home/conda/feedstock_root/build_artifacts/pyparsing_1709721012883/work
+PyQt5==5.15.9
+PyQt5-sip==12.12.2
+python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1709299778482/work
+pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1706886791323/work
+scikit-learn @ file:///home/conda/feedstock_root/build_artifacts/scikit-learn_1716489734259/work/dist/scikit_learn-1.5.0-cp311-cp311-linux_x86_64.whl#sha256=4e4d00ec549661aa22a03bd61e339cfd7abf80e247c75a0b3a95cc04b3c04b2d
+scipy @ file:///home/conda/feedstock_root/build_artifacts/scipy-split_1716470220807/work/dist/scipy-1.13.1-cp311-cp311-linux_x86_64.whl#sha256=497f9d1a91aa2301c4dbd6d0678fb3053900d59dde1ee936267e18aee722ba8f
+seaborn @ file:///home/conda/feedstock_root/build_artifacts/seaborn-split_1714494649443/work
+sip @ file:///home/conda/feedstock_root/build_artifacts/sip_1697300428897/work
+six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
+statsmodels @ file:///home/conda/feedstock_root/build_artifacts/statsmodels_1715941217475/work
+threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1714400101435/work
+toml @ file:///home/conda/feedstock_root/build_artifacts/toml_1604308577558/work
+tomli @ file:///home/conda/feedstock_root/build_artifacts/tomli_1644342247877/work
+tornado @ file:///home/conda/feedstock_root/build_artifacts/tornado_1717722848697/work
+tqdm==4.66.4
+tzdata @ file:///home/conda/feedstock_root/build_artifacts/python-tzdata_1707747584337/work
