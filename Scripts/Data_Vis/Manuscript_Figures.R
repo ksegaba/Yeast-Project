@@ -5,9 +5,10 @@
 # line : Kinship
 # line : Fitness vs Kinship
 # line : Linkage Disequilibrium Decay
+# line : Allele frequencies
 # line : ORF presence/absence and copy number variations
-# line : Isolate fitness correlatinos vs ORF dataset correlations
-# line : Kinship and ORF dataset correlations
+# line : Isolate fitness correlations vs ORF dataset correlations
+# line : Kinship vs ORF dataset correlations
 # line : TASSEL5 Principal Component Analysis (PCA) plots
 # line : Random Forest (RF) prediction performances (baseline using all features)
 # line : Prediction performances of all algorithms (using RF feature selection features)
@@ -18,9 +19,10 @@
 # line : GO Enrichment (RF after FS models)
 # line : Pathway Enrichment (RF after FS models)
 # line : Gene RF importance scores (after FS) comparisons across environments
-# line : Fitness Factors impacting RF performance
+# line : Fitness factors impacting single-environment RF model performances
 # line : RF performance comparisons using different test sets (baseline using all features and randomized label)
-# line : Multi-Output RF prediction performances (baseline using all features)
+# line : Multi-Env model performances (baseline using all ORF pres/abs features)
+
 
 rm(list=ls())
 suppressPackageStartupMessages(library(data.table))
@@ -65,16 +67,16 @@ conds <- as.data.frame(cbind(cond, new_cond))
 ################################################################################
 # FITNESS
 ################################################################################
-pheno <- read.csv("Data/Peter_2018/pheno.csv", row.names=1) # fitness data
-pheno <- pheno[,cond[order(cond)]] # re-order columns
+pheno <- read.csv("Data/Peter_2018/pheno.csv") # fitness data
 pheno <- reshape2::melt(pheno) # pivot longer
-
-# Boxplot of fitness distributions in each environment
-ggplot(pheno, aes(x=variable, y=value)) + theme_bw(8) +
-        geom_boxplot(outlier.shape=NA, color="#5B9BD5") + 
-        theme(axis.text.x=element_text(color="black", size=9, angle=45, hjust=1)) +
-        theme(axis.text.y=element_text(color="black", size=9))
-ggsave("Scripts/Data_Vis/fitness_boxplot.pdf", width=8, height=4, device="pdf", useDingbats=FALSE)
+pheno <- left_join(conds, pheno, by=c("cond"="variable")) # add condition labels
+# mean <- mean(pheno[pheno$variable=="YPDCAFEIN40",]$value) # mean fitness of YPDCAFEIN40
+# Violin plot of fitness distributions in each environment
+ggplot(pheno, aes(x=reorder(new_cond, -value), y=value)) + theme_bw(8) +
+        geom_violin(color="#5B9BD5") + geom_boxplot(width=0.1) + ylab("Fitness") +
+        theme(axis.text.x=element_text(color="black",  size=9, face="bold", angle=55, hjust=1, )) +
+        theme(axis.text.y=element_text(color="black", size=9, face="bold"))
+ggsave("Scripts/Data_Vis/fitness_violinplot.pdf", width=14, height=4, device="pdf", useDingbats=FALSE)
 
 # Fitness correlations among replicates (ensure data quality)
 reps <- read.csv("Data/Peter_2018/1002_pheno_all_conditions_4Rep_40h.csv")
@@ -96,7 +98,6 @@ ggplot() + geom_point(aes(x=sd, y=mean, group=Condition, alpha=0.1), stats)
 ggsave("Data/Peter_2018/1002_pheno_all_conditions_4Rep_40h_only_diploids_stdev.pdf")
 
 # FITNESS CORRELATIONS
-
 pCorEnvs <- read.csv("Data/Peter_2018/pheno_corr_envs.csv", row.names=1) # Correlation between conditions
 colnames(pCorEnvs) <- rownames(pCorEnvs)
 pCorIso <- read.csv("Data/Peter_2018/pheno_corr_isolates.csv", row.names=1) # Correlation between isolates across all conditions
@@ -138,7 +139,7 @@ dev.off()
 #                 margins = c(11,11))
 # dev.off()
 
-# heatmap of pCorEnvs
+# heatmap of pCorEnvs - Figure S1b
 rdbu_r <- rev(brewer.pal(n=11, "RdBu")) # reversed color palette
 col_fun = colorRamp2(seq(-1,1,.2), rdbu_r) #same as cm
 #cm = ColorMapping(name="PCC", colors=rdbu_r, levels=seq(-1,1,.2)) # color mapping
@@ -148,6 +149,33 @@ hm3 <- ComplexHeatmap::Heatmap(as.matrix(pCorEnvs),
         heatmap_legend_param=list(title="PCC", at=seq(-1,1,.2), color_bar="continuous"))
 draw(hm3)
 dev.off()
+
+# clusters from pCorEnvs heatmap
+hr <- hclust(dist(as.matrix(pCorEnvs), method="euclidean"), method="complete")
+cluster_df <- as.data.frame(colnames(pCorEnvs))
+for (k in 10:20){
+        clusters <- as.data.frame(cutree(hr, k=k))
+        cluster_df <- merge(cluster_df, clusters, by.x="colnames(pCorEnvs)", by.y="row.names")
+}
+colnames(cluster_df) <- c("Envs", paste("k=",10:20, sep="")) # k=19 looks the best
+write.csv(cluster_df, "Scripts/Data_Vis/Pheno_Figures/pheno_corr_envs_v3_clusters.csv", quote=F)
+
+# for k=19, calculate the minimum PCC for the environments in each cluster
+for (grp in 1:19){
+        envs <- cluster_df[which(cluster_df["k=19"]==grp), "Envs"]
+        if (length(envs) > 1) print(paste(grp, ";", min(pCorEnvs[envs, envs]))) # minimum PCC
+}
+# [1] "2 ; 0.975362803318604"
+# [1] "3 ; 0.51824630209932"
+# [1] "4 ; 0.58645803304682"
+# [1] "7 ; 0.784820502498895"
+# [1] "8 ; 0.485669214866689"
+# [1] "9 ; 0.58347711984573"
+# [1] "17 ; 0.730897529069502"
+# [1] "18 ; 0.752072512382596"
+
+# max correlations for those that did not cluster (need to take from both axis bc the corner envs will be missed)
+pd.concat([df.where(np.triu(df, k=1).astype(bool)).fillna(0).max(), df.where(np.triu(df, k=1).astype(bool)).fillna(0).max(axis=1)], ignore_index=False, axis=1).sort_values(by=0)
 
 # Binned pCorEnv heatmap
 pCorEnvs_binned <- apply(pCorEnvs, 2, cut, seq(-1,1,.2)) # bins on each column
@@ -386,7 +414,7 @@ heatmap.2(as.matrix(cCor),
 dev.off()
 
 ################################################################################
-# ISOLATE FITNESS CORRELATION VS ORF DATASET CORRELATIONS
+# ISOLATE FITNESS CORRELATIONS VS ORF DATASET CORRELATIONS
 ################################################################################
 orf <- fread("Data/Peter_2018/ORFs_pres_abs.csv") # ORF presence/absence
 orf <- as.matrix(orf, rownames=1, colnames=1)
@@ -515,7 +543,7 @@ pcs %>% ggplot(aes(x=PC1, y=PC5, col=`Geographical origins`)) + geom_point() + t
 dev.off()
 
 ################################################################################
-# BASELINE RANDOM FOREST PREDICTION PERFORMANCE (figures in excel)
+# RANDOM FOREST (RF) PREDICTION PERFORMANCES (BASELINE USING ALL FEATURES)
 ################################################################################
 ## PC Models
 # These results were originally with the SNP results but I took them out and moved them to a new file
@@ -573,8 +601,9 @@ xgb_snp <- read.csv(paste(
         dir,"SNP_yeast_XGBoost_results/fs/RESULTS_xgboost.txt", sep=""), sep="\t") # XGBoost results
 bl_snp <- read.csv(paste(
         dir, "SNP_yeast_BL_results/fs/RESULTS_BL.txt", sep=""), sep="\t") # Bayesian LASSO results
-bayesc_snp_files <- list.files() # BayesC results
-gblup_snp_files <- list.files() # gBLUP results
+bayesc_snp <- read.csv(paste(
+        dir, "SNP_yeast_BayesC_results/fs/RESULTS_BayesC.txt", sep=""), sep="\t") # BayesC results
+# gblup_snp_files <- list.files() # gBLUP results
 rrblup_snp_files_val <- paste(dir,
         "SNP_yeast_rrBLUP_results/R2_cv_results_rrBLUP_top", rf_snp$FeatureNum,
         "_", rf_snp$cond, ".csv", sep="") # rrBLUP validation results files
@@ -652,25 +681,41 @@ rrblup_snp$FeatureNum <- ifelse(rrblup_snp$cond==rf_snp$cond, rf_snp$FeatureNum,
 rrblup_snp$ID <- paste(rrblup_snp$cond, "rrblup", rrblup_snp$FeatureNum, sep="_")
 write.table(rrblup_snp, "Results/RESULTS_rrBLUP_SNPs_FS.txt", sep="\t", quote=F, row.names=F)
 
-# combine bayesc_snp_files results
-
 # combine gblup_snp_files results
 
 # combine them into one data matrix
 all <- as.data.frame(rbind.fill(all, rrblup_snp)) # combine all and rrblup
-all <- as.data.frame(rbind.fill(all, bayesc_snp) # combine all and bayesc
-all <- as.data.frame(rbind.fill(all, gblup_snp) # combine all and gblup
+bayesc_snp <- left_join(conds, bayesc_snp, by=c("cond"="Trait")) # add condition full names
+write.table(bayesc_snp, "Results/RESULTS_BayesC_SNPs_FS.txt", sep="\t", quote=F, row.names=F)
+all <- as.data.frame(rbind.fill(all, dplyr::select(bayesc_snp, -c("Date", "RunTime")))) # combine all and bayesc
 write.table(all, "Results/RESULTS_ALL_ALG_FS.txt", sep="\t", quote=F, row.names=F)
 
-all <- as.data.frame(rbind.fill(all, bl_snp[-1,])) # combine all and bayesian lasso
-# fill in missing info
-all[which(all$Alg=="Bayesian LASSO"), "new_cond"] <- all[which(all$Alg=="RF"), "new_cond"]
-all[which(all$Alg=="Bayesian LASSO"), "ID"] <- gsub("rf", "bl", all[which(all$Alg=="RF"), "ID"])
-all[which(all$Alg=="Bayesian LASSO"), "FeatureNum"] <- all[which(all$Alg=="RF"), "FeatureNum"]
-all <- as.data.frame(rbind.fill(all, bl_snp) # combine all and bayesian lasso
-all <- as.data.frame(rbind.fill(all, gblup_snp) # combine all and gblup
-all <- as.data.frame(rbind.fill(all, bayesc_snp) # combine all and bayesc
-write.table(all, "Results/RESULTS_ALL_ALG_FS.txt", sep="\t", quote=F, row.names=F)
+# heatmap of model performances
+all_val <- reshape2::melt(all[c("new_cond", "Alg", "r2_val")])
+all_test <- reshape2::melt(all[c("new_cond", "Alg", "r2_test")])
+all_val <- all_val[order(all_val$value, decreasing=T),]
+all_test <- all_test[order(all_test$value, decreasing=T),]
+all_val[all_val$value<=0,]$value <- 0 # set negative values to 0
+all_test[all_test$value<=0,]$value <- 0 # set negative values to 0
+ggplot(all_val, aes(x=reorder(new_cond, -value), y=Alg, fill=value)) +
+        geom_tile(aes(fill=value)) +
+        geom_text(aes(label=round(value, 2)), size=3, color="black") +
+        scale_fill_gradientn(colours=c("red" , "white"),
+                             values=c(1,0.5,0), guide="colorbar") +
+        theme_minimal(base_size=12) +
+        theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1, color="black", face="bold"),
+              axis.text.y=element_text(color="black", face="bold.italic"))
+ggsave("Scripts/Data_Vis/All_Alg_FS_R2_Val.pdf", width=14, height=4.5)
+
+ggplot(all_test, aes(x=reorder(new_cond, -value), y=Alg, fill=value)) +
+        geom_tile(aes(fill=value)) +
+        geom_text(aes(label=round(value, 2)), size=3, color="black") +
+        scale_fill_gradientn(colours=c("red" , "white"),
+                             values=c(1,0.5,0), guide="colorbar") +
+        theme_minimal(base_size=12) +
+        theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1, color="black", face="bold"),
+              axis.text.y=element_text(color="black", face="bold.italic"))
+ggsave("Scripts/Data_Vis/All_Alg_FS_R2_Test.pdf", width=14, height=4.5)
 
 ## ORF Copy Number
 
@@ -680,7 +725,7 @@ write.table(all, "Results/RESULTS_ALL_ALG_FS.txt", sep="\t", quote=F, row.names=
 
 
 ################################################################################
-# RANDOM FOREST FEATURE SELECTION CURVES & PERFORMANCES (figures in excel)
+# RF FEATURE SELECTION (FS) CURVES
 ################################################################################
 plot_fs <- function(fs, save){
         for (i in 1:length(cond)){
@@ -759,7 +804,7 @@ out <- out[cond_order,]
 write.table(out, "Results/RESULTS_RF_ORFs_FS.txt", sep="\t", row.names=F, quote=F)
 
 ################################################################################
-# RANDOM FOREST AFTER FEATURE SELECTION: TEST SET PERFORMANCE COMPARISONS
+# RF AFTER FS: TEST SET PERFORMANCE COMPARISONS
 ################################################################################
 pcs <- read.table("Results/RESULTS_RF_PCs_sorted.txt", sep="\t", header=T, row.names=1)
 snp <- read.table("Results/RESULTS_RF_SNPs_FS.txt", sep="\t", header=T, row.names=1)
@@ -910,7 +955,6 @@ df <- cbind(snp$r2_test, orf$r2_test); colnames(df) <- c("x", "y")
 plot_lm(as.data.frame(df), "Results/SNPs_v_ORFs_RF_FS.pdf")
 df <- cbind(snp$r2_test, cnv$r2_test); colnames(df) <- c("x", "y")
 plot_lm(as.data.frame(df), "Results/SNPs_v_CNVs_RF_FS.pdf")
-
 
 ################################################################################
 # HERITABILITY & RF FS PERFORMANCE COMPARISON
@@ -1265,7 +1309,7 @@ plot_cor_hm(cnv_ranks_cor, "Scripts/Data_Vis/CNV_gene_ranks_rho.pdf")
 plot_cor_hm(cnv_imps_cor, "Scripts/Data_Vis/CNV_gene_imps_rho.pdf")
 
 ################################################################################
-# GO ENRICHMENT (RF MODELS AFTER FS)
+# GO ENRICHMENT (RF AFTER FS MODELS)
 ################################################################################
 ## SNPs
 dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs" # path to ORA results files
@@ -1484,7 +1528,7 @@ draw(p1 %v% p2 %v% p3)
 dev.off()
 
 ################################################################################
-# PATHWAY ENRICHMENT (RF MODELS AFTER FS)
+# PATHWAY ENRICHMENT (RF AFTER FS MODELS)
 ################################################################################
 ## SNPs
 dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/SHAP/SNPs/fs" # path to ORA results files
@@ -1632,7 +1676,7 @@ imp_df <- left_join(imp_df, map[,c(1,4)], by=c("X"="snp"))
 imp_df <- imp_df %>% group_by(gene) %>% dplyr::summarise(count=n(), max=max(mean_imp)) %>% as.data.frame()
 write.table(imp_df, save_names[1], sep="\t", quote=F, row.names=F) # save to file before subsetting columns
 # bin the gene level max importance scores by percentiles
-imp_df_sub <- imp_df_sub[,c('gene', 'max')] # subset
+imp_df_sub <- imp_df[,c('gene', 'max')] # subset
 imp_df_sub <- imp_df_sub[which(imp_df_sub$gene!="intergenic"),] # drop intergenic snps
 imp_df_sub <- imp_df_sub[!duplicated(imp_df_sub),] # remove duplicate genes
 imp_df_sub$gene_bin <- cut(imp_df_sub$max,
@@ -1827,8 +1871,8 @@ imp_df <- read.csv(files[1], sep="\t")
 imp_df <- imp_df[order(imp_df$mean_imp, decreasing=T),] # sort by mean importance score
 # add gene information and calculate max score per gene
 imp_df <- left_join(imp_df, map, by=c("X"="orf"))
-imp_df <- imp_df %>% group_by(gene) %>% dplyr::summarise(max=max(mean_imp)) %>% as.data.frame()
 write.table(imp_df, save_names[1], sep="\t", quote=F, row.names=F) # save to file before subsetting columns
+imp_df <- imp_df %>% group_by(gene) %>% dplyr::summarise(max=max(mean_imp)) %>% as.data.frame()
 # bin the gene level max importance scores by percentiles
 imp_df <- imp_df[!duplicated(imp_df),] # remove duplicate genes
 imp_df$gene_bin <- cut(imp_df$max,
@@ -1848,6 +1892,7 @@ for (i in 2:length(files)){
         df <- df[order(df$mean_imp, decreasing=T),] # sort by mean importance score
         # add gene information and calculate mean and standard error of mean scores per gene
         df <- left_join(df, map, by=c("X"="orf"))
+        write.table(df, save_names[1], sep="\t", quote=F, row.names=F) # save to file before subsetting columns
         df <- df %>% group_by(gene) %>% dplyr::summarise(max=max(mean_imp)) %>% as.data.frame()
         # bin the gene level max importance scores by percentiles
         df <- df[!duplicated(df),] # remove duplicate genes
@@ -2019,8 +2064,8 @@ imp_df <- read.csv(files[1], sep="\t")
 imp_df <- imp_df[order(imp_df$mean_imp, decreasing=T),] # sort by mean importance score
 # add gene information and calculate max score per gene
 imp_df <- left_join(imp_df, map, by=c("X"="orf"))
-imp_df <- imp_df %>% group_by(gene) %>% dplyr::summarise(max=max(mean_imp)) %>% as.data.frame()
 write.table(imp_df, save_names[1], sep="\t", quote=F, row.names=F) # save to file before subsetting columns
+imp_df <- imp_df %>% group_by(gene) %>% dplyr::summarise(max=max(mean_imp)) %>% as.data.frame()
 # bin the gene level max importance scores by percentiles
 imp_df <- imp_df[!duplicated(imp_df),] # remove duplicate genes
 imp_df$gene_bin <- cut(imp_df$max,
@@ -2040,6 +2085,7 @@ for (i in 2:length(files)){
         df <- df[order(df$mean_imp, decreasing=T),] # sort by mean importance score
         # add gene information and calculate mean and standard error of mean scores per gene
         df <- left_join(df, map, by=c("X"="orf"))
+        write.table(df, save_names[i], sep="\t", quote=F, row.names=F) # save to file before subsetting columns
         df <- df %>% group_by(gene) %>% dplyr::summarise(max=max(mean_imp)) %>% as.data.frame()
         # bin the gene level max importance scores by percentiles
         df <- df[!duplicated(df),] # remove duplicate genes
@@ -2195,7 +2241,7 @@ ggsave("Scripts/Data_Vis/CNVs_top_genes_num_env.pdf", height=unit(3.5, "in"), wi
 dev.off()
 
 ################################################################################
-# FITNESS FACTORS IMPACTING RF PERFORMANCE
+# FITNESS FACTORS IMPACTING SINGLE-ENVIRONMENT RF MODEL PERFORMANCE
 ################################################################################
 # Scripts: Scripts/Genomic_Prediction_RF/performance_factors_regression_plots.py
 #          Scripts/Genomic_Prediction_RF/performance_factors_regression.py
@@ -2232,7 +2278,7 @@ dev.off()
 
 
 ################################################################################
-# BASELINE RF PERFORMANCE COMPARISONS USING DIFFERENT TEST SETS
+# RF PERFORMANCE COMPARISONS USING DIFFERENT TEST SETS (BASELINE USING ALL FEATURES AND RANDOMIZED LABEL)
 ################################################################################
 ## PCs
 # evaluated on original test set
@@ -2326,26 +2372,10 @@ ggplot(cnvs, aes(x=group, y=Y, fill=r2_test)) + geom_tile() +
         theme_minimal(base_size=8) + ylab("Conditions") + xlab("Test Set")
 ggsave("Scripts/Data_Vis/Test_comparisons_CNVs.pdf", width=10, height=9)
 
-
-
 ################################################################################
-# BASELINE (ALL FEATURES) MULTI-OUTPUT RF PREDICTION PERFORMANCES
+# MULTI-OUTPUT RF PREDICTION PERFORMANCES (BASELINE USING ALL FEATURES)
 ################################################################################
-## SNPs
-
-
-
-## ORFs presence/absence
-
-
-
-## ORFs copy number
-
-
-################################################################################
-# BASELINE (ALL FEATURES) MULTI-TRAIT BAYESIAN MODEL PREDICTION PERFORMANCES
-################################################################################
-# Generate subsets of environments to build multi-trait models with
+# Generate subsets of environment pairs to build multi-trait models with
 pheno <- read.csv("Data/Peter_2018/pheno.csv", row.names=1) # fitness data
 pCorEnvs <- data.frame(matrix(nrow=0, ncol=4)) # collect correlation statistics
 colnames(pCorEnvs) <- c("Env1", "Env2", "PCC", "p.value")
@@ -2370,12 +2400,55 @@ write.csv(pCorEnvs,"Scripts/Data_Vis/pheno_pairs_cor.csv", quote=F, row.names=F)
 
 ## SNPs
 
+
+
 ## ORFs presence/absence
+
+
 
 ## ORFs copy number
 
 
+################################################################################
+# MULTI-ENV MODEL PERFORMANCES (BASELINE USING ALL ORF PRES/ABS FEATURES) 
+################################################################################
+gxe <- read.csv("/mnt/scratch/seguraab/yeast_project/ORF_yeast_GxE_results/RESULTS_GxE.txt", sep="\t")
+single <- read.csv("Results/RESULTS_RF_ALL_FS.txt", sep="\t") # single-env RF models
+single$Env <- rownames(single)
+h2 <- read.csv("Results/Heritability_h2_H2_sommer.csv") # narrow-sense heritability
 
+## Across-environments model (assumes no GxE)
+across <- gxe[which(gxe$Alg=="across-env"),] # Across-env model results only
+across <- across[seq(1, nrow(gxe), by=6),] # Extract the 35 target traits
+toplot <- inner_join(across[,5:6], single[, c(3,1,5)], by="Env") # join with single-env RF results
+toplot <- left_join(toplot, h2[,1:2], by=c("Env"="Conditions")) # join with heritability
+
+## Marker-by-environment model (GxE)
+mxe <- gxe[which(gxe$Alg=="mxe"),] # MxE model results only
+mxe <- mxe[seq(1, nrow(mxe), by=6),] # Extract the 35 target traits
+toplot <- left_join(mxe[,5:6], toplot, by="Env") # join with single-env RF results
+
+## Multi-trait model (GxE)
+mt <- gxe[which(gxe$Alg=="multi"),] # Multi-trait model results only
+mt <- mt[seq(1, nrow(mt), by=6),] # Extract the 35 target traits
+toplot <- left_join(mt[,5:6], toplot, by="Env") # join with single-env RF results
+
+## Multi-Output model (GxE)
+
+
+## Make combined plot
+toplot <- left_join(conds, toplot, by=c("cond"="Env")) # join with condition info
+toplot <- toplot[,2:8] # keep only relevant columns
+colnames(toplot) <- c("Environment", "multi-trait", "mxe", "across-env", "single-env", "population structure", "h2")
+write.table(toplot, "Results/RESULTS_GxE_5env_noFS.txt", sep="\t", quote=F, row.names=F)
+toplot <- reshape2::melt(toplot, id.vars="Environment") # pivot longer
+ggplot(toplot, aes(x=reorder(Environment, -value), y=variable, fill=value)) +
+        geom_tile(aes(fill=value)) +
+        geom_text(aes(label=round(value, 2)), size=3, color="white") +
+        scale_fill_viridis(discrete=F) + theme_minimal(base_size=12) +
+        theme(axis.text.x=element_text(angle=45, hjust=1, vjust=1, color="black", face="bold"),
+              axis.text.y=element_text(color="black", face="bold.italic"))
+ggsave("Scripts/Data_Vis/ORF_R2_Test_single_and_multi3.pdf", width=13, height=4.5)
 
 
 ###############################################################################

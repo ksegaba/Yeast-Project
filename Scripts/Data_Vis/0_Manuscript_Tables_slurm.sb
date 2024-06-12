@@ -1,0 +1,18 @@
+#!/bin/bash --login 
+#SBATCH --time=20:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=10G
+#SBATCH --job-name 0_tables8_kstest
+#SBATCH --output=%x_%j.out
+
+cd /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Data_Vis
+
+module purge
+module load GCCcore/10.2.0 Python/3.8.10
+
+# python 0_TableS8_zscores.py
+python 0_TableS8_kstest.py
+
+scontrol show job $SLURM_JOB_ID
