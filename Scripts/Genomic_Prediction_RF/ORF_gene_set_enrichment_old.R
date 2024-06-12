@@ -14,13 +14,7 @@ suppressPackageStartupMessages(library(topGO))
 suppressPackageStartupMessages(library(qvalue))
 suppressPackageStartupMessages(library(pvclust))
 suppressPackageStartupMessages(library(gplots))
-<<<<<<< HEAD
-<<<<<<< HEAD
 suppressPackageStartupMessages(library(ggplot2))
-=======
->>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
-=======
->>>>>>> 2f27eb9783697f60426388411650f4fdb22e190b
 suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(RColorBrewer))

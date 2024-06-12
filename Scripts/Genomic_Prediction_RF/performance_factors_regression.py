@@ -16,10 +16,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
+from kneed import KneeLocator
 from sklearn.decomposition import PCA
-import statsmodels.api as sm
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import GridSearchCV
@@ -27,7 +29,6 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import explained_variance_score
-from sklearn.metrics import r2_score
 
 os.chdir("/mnt/home/seguraab/Shiu_Lab/Project")  # Set the working directory
 
@@ -39,51 +40,61 @@ def warn(*args, **kwargs):
 warnings.warn = warn
 
 
-def kmeans_clustering(to_cluster, start, stop):
+def kmeans_clustering(to_cluster, start, stop, prefix):
+	""" K-means clustering to assign environments to a level of severity """
+	to_cluster["median"] = to_cluster.median(axis=1) # calculate the median row values
+	to_cluster = to_cluster.sort_values("median").drop(columns="median") # sort by increasing median to better visualize clusters
 	distortions = []
 	inertias = []
 	mapping1 = {}
 	mapping2 = {}
+	fig, ax = plt.subplots(int(np.ceil(stop/2)), 2, sharex=True, sharey=True, figsize=(15, 30))
 	for k in range(start,stop):
-		clusterer = KMeans(n_clusters=k, random_state=10).fit(to_cluster)
-		distortions.append(sum(
-			np.min(cdist(
+		clusterer = KMeans(n_clusters=k, random_state=k, n_init="auto").fit(to_cluster)
+		distortions.append(sum(np.square(np.min(cdist(
 				to_cluster, clusterer.cluster_centers_, "euclidean"), 
-				axis=1))/to_cluster.shape[0])
+				axis=1)))/to_cluster.shape[0])
 		inertias.append(clusterer.inertia_)
 		mapping1[k] = sum(np.min(cdist(
 			to_cluster, clusterer.cluster_centers_, "euclidean"), 
 			axis=1)) / to_cluster.shape[0]
 		mapping2[k] = clusterer.inertia_
 		# Check clusters
-		to_cluster = to_cluster.sort_values("median")
 		colors = plt.cm.get_cmap("hsv", k)
-		fig, ax1 = plt.subplots(1, 1)
-		ax1.scatter(to_cluster.index, to_cluster['median'], c=clusterer.labels_, cmap=colors)
-		ax1.set_ylabel("Median fitness")
-		plt.xticks(rotation=50, ha='right', rotation_mode='anchor')
-		plt.subplots_adjust(bottom=0.1)
-		plt.savefig(f"Scripts/Genomic_Prediction_RF/fitness_severity_k{k}.pdf")
-		plt.close()
-		if k==10: # based on elbow plots
-			cluster_labels = 1 - ((clusterer.labels_+1)/k) # get cluster labels to return
+		row_idx, col_idx = divmod(k, 2)
+		ax[row_idx-1, col_idx].scatter(to_cluster.index, to_cluster.median(axis=1), c=clusterer.labels_, cmap=colors)
+		ax[row_idx-1, col_idx].set_ylabel("Median fitness")
+		ax[row_idx-1, col_idx].legend()
+	plt.xticks(rotation=50, horizontalalignment="left", fontsize=6)
+	plt.subplots_adjust(bottom=0.1)
+	plt.savefig(f"{prefix}_fitness_severity_kmeans.pdf")
+	plt.close()
+	# Find the knee (maximum point of curvature) of the elbow plots
+	knee_distort = KneeLocator(range(start, stop), distortions, S=1.0, curve="convex", direction="decreasing")
+	knee_inertia = KneeLocator(range(start, stop), distortions, S=1.0, curve="convex", direction="decreasing")
+	print(f"Knee based on distortions: {knee_distort.knee}")
+	print(f"Knee based on inertia: {knee_inertia.knee}")
+	clusterer = KMeans(n_clusters=knee_inertia.knee, random_state=knee_inertia.knee, n_init="auto").fit(to_cluster)
+	cluster_labels = pd.Series(clusterer.labels_, index=to_cluster.index) # get cluster labels to return
 	# Elbow subplots
 	fig, (ax1,ax2) = plt.subplots(1, 2)
 	fig.set_size_inches(10, 5)
 	ax1.plot(range(start,stop), distortions, 'bx-')
+	ax1.vlines(knee_distort.knee, 0, np.max(distortions), linestyle="dashed")
 	ax1.set_xlabel('Values of K')
 	ax1.set_ylabel('Distortion')
 	ax1.set_title('The Elbow Method using Distortion')
 	ax2.plot(range(start,stop), inertias, 'bx-')
+	ax2.vlines(knee_inertia.knee, 0, np.max(inertias), linestyle="dashed")
 	ax2.set_xlabel('Values of K')
 	ax2.set_ylabel('Distortion')
 	ax2.set_title('The Elbow Method using Inertia')
-	plt.savefig(f"Scripts/Genomic_Prediction_RF/factors_kmeans_elbow.pdf")
+	plt.savefig(f"{prefix}_factors_kmeans_elbow.pdf")
 	plt.close()
 	return to_cluster, cluster_labels
 
 
-def process_data(df):
+def process_data(df, prefix):
 	""" Pre-process the fitness data to generate a factor table """
 	# cor = df.corr(method="pearson") # fitness environment correlations
 	# cor = cor.add_prefix(prefix="cor_")
@@ -93,18 +104,22 @@ def process_data(df):
 	var.name = "var" # fitness_variance
 	med = df.median(axis=0) # median fitness per environment
 	med.name = "median" # median fitness
-	to_cluster = pd.concat([var, med], axis=1)
+	# to_cluster = pd.concat([var, med], axis=1)
 	# to_cluster = df.describe().transpose() # summary statistics
 	# to_cluster.insert(3, "median", med)
 	# to_cluster.insert(1, "var", var)
 	# to_cluster.drop("count", axis=1, inplace=True)
 	# Assign environments to a level of severity by K-means clustering
-	to_cluster, cluster_labels = kmeans_clustering(to_cluster, 2, 15)
+	to_cluster, kclust_labels = kmeans_clustering(df.T, 5, 34, prefix)
 	# make final feature table
-	to_cluster.insert(to_cluster.shape[1], "severity", cluster_labels) # level of stress severity
+	features = pd.concat([var, med, kclust_labels], axis=1)
+	features.columns = ["var", "median", "kmeans_cluster"]
+	features.sort_values("kmeans_cluster", inplace=True)
+	# Calculate stress severity based on cluster
+	features["severity"] = features.groupby('kmeans_cluster').transform("median")["median"] # median of medians
 	# X = pd.concat([cor, cov, to_cluster], axis=1) # feature table
 	# return X
-	return to_cluster
+	return features
 
 
 def cumsum(evar):
@@ -177,34 +192,27 @@ def Linear_mod(X, y, prefix, method="all"):
 	""" Ordinary Least Squares Linear Regression """
 	if method=="all":
 		X_s = (X-X.mean())/X.std() # scale and center feature table
-		X2 = sm.add_constant(X_s)
-		mod = sm.OLS(np.array(y).reshape(-1,1),
-			np.array(X2).reshape(-1,X2.shape[1]))
+		X_s = pd.concat([X_s, y], axis=1)
+		mod = smf.ols(formula=f"{y.name} ~ {' * '.join(X.columns)}", data=X_s)
 		res = mod.fit()
 		yhats = res.predict()
 		r2_scores = r2_score(y, yhats) # calculate variation explained by all the factors
-		with open(f"{prefix}_ols_env_results.txt", "w") as out:
+		with open(f"{prefix}_all_ols_env_results.txt", "w") as out:
 			out.write(res.summary().as_text())
 			out.write(f"\nR-sq: {r2_scores}") # formula might be a bit different from sm.ols
 		# vars(res) # attributes
-		pickle.dump(mod, open(f"{prefix}_ols_env.pkl", 'wb')) # save the model
-		coefs = pd.Series(res.params[1:])
-		coefs = pd.concat([coefs, pd.Series(res.pvalues[1:]), pd.Series(X.columns)], axis=1)
-		coefs.columns = ["coef", "p-value", "factor"]
-		coefs.index.name = "Factor"
-		coefs.sort_values("coef", ascending=False, inplace=True)
-		coefs.to_csv(f"{prefix}_ols_env_coefs.csv")
+		pickle.dump(mod, open(f"{prefix}_all_ols_env.pkl", 'wb')) # save the model
 		yhats=pd.Series(yhats)
 		yhats.index = y.index
 		yhats.name = 'y_pred'
-		pd.concat([y, yhats], axis=1).to_csv(f"{prefix}_ols_env_preds.csv")
+		pd.concat([y, yhats], axis=1).to_csv(f"{prefix}_all_ols_env_preds.csv")
 	if method=="byCol":
 		coefs = pd.DataFrame()
 		yhats = pd.DataFrame()
 		r2_scores = []
 		for col in X.columns:
 			X2 = sm.add_constant(X[col])
-			mod = sm.OLS(np.array(y).reshape(-1, y.shape[1]),
+			mod = sm.OLS(np.array(y),#.reshape(-1, y.shape[1]),
 				np.array(X2).reshape(-1, X2.shape[1]))
 			res = mod.fit()
 			print(res.summary())
@@ -215,11 +223,11 @@ def Linear_mod(X, y, prefix, method="all"):
 			yhats[col] = pd.Series(yhat.ravel())
 			r2_scores.append(r2_score(y, yhat))
 			print("R-sq:", r2_score(y, yhat))
-		coefs.to_csv(f"{prefix}_ols_factors_coefs.csv")
-		yhats.to_csv(f"{prefix}_ols_factors_preds.csv")
+		coefs.to_csv(f"{prefix}_ols_single_factors_coefs.csv")
+		yhats.to_csv(f"{prefix}_ols_single_factors_preds.csv")
 		r2_scores = pd.Series(r2_scores)
 		r2_scores.index = X.index
-		r2_scores.to_csv(f"{prefix}_ols_factors_results.csv")
+		r2_scores.to_csv(f"{prefix}_ols_single_factors_results.csv")
 	if method=="pc":
 		# X_r, evar = pca(X.T)
 		# factors_pc = copy.deepcopy(X_r)
@@ -282,8 +290,7 @@ def hyperparameter_tuning(reg, params, nGS, X_train, y_train, prefix):
 	# Find the mean scores for each parameter combination across nGS reps
 	param_names = list(gs_results2)[1:] # parameters tested
 	gs_results_mean = gs_results2.groupby(param_names).mean() # mean of mean test scores 
-	gs_results_mean = gs_results_mean.sort_values("mean_test_score",
-		0, ascending=False) # sort
+	gs_results_mean = gs_results_mean.sort_values("mean_test_score", 0, ascending=False) # sort
 	top_params = gs_results_mean.index[0] # best parameter combination
 	print(gs_results_mean.head()) # print gridsearchcv results
 	print(f"Parameter sweep time: {(time.time()- start_time)} seconds") # elapsed time
@@ -400,15 +407,15 @@ if __name__ == "__main__":
 	# y_col="r2_test"
 	# prefix="Scripts/Genomic_Prediction_RF/snps_RF_FS"
 
-	df = pd.read_csv("Data/Peter_2018/pheno.csv")  # Read in fitness data
+	df = pd.read_csv("Data/Peter_2018/pheno.csv", index_col=0)  # Read in fitness data
 	h2 = pd.read_csv("Results/Heritability_h2_H2_sommer.csv") # Read in trait heritabilities
 	y = pd.read_csv(args.Y, sep=args.sep)  # Read in model performance data
 
 	h2.set_index("Conditions", inplace=True) # set environments as row index
 	y.set_index(args.index_col, inplace=True) # set environments as row index
 	y = y.loc[:,args.y_col] # keep only dependent variable column
-	X = process_data(df)  # make the feature table
-	X = pd.concat([h2.h2, X], axis=1) # add heritabilities
+	X = process_data(df, args.prefix)  # make the feature table
+	X = pd.concat([h2.h2, X.drop("kmeans_cluster", axis=1)], axis=1) # add heritabilities
 	X.to_csv(f"{args.prefix}_factors_features.csv")# 11 factors
 	# X.to_csv("Scripts/Genomic_Prediction_RF/factors_features_for_pca.csv") # 81 factors
 
