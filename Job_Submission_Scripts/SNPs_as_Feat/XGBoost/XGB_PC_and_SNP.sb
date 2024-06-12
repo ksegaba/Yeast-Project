@@ -1,0 +1,40 @@
+#!/bin/sh --login
+#SBATCH --array=1-35
+#SBATCH --time=40:00:00
+#SBATCH --ntasks=2
+#SBATCH --cpus-per-task=5
+#SBATCH --mem=30G
+#SBATCH --job-name XGB_baseline
+#SBATCH --output=%x_%A_%a.out
+
+cd /mnt/home/seguraab/Shiu_Lab/Project
+
+TRAITS=($(head -n 1 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
+PIPE=Scripts/Genomic_Prediction_XGBoost
+DATA=Data/Peter_2018
+save=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_XGBoost_results/baseline
+
+conda activate /mnt/home/seguraab/miniconda3/envs/shap
+
+echo "${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
+
+# Baseline PCs
+python ${PIPE}/xgboost_model.py -X ${DATA}/geno_PCs1.csv \
+   -Y ${DATA}/pheno.csv \
+   -test ${DATA}/Test.txt \
+   -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
+   -prefix ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_PCs_tassel_baseline \
+   -save $save -type PCs_tassel -fold 5 -n 10 -plot f
+
+
+# Baseline SNPs
+python ${PIPE}/xgboost_model.py -X ${DATA}/geno.csv \
+    -Y ${DATA}/pheno.csv \
+    -test ${DATA}/Test.txt \
+    -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
+    -prefix ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_snp_baseline \
+    -save $save -type SNP -fold 5 -n 10 -plot f
+
+conda deactivate
+
+scontrol show job $SLURM_JOB_ID

@@ -1,0 +1,28 @@
+#!/bin/sh --login
+#SBATCH --array=1-35
+#SBATCH --time=10:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=36G
+#SBATCH --job-name BayesC_baseline_ORFs_&_CNVs
+#SBATCH --output=%x_%A_%a.out
+
+cd /mnt/home/seguraab/Shiu_Lab/Project
+module purge
+module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
+
+TRAITS=($(head -n 1 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
+
+echo "${TRAITS[${SLURM_ARRAY_TASK_ID}]}" #; ${FEATS[${SLURM_ARRAY_TASK_ID}]}"
+
+PIPE=Scripts/Genomic_Prediction_BayesC
+DATA=Data/Peter_2018
+
+# Baseline ORFs presence/absence
+save=/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_BayesC_results/baseline
+Rscript ${PIPE}/BayesC_Model.R ${DATA}/ORFs_pres_abs.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 baseline_pav_BayesC $save
+
+# Baseline ORFs copy number (CNVs)
+Rscript ${PIPE}/BayesC_Model.R ${DATA}/ORFs_no_NA.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 baseline_cnv_BayesC $save
+
+scontrol show job $SLURM_JOB_ID

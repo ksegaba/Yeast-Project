@@ -1,0 +1,27 @@
+#!/bin/sh --login
+#SBATCH --array=1-35
+#SBATCH --time=60:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=40G
+#SBATCH --job-name BL_baseline_PC_and_SNP
+#SBATCH --output=%x_%A_%a.out
+
+cd /mnt/home/seguraab/Shiu_Lab/Project
+module purge
+module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
+
+TRAITS=($(head -n 1 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
+PIPE=Scripts/Genomic_Prediction_BL
+DATA=Data/Peter_2018
+save=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_BL_results/baseline
+
+echo "${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
+
+# PCs
+Rscript ${PIPE}/BL_Model.R ${DATA}/geno_PCs1.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 baseline_PCs_tassel_BL $save
+
+# Baseline SNPs
+Rscript ${PIPE}/BL_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 baseline_snp_BL $save
+
+scontrol show job $SLURM_JOB_ID

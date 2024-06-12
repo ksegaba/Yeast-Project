@@ -1,31 +1,26 @@
-#!/bin/sh --login                 
+#!/bin/sh --login
 #SBATCH --array=0-34
-#SBATCH --time=15:00:00                 
-#SBATCH --ntasks=1                 
-#SBATCH --cpus-per-task=1                 
-#SBATCH --mem=36G                 
-#SBATCH --job-name BL_after_fs                 
-#SBATCH --output=%x_%j.out                 
+#SBATCH --time=15:00:0
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=36G
+#SBATCH --job-name snp_BL_fs
+#SBATCH --output=%x_%j.out
 
 cd /mnt/home/seguraab/Shiu_Lab/Project
-module purge                 
+module purge
 module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
-
-TRAITS=($(awk  -F'\t' '{if (NR!=1) print $1}' Results/RESULTS_RF_SNPs_FS.txt))
-FEATS=($(awk -F'\t' '{if (NR!=1) print $9}' Results/RESULTS_RF_SNPs_FS.txt))
-
-echo "${TRAITS[${SLURM_ARRAY_TASK_ID}]}; ${FEATS[${SLURM_ARRAY_TASK_ID}]}"
 
 PIPE=Scripts/Genomic_Prediction_BL
 DATA=Data/Peter_2018
 MARK=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs
 
-# Using only a subset of features
-# save=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_BL_results/fs
-# Rscript ${PIPE}/BL_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv ${MARK}/feat*_rf_${TRAITS[${SLURM_ARRAY_TASK_ID}]}_top_${FEATS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 BL_top${FEATS[${SLURM_ARRAY_TASK_ID}]} $save
+mapfile -t snp_mods < ${MARK}/snp_best_fs_models.txt
+TRAIT=$(echo ${snp_mods[${SLURM_ARRAY_TASK_ID}]} | grep -P YP[A-Z0-9]+ -o)
+FEATS=$(echo ${snp_mods[${SLURM_ARRAY_TASK_ID}]} | grep -P '(?<=top_)[0-9]+(?=\_models)' -o)
 
-# Baseline
-save=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_BL_results/baseline
-Rscript ${PIPE}/BL_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 BL_baseline $save
+# Using only a subset of features (based on RF FS)
+save=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_BL_results/fs
+Rscript ${PIPE}/BL_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv ${MARK}/features_${TRAIT}_top_${FEATS} ${DATA}/Test.txt ${TRAIT} ${DATA}/CVFs.csv 5 10 BL_top_${FEATS} $save
 
 scontrol show job $SLURM_JOB_ID

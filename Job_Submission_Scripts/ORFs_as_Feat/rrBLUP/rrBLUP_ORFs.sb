@@ -1,0 +1,41 @@
+#!/bin/sh --login
+#SBATCH --array=1-35
+#SBATCH --time=10:00:00
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=20G
+#SBATCH --job-name rrBLUP_PAVs_and_CNVs
+#SBATCH --output=%x_%A_%a.out
+
+cd /mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_rrBLUP_results/baseline
+
+module purge
+module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
+
+TRAITS=($(head -n 1 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
+PIPE=/mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass
+DATA=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
+
+echo "${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
+
+# Baseline ORFs presence/absence
+Rscript ${PIPE}/13_rrBLUP_training_test_split_fread_predict_values.r \
+    ${DATA}/ORFs_pres_abs.csv \
+    ${DATA}/pheno.csv \
+    all \
+    ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
+    ${DATA}/Test.txt \
+    5 10 ${DATA}/CVFs.csv \
+    baseline_pav_rrblup
+
+# Baseline ORFs copy number (CNVs)
+Rscript ${PIPE}/13_rrBLUP_training_test_split_fread_predict_values.r \
+    ${DATA}/ORFs_no_NA.csv \
+    ${DATA}/pheno.csv \
+    all \
+    ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
+    ${DATA}/Test.txt \
+    5 10 ${DATA}/CVFs.csv \
+    baseline_cnv_rrblup
+
+scontrol show job $SLURM_JOB_ID
