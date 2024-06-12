@@ -1,0 +1,54 @@
+#!/bin/bash
+#SBATCH --array=1-16
+#SBATCH --time=4:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=20G
+#SBATCH --job-name estimate_haplo
+#SBATCH --output=%x_%A+_%a.out
+
+cd /mnt/home/seguraab/Shiu_Lab/Project/External_software
+
+##### I ran the following lines on the command line #####
+# Install Eagle2
+# wget https://storage.googleapis.com/broad-alkesgroup-public/Eagle/downloads/Eagle_v2.4.1.tar.gz
+# tar xzf Eagle_v2.4.1.tar.gz
+# rm Eagle_v2.4.1.tar.gz
+
+# Convert geno.csv to VCF format
+# conda activate base
+# python ../Scripts/Data_Processing/csv_to_vcf.py  -gvcf ../Data/Peter_2018/1011Matrix.gvcf \
+#      -csv ../Data/Peter_2018/geno.csv -out ../Data/Peter_2018/geno_11292023.vcf
+# gzip ../Data/Peter_2018/geno_11292023.vcf
+# mkdir ../Data/Peter_2018/haplotypes
+# mv ../Data/Peter_2018/geno_11292023.vcf.gz ../Data/Peter_2018/haplotypes
+#####
+
+# Run haplotype estimation
+Eagle_v2.4.1/eagle --vcf ../Data/Peter_2018/haplotypes/geno_11292023.vcf.gz \
+    --chrom $SLURM_ARRAY_TASK_ID \
+    --chromX 16 \
+    --geneticMapFile=Eagle_v2.4.1/tables/genetic_map_1cMperMb.txt \
+    --noImpMissing \
+    --vcfOutFormat=z \
+    --outPrefix ../Data/Peter_2018/haplotypes/geno_11292023_haplotypes_chr${SLURM_ARRAY_TASK_ID}
+
+# Get haplotype blocks (this probably needs to be done before combining the VCFs)
+# https://www.biostars.org/p/320460/
+# https://github.com/vibansal/HapCUT2 # check this out first before bcftools (see https://www.biostars.org/p/406771/)
+
+
+# Combine VCFs into one file
+# module purge
+# module load GNU/6.4.0-2.28  OpenMPI/2.1.2 bcftools/1.9.64
+# ls ../Data/Peter_2018/haplotypes/geno_11292023_haplotypes_chr* >> ../Data/Peter_2018/haplotypes/chr_vcf_lst.txt
+# dir="../Data/Peter_2018/haplotypes/"
+# bcftools concat --file-list ${dir}/chr_vcf_lst.txt \
+#     --ligate-force \
+#     --output ${dir}/geno_11292023_haplotypes.vcf.gz \
+
+
+# Convert VCF to table format using gatk
+
+scontrol show job $SLURM_JOB_ID
