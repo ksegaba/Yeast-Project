@@ -1,0 +1,135 @@
+#!/bin/bash --login
+#SBATCH --time=6:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=2
+#SBATCH --cpus-per-task=2
+#SBATCH --mem-per-cpu=20G
+#SBATCH --job-name tblastx_to_peter # rename to get output of each step individually
+#SBATCH --output=%x_%j.out
+
+path=/mnt/home/seguraab/ncbi-blast-2.13.0+/bin
+
+# echo "create a blast database containing the Peter 2018 pangenome ORF sequences"
+# file=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/allORFs_pangenome.fasta
+# ${path}/makeblastdb -in $file -out allORFs_pangenome_db -dbtype nucl \
+#    -title "Peter 2018 Yeast Pangenome ORF Sequences"
+
+# echo "Run tblastx between yeast genes and Peter 2018 ORFs"
+# cd /mnt/home/seguraab/Shiu_Lab/Project/Data/S288C_reference_genome_R64-3-1_20210421
+# ${path}/tblastx -query orf_coding_all_R64-3-1_20210421.fasta -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out S288C_to_peter_orf_tblastx.txt
+
+# echo "Run tblastx between Arabidopsis genes and Peter 2018 ORFs"
+# dir=/mnt/home/seguraab/Shiu_Lab/Project/Data/Arabidopsis_Genome_TAIR10.1/DNA
+# ${path}/tblastx -query ${dir}/cds_from_genomic.fna -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out TAIR10_to_peter_orf_tblastx.txt
+
+# echo "Run tblastx between Drosophila genes and Peter 2018 ORFs"
+# dir=/mnt/home/seguraab/Shiu_Lab/Project/Data/Drosophila_Genome_R6_ISO1MT/DNA
+# ${path}/tblastx -query ${dir}/cds_from_genomic.fna -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out ISO1MT_to_peter_orf_tblastx.txt
+
+# echo "Run tblastx between Neurospora crassa and Peter 2018 ORFs"
+# dir=/mnt/home/seguraab/Shiu_Lab/Project/Data/Neurospora_OR74A_Genome_NC12/DNA
+# ${path}/tblastx -query ${dir}/cds_from_genomic.fna -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out NC12_to_peter_orf_tblastx.txt
+
+# echo "Run tblastx between non-redundant nucleotide database and Peter 2018 ORFs"
+# # Note: this database is very large and didn't finish running in 100 hours
+# dir=/mnt/gs21/scratch/seguraab
+# ${path}/tblastx -query ${dir}/nt -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out nt_to_peter_orf_tblastx.txt
+
+echo "Run tblastx between nr blastx organisms that mapped to the Peter 2018 ORFs"
+# Note: I ran these bc nr nt database did not finish running
+cd /mnt/home/seguraab/Shiu_Lab/Project/Data/S288C_reference_genome_R64-3-1_20210421
+dir=/mnt/home/seguraab/Shiu_Lab/Project/Data/BLAST_nr_db/nr_blastx_match_organisms/
+# echo "Saccharomyces paradoxus"
+# ${path}/tblastx -query ${dir}/GCF_002079055.1_S.paradoxus/cds_from_genomic.fna \
+#    -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out S_paradoxus_to_peter_orf_tblastx.txt
+
+# echo "Drosophila guanche"
+# ${path}/tblastx -query ${dir}/GCF_900245975.1_D.guanche/cds_from_genomic.fna \
+#    -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out D_guanche_to_peter_orf_tblastx.txt
+
+# echo "Torulaspora delbrueckii"
+# ${path}/tblastx -query ${dir}/GCF_000243375.1_T.delbreckii/cds_from_genomic.fna \
+#    -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out T_delbrueckii_to_peter_orf_tblastx.txt
+
+# echo "Naumovozyma dairenensis CBS 421"
+# ${path}/tblastx -query ${dir}/GCF_000227115.2_N.dairenensis/cds_from_genomic.fna \
+#    -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out N_dairenensis_to_peter_orf_tblastx.txt
+
+# echo "Tetrapisispora phaffii CBS 4417"
+# ${path}/tblastx -query ${dir}/GCF_000236905.1_T.phaffi/cds_from_genomic.fna \
+#    -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out T_phaffii_to_peter_orf_tblastx.txt
+
+# echo "Zygosaccharomyces rouxii"
+# ${path}/tblastx -query ${dir}/GCF_000026365.1_Z.rouxii/cds_from_genomic.fna \
+#    -db allORFs_pangenome_db \
+#    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+#    -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+#    -out Z_rouxii_to_peter_orf_tblastx.txt
+
+echo "Naumovozyma castellii CBS 4309"
+${path}/tblastx -query ${dir}/GCF_000237345.1_N.castellii/cds_from_genomic.fna \
+   -db allORFs_pangenome_db \
+   -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+   -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+   -out N_castellii_to_peter_orf_tblastx.txt
+
+echo "[Candida] glabrata (Nakaseomyces glabratus)"
+${path}/tblastx -query ${dir}/GCF_000002545.3_N.glabrata/cds_from_genomic.fna \
+   -db allORFs_pangenome_db \
+   -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+   -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+   -out N_glabratus_to_peter_orf_tblastx.txt
+
+echo "Vanderwaltozyma polyspora DSM 70294"
+${path}/tblastx -query ${dir}/GCF_000150035.1_V.polyspora/cds_from_genomic.fna \
+   -db allORFs_pangenome_db \
+   -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+   -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+   -out V_polyspora_to_peter_orf_tblastx.txt
+
+echo "Saccharomyces eubayanus"
+${path}/tblastx -query ${dir}/GCF_001298625.1_S.eubayanus/cds_from_genomic.fna \
+   -db allORFs_pangenome_db \
+   -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+   -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+   -out S_eubayanus_to_peter_orf_tblastx.txt
+
+echo "Apteryx mantelli mantelli"
+${path}/tblastx -query ${dir}/GCA_001039765.2_A.mantellimantelli/GCA_001039765.2_AptMant0_genomic.fna \
+   -db allORFs_pangenome_db \
+   -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
+   -outfmt '6 qacc sacc length qlen slen qstart qend sstart send evalue bitscore pident' \
+   -out A_mantelli_mantelli_to_peter_orf_tblastx.txt
+
+
+scontrol show job $SLURM_JOB_ID
