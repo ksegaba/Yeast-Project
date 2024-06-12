@@ -4,13 +4,17 @@ XGBoost for regression on SNP, ORF, and CNO data from Peter et al. 2018
 # Required Inputs
     -X      Path to feature matrix
     -Y      Path to label matrix
-    -test   List of test instances
+    -test   File containing list of test instances
     -trait  Column name of target trait in Y matrix
     -save   Path to save output files
+    -prefix Prefix of output file names
+    
     # Optional
     -type   Feature types (e.g. SNP (default), ORF, CNO)
     -fold   k folds for Cross-Validation (default is 5)
     -n      Number of CV repetitions (default is 10)
+    -feat   File containing features (from X) to include in model
+    -plot   Plot feature importances and predictions (default is t)
 
 # Outputs (prefixed with <type>_<trait>)
     _GridSearch.csv     Grid Search CV R-sq scores
@@ -36,46 +40,91 @@ import xgboost as xgb
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.metrics import explained_variance_score
-from sklearn.model_selection import StratifiedKFold
+from hyperopt import hp, fmin, tpe, Trials
+from hyperopt.pyll.base import scope
+from sklearn.metrics import mean_squared_error, r2_score, explained_variance_score
+from sklearn.model_selection import KFold, cross_validate
 from sklearn.model_selection import cross_val_predict
-from sklearn.model_selection import GridSearchCV
-random.seed(123)
 
 
-def tune_model(xg_reg, X_train, y_train, data_type, trait, fold):
+def hyperopt_objective(params):
+    # Written by Thejesh Mallidi
+    reg = xgb.XGBRegressor(
+        learning_rate=params["learning_rate"],
+        max_depth=int(params["max_depth"]),
+        subsample=params["subsample"],
+        colsample_bytree=params["colsample_bytree"],
+        gamma=params["gamma"],
+        n_estimators=int(params["n_estimators"]),
+        random_state=42
+    )
+
+    cv = KFold(n_splits=5, shuffle=True, random_state=42)
+    validation_loss = cross_validate(
+        reg, X_train, y_train,
+        scoring="r2",
+        cv=cv,
+        n_jobs=-1,
+        error_score="raise"
+    )
+
+    # Note: Hyperopt minimizes the objective, so to maximize R^2, return the negative mean
+    return -np.mean(validation_loss["test_score"])
+
+
+def param_hyperopt(param_grid, max_evals=100):
+    # Written by Thejesh Mallidi
+    trials = Trials()
+    params_best = fmin(
+        fn=hyperopt_objective,
+        space=param_grid,
+        algo=tpe.suggest,
+        max_evals=max_evals,
+        trials=trials
+    )
+
+    print("\n\nBest parameters:", params_best)
+    return params_best, trials
+
+def tune_hyperparameters(xg_reg, X_train, y_train, data_type, trait, fold):
     """ Hyperparameter sweep using grid search with cross-validation """
     start = time.time()
 
     # Hyperparameter tuning
-    parameters = {"gamma": [0,0.01], # min split loss
-                "eta":[0.3, 0.1, 0.03], # learning rate
-                "max_depth":[3, 6, 7], # tree depth
-                "subsample": [0.5, 1], # instances per tree
-                "colsample_bytree": [0.5, 1], # features per tree
-                "n_estimators": [100, 300, 500]} # sample training instances
-    gs = GridSearchCV(estimator=xg_reg,
-                param_grid=parameters,
-                cv=fold,           # cross validation folds
-                scoring='r2',   # find model with the best R-squared
-                verbose=2,
-                n_jobs=10)
-    fitted_model = gs.fit(X_train, y_train) # fit the model
+    parameters = {"eta":hp.quniform("eta", 0.1, 0.4), # learning rate
+                "max_depth":scope.int(hp.quniform("max_depth", 3, 5, 10)), # tree depth
+                "subsample": hp.quniform("subsample", 0.5, 1.0), # instances per tree
+                "colsample_bytree": hp.quniform("colsample_bytree", 0.5, 1.0), # features per tree
+                "gamma": hp.quniform("gamma", 0.0, 1.0), # min_split_loss
+                "n_estimators": scope.int(hp.quniform("n_estimators", 50, 500,2))} # sample training instances
+    
+    best_params, trials = param_hyperopt(max_evals=100, param_grid=parameters)
+    
+    # gs = GridSearchCV(estimator=xg_reg,
+    #             param_grid=parameters,
+    #             cv=fold,           # cross validation folds
+    #             scoring="r2",   # find model with the best R-squared
+    #             verbose=2,
+    #             n_jobs=10)
+    # fitted_model = gs.fit(X_train, y_train) # fit the model
 
     run_time = time.time() - start
     print("GridSearch Run Time: %f" % (run_time))
 
     # Write results to file
-    gs_results = pd.DataFrame(gs.cv_results_)
-    gs_results.to_csv(f"{args.save}/{data_type}_{trait}_GridSearch.csv")
+    # gs_results = pd.DataFrame(gs.cv_results_)
+    # gs_results.to_csv(f"{args.save}/{prefix}_GridSearch.csv")
 
-    print("Best parameters: ", fitted_model.best_params_)
+    print("Best parameters: ", best_params)
 
-    return (fitted_model.best_params_, gs.best_estimator_)
+    # return (fitted_model.best_params_, gs.best_estimator_)
+    return best_params, trials
 
 
-def xgb_reg(trait, fold, n, data_type):
+def xgb_reg(trait, fold, n, data_type, prefix, plot):
+    global X_train
+    global y_train
+
     """ Train XGBoost Regression Model """
     print(trait)
     y = Y[trait]
@@ -86,20 +135,39 @@ def xgb_reg(trait, fold, n, data_type):
     y_train = y.loc[~y.index.isin(test[0])]
     y_test = y.loc[y.index.isin(test[0])]
 
+    # Ensure rows are in the same order
+    X_train = X_train.loc[y_train.index,:]
+    X_test = X_test.loc[y_test.index,:]
+
     # Convert trainig set to Dmatrix data structure 
-    data_dmatrix = xgb.DMatrix(data=X_train,label=y_train)
+    # data_dmatrix = xgb.DMatrix(data=X_train,label=y_train)
 
     # Instantiate XGBoost regressor object
-    xg_reg = xgb.XGBRegressor(random_state=random.seed(123))
+    # xg_reg = xgb.XGBRegressor(random_state=random.seed(123))
 
     # Hyperparameter tuning
-    best_params, best_model = tune_model(
-        xg_reg, X_train, y_train, data_type, trait, fold)
+    # best_params, trials = tune_hyperparameters(
+    #     xg_reg, X_train, y_train, data_type, trait, fold)
+
+    # Hyperparameter tuning
+    parameters = {"learning_rate":hp.uniform("learning_rate", 0.01, 0.5), # learning rate
+                "max_depth":scope.int(hp.quniform("max_depth", 3, 10, 1)), # tree depth
+                "subsample": hp.uniform("subsample", 0.5, 1.0), # instances per tree
+                "colsample_bytree": hp.uniform("colsample_bytree", 0.5, 1.0), # features per tree
+                "gamma": hp.uniform("gamma", 0.0, 1.0), # min_split_loss
+                "n_estimators": scope.int(hp.quniform("n_estimators", 50, 500, 2))
+                } # sample training instances
+    
+    start = time.time()
+    best_params, trials = param_hyperopt(parameters, 100)
+    run_time = time.time() - start
+    print("Total hyperparameter tuning time:", run_time)
 
     ################## Training with Cross-Validation ##################
     results_cv = [] # hold performance metrics of cv reps
     results_test = [] # hold performance metrics on test set
-
+    feature_imp = pd.DataFrame(columns=[f"rep_{i}" for i in range(0,n)])
+    preds = {}
     # Training with Cross-validation
     # cv = RepeatedKFold(n_splits=fold, n_repeats=n, random_state=123)
     # cv_scores = xgb.cv(
@@ -113,8 +181,16 @@ def xgb_reg(trait, fold, n, data_type):
 
     for j in range(0, n): # repeat cv 10 times
         print(f"Running {j+1} of {n}")
+        # Build model using the best parameters
+        best_model = xgb.XGBRegressor(
+            eta=best_params["learning_rate"],
+            max_depth=int(best_params["max_depth"]),
+            subsample=best_params["subsample"],
+            colsample_bytree=best_params["colsample_bytree"],
+            gamma=best_params["gamma"],
+            n_estimators=int(best_params["n_estimators"]),
+            random_state=j)
         
-        cv = StratifiedKFold(n_splits=fold) # stratified samples
         cv_pred = cross_val_predict(
             best_model, X_train, y_train, cv=fold, n_jobs=-1) # predictions
 
@@ -131,43 +207,55 @@ def xgb_reg(trait, fold, n, data_type):
         result_val = [mse_val, rmse_val, evs_val, r2_val, cor_val[0, 1]]
         results_cv.append(result_val)
 
-    # Evaluate the model on the test set
-    #best_model.fit(X_train, y_train)
-    y_pred = best_model.predict(X_test)
+        # Evaluate the model on the test set
+        best_model.fit(X_train, y_train)
+        y_pred = best_model.predict(X_test)
 
-    # Performance on the test set
-    mse = mean_squared_error(y_test, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-    evs = explained_variance_score(y_test, y_pred)
-    r2 = r2_score(y_test, y_pred)
-    cor = np.corrcoef(np.array(y_test), y_pred)
-    print("Test MSE: %f" % (mse))
-    print("Test RMSE: %f" % (rmse))
-    print("Test R-sq: %f" % (r2))
-    print("Test PCC: %f" % (cor[0, 1]))
-    result_test = [mse, rmse, evs, r2, cor[0, 1]]
-    results_test.append(result_test)
+        # Performance on the test set
+        mse = mean_squared_error(y_test, y_pred)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        evs = explained_variance_score(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+        cor = np.corrcoef(np.array(y_test), y_pred)
+        print("Test MSE: %f" % (mse))
+        print("Test RMSE: %f" % (rmse))
+        print("Test R-sq: %f" % (r2))
+        print("Test PCC: %f" % (cor[0, 1]))
+        result_test = [mse, rmse, evs, r2, cor[0, 1]]
+        results_test.append(result_test)
 
-    # Plot linear regression of actual and predicted test values
-    sns.regplot(x=y_pred, y=y_test, fit_reg=True, ci=95, seed=123, color="black")
-    plt.xlabel("Predicted")
-    plt.ylabel("Actual")
-    plt.title(f"{trait}")
-    plt.savefig(f"{args.save}/{data_type}_{trait}_lm_test.pdf", format="pdf")
+        # Save the fitted model to a file
+        filename = f"{args.save}/{prefix}_model_rep_{j}.pkl"
+        pickle.dump(best_model, open(filename, "wb"))
 
-    # Save the fitted model to a file
-    filename = f"{args.save}/{data_type}_{trait}_model.save"
-    pickle.dump(best_model, open(filename, 'wb'))
+        # Save feature importance scores to file
+        feature_imp[f"rep_{j}"] = pd.Series(best_model.feature_importances_)
 
-    # Save feature importance scores to file
-    importances = pd.DataFrame(best_model.feature_importances_)
-    importances.to_csv(f"{args.save}/{data_type}_{trait}_imp.csv")
+        # Save predicted labels to file
+        preds[f"rep_{j}"] = pd.concat([pd.Series(cv_pred, index=X_train.index),
+            pd.Series(y_pred, index=X_test.index)], axis=0)
 
-    # Plot feature importances
-    xgb.plot_importance(
-        best_model, grid="off", max_num_features=20, 
-        title=f"{trait} Feature Importances", xlabel="Weight")
-    plt.savefig(f"{args.save}/{data_type}_{trait}_top20.pdf", format="pdf")
+        if plot=="t":
+            # Plot linear regression of actual and predicted test values
+            sns.regplot(x=y_pred, y=y_test, fit_reg=True, ci=95, seed=123, color="black")
+            plt.xlabel("Predicted")
+            plt.ylabel("Actual")
+            plt.title(f"{trait}")
+            plt.savefig(f"{args.save}/{prefix}_lm_test_rep_{j}.pdf", format="pdf")
+            plt.close()
+            
+            # Plot feature importances
+            xgb.plot_importance(
+                best_model, grid=False, max_num_features=20, 
+                title=f"{trait} Feature Importances", xlabel="Weight")
+            plt.savefig(f"{args.save}/{prefix}_top20_rep_{j}.pdf", format="pdf")
+            plt.close()
+
+    # Write feature importances across reps to file
+    feature_imp.to_csv(f"{args.save}/{prefix}_imp.csv")
+    
+    # Write predictions across reps to file
+    pd.DataFrame.from_dict(preds).to_csv(f"{args.save}/{prefix}_preds.csv")
     
     return (results_cv, results_test)
 
@@ -189,14 +277,20 @@ if __name__ == "__main__":
         "-trait", help="name of trait column in y dataframe", required=True)
     req_group.add_argument(
         "-save", help="path to save output files", required=True)
+    req_group.add_argument(
+        "-prefix", help="prefix of output file names", required=True)
     
     # Optional input
     req_group.add_argument(
-        "-type", help="data type of X matrix (e.g. SNP, ORF, CNO)", default="SNP")
+        "-type", help="data type of X matrix (e.g. SNP, PAV, CNV)", default="")
     req_group.add_argument(
         "-fold", help="k number of cross-validation folds", default=5)
     req_group.add_argument(
         "-n", help="number of cross-validation repetitions", default=10)
+    req_group.add_argument(
+        "-feat", help="file containing features (from X) to include in model", default="all")
+    req_group.add_argument(
+        "-plot", help="plot feature importances and predictions (t/f)", default="t")
     
     # Help
     if len(sys.argv) == 1:
@@ -211,10 +305,18 @@ if __name__ == "__main__":
     Y = pd.read_csv(args.Y, index_col=0)
     test = pd.read_csv(args.test, sep="\t", header=None)
 
+    # Filter out features not in feat file given - default: keep all
+    if args.feat != "all":
+        print("Using subset of features from: %s" % args.feat)
+        with open(args.feat) as f:
+            features = f.read().strip().splitlines()
+        X = X.loc[:,features]
+        print(f"New dimensions: {X.shape}")
+
     # Train the model
     start = time.time()
     results_cv, results_test = xgb_reg(
-        args.trait, int(args.fold), int(args.n), args.type)
+        args.trait, int(args.fold), int(args.n), args.type, args.prefix, args.plot)
     run_time = time.time() - start
     print("Training Run Time: %f" % (run_time))
 
@@ -222,17 +324,18 @@ if __name__ == "__main__":
     results_cv = pd.DataFrame(
         results_cv, 
         columns=["MSE_val", "RMSE_val", "EVS_val", "R2_val", "PCC_val"])
-    results_cv.to_csv(f"{args.save}/{args.type}_{args.trait}_cv_results.csv")
+    # results_cv.to_csv(f"{args.save}/{args.type}_{args.trait}_cv_results.csv")
     results_test = pd.DataFrame(
         results_test, 
         columns=["MSE_test", "RMSE_test", "EVS_test", "R2_test", "PCC_test"])
-    results_test.to_csv(
-        f"{args.save}/{args.type}_{args.trait}_test_results.csv")
+    # results_test.to_csv(
+    #     f"{args.save}/{args.type}_{args.trait}_test_results.csv")
 
     # Aggregate results and save to file
     if not os.path.isfile(f"{args.save}/RESULTS_xgboost.txt"):
         out = open(f"{args.save}/RESULTS_xgboost.txt", "a")
-        out.write("Date\tRunTime\tData\tTrait\tMSE_val\tMSE_val_sd\
+        out.write("Date\tRunTime\tData\tTrait\tNumInstances\tFeatureNum\
+            \tCVfold\tCV_rep\tMSE_val\tMSE_val_sd\
             \tRMSE_val\tRMSE_val_sd\tEVS_val\tEVS_val_sd\tR2_val\
             \tR2_val_sd\tPCC_val\tPCC_val_sd\tMSE_test\tMSE_test_sd\
             \tRMSE_test\tRMSE_test_sd\tEVS_test\tEVS_test_sd\tR2_test\
@@ -241,7 +344,8 @@ if __name__ == "__main__":
 
     out = open(f"{args.save}/RESULTS_xgboost.txt", "a")
     out.write(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\t\
-        {run_time}\t{args.type}\t{args.trait}\t\
+        {run_time}\t{args.type}\t{args.trait}\t{X.shape[0]-len(test)}\t\
+        {X.shape[1]}\t{int(args.fold)}\t{int(args.n)}\t\
         {np.mean(results_cv.MSE_val)}\t{np.std(results_cv.MSE_val)}\t\
         {np.mean(results_cv.RMSE_val)}\t{np.std(results_cv.RMSE_val)}\t\
         {np.mean(results_cv.EVS_val)}\t{np.std(results_cv.EVS_val)}\t\

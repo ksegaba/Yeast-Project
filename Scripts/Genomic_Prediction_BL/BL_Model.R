@@ -32,8 +32,9 @@
 # Load necessary packages
 library(BGLR)
 library(data.table)
+library(dplyr)
 
-set.seed(42) # for reproducibility
+set.seed(23) # for reproducibility
 
 # Read in arguments
 args = commandArgs(trailingOnly=TRUE)
@@ -59,11 +60,11 @@ if (feat_file != "all") {
     FEAT <- scan(feat_file, what="character") # determine which features are included
     X <- fread(X_file, select=c("ID", FEAT), showProgress=TRUE) # subset genotype data 
     X <- as.matrix(X, rownames=1, colnames=1)
-    X[1:5,1:5]
+    # X[1:5,1:5]
 } else {
     X <- fread(X_file, showProgress=TRUE)
     X <- as.matrix(X, rownames=1, colnames=1)
-    X[1:5,1:5]
+    # X[1:5,1:5]
 }
 
 Y <- read.csv(Y_file, row.names=1)
@@ -113,14 +114,14 @@ r2_score <- function(preds, actual) {
 # Run model
 for (i in 1:length(Y)) { # loop through selected trait(s)
     print(sprintf("Modeling trait %s...", names(Y)[i]))
-    Coef <- c() # feature coefficients
+    Coef <- c() # feature effects
     pred_val <- c() # predicted value of validation
     pred_test <- c() # predicted value of test set
     Start <- Sys.time() # start time
     for (k in 1:number) { # cross-validation repetitions
         print(sprintf("CV repetition number %i", k))
         tst <- cvs_all[,k] # column from cvs_all that specifies sample folds for this repetition
-        Coeff <- c() # model coefficients for this repetition
+        Coeff <- c() # estimated feature effects
         yhat_val <- data.frame(Y[i], yhat=0, row.names=row.names(Y)) # dataframe to hold predicted values
         yhat_test <- data.frame(Y[Test,i], row.names=Test)
         colnames(yhat_test) <- colnames(Y[i])
@@ -135,21 +136,21 @@ for (i in 1:length(Y)) { # loop through selected trait(s)
             
             # Build Bayesian LASSO model
             start <- Sys.time()
-            ETA <- list(list(X=X, model="BL", saveEffects=TRUE)) # input genotype data and model type
-            model <- BGLR(y=yNA, ETA=ETA, verbose=FALSE, nIter=32000, burnIn=3200, saveAt = paste("BL_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), "_", sep="")) # takes about 13 minutes
+            ETA <- list(list(X=X, model="BL")) #, saveEffects=TRUE)) # input genotype data and model type
+            model <- BGLR(y=as.matrix(yNA), ETA=ETA, verbose=FALSE, nIter=32000, burnIn=3200) #, saveAt = paste("BL_", save_name, "_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), "_", sep="")) # takes about 13 minutes
             print("Saving model...")
-            saveRDS(model, file=paste("BL_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".RDS", sep=""))
+            saveRDS(model, file=paste("BL_", save_name, "_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".RDS", sep=""))
             end <- Sys.time() # end time
             print(sprintf("Model elapsed time: %f", end-start))
             
             # Extract results from model
-            Coeff <- rbind(Coeff, model$ETA[[1]]$b) # feature coefficients (is it d?)
+            Coeff <- rbind(Coeff, model$ETA[[1]]$b) # feature effects
             yhat_val$yhat[validation] <- model$yHat[validation] # predicted labels for validation set
-            yhat_test[paste("rep",j,sep="_")] <- model$yHat[test] # collect predicted labels
+            yhat_test[paste("fold",j,sep="_")] <- model$yHat[test] # collect predicted labels
         }
         Coef <- rbind(Coef, colMeans(Coeff)) # mean feature coefficients
-        pred_val <- cbind(pred_val, yhat_val$yhat[which(yhat_val$yhat!=0)]) # predicted values of validation set
-        pred_test <- cbind(pred_test, rowMeans(yhat_test[2:fold+1])) # predicted values of test set
+        pred_val <- cbind(pred_val, yhat_val[which(rownames(yhat_val) %notin% Test),]$yhat) # predicted values of validation set
+        pred_test <- cbind(pred_test, rowMeans(yhat_test[1:fold+1])) # predicted values of test set
     }
     # save average feature coefficients
     write.csv(Coef, paste("Coef_", save_name, "_", names(Y)[i], ".csv", sep=""),
@@ -179,3 +180,4 @@ for (i in 1:length(Y)) { # loop through selected trait(s)
         sd(r2_test), se(r2_test), mean(pcc_test), sd(pcc_test), se(pcc_test),
         sep="\t"), file=file, append=T, sep="\n")
 }
+

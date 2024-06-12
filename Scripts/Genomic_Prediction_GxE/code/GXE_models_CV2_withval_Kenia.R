@@ -15,11 +15,11 @@
 # 
 
 # Returns:
-    model .RDS
-    _ETA_int1_varB.dat
-    _ETA_int2_varB.dat
-    _mu.dat
-    _varE.dat
+#   model .RDS
+#   _ETA_int1_varB.dat
+#   _ETA_int2_varB.dat
+#   _mu.dat
+#   _varE.dat
 
 # Written by Paulo Izquierdo
 # Modified by Kenia Segura Abá

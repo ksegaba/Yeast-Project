@@ -56,11 +56,11 @@ if (feat_file != "all") {
     FEAT <- scan(feat_file, what="character") # determine which features are included
     X <- fread(X_file, select=c("ID", FEAT), showProgress=TRUE) # subset genotype data 
     X <- as.matrix(X, rownames=1, colnames=1)
-    X[1:5,1:5]
+    # X[1:5,1:5]
 } else {
     X <- fread(X_file, showProgress=TRUE)
     X <- as.matrix(X, rownames=1, colnames=1)
-    X[1:5,1:5]
+    # X[1:5,1:5]
 }
 
 Y <- read.csv(Y_file, row.names=1)
@@ -112,14 +112,14 @@ r2_score <- function(preds, actual) {
 # BayesC model
 for (i in 1:length(Y)){
     print(sprintf("Modeling trait %s...", names(Y)[i]))
-    Coef <- c() # feature coefficients
+    #Prob <- c() # feature coefficients
     pred_val <- c() # predicted value of validation
     pred_test <- c() # predicted value of test set
     Start <- Sys.time() # start time
     for (k in 1:number) { # cross-validation repetitions
         print(sprintf("CV repetition number %i", k))
         tst <- cvs_all[,k] # column from cvs_all that specifies sample folds for this repetition
-        Coeff <- c() # model coefficients for this repetition
+        #Probs <- c() # posterior probabilities of features
         yhat_val <- data.frame(Y[i], yhat=0, row.names=row.names(Y)) # dataframe to hold predicted values
         yhat_test <- data.frame(Y[Test,i], row.names=Test)
         colnames(yhat_test) <- colnames(Y[i])
@@ -135,32 +135,32 @@ for (i in 1:length(Y)){
             # Build BayesC model
             start <- Sys.time() # start time
             ETA <- list(list(X=X, model="BayesC", probIn=1/100, counts=1e10, saveEffects=TRUE)) # regression function
-            model <- BGLR(y=yNA, ETA=ETA, verbose=FALSE, nIter=32000, burnIn=3200, saveAt = paste("BayesC_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), "_", sep="")) # about 12 minutes
+            model <- BGLR(y=yNA, ETA=ETA, verbose=FALSE, nIter=32000, burnIn=3200,, saveAt = paste("BayesC_", save_name, "_",  names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), "_", sep="")) # about 12 minutes
             end <- Sys.time() # end time
             print("Saving model...")
-            saveRDS(model, file=paste("BayesC_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".RDS", sep=""))
+            saveRDS(model, file=paste("BayesC_", save_name, "_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".RDS", sep=""))
             print(sprintf("Model elapsed time: %f", end-start))
             
             # Plot feature effects
-            pdf(paste("BayesC_d_manhattan", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".pdf", sep=""))
-            plot(model$ETA[[1]]$d, xlab="", ylab="")
-            dev.off()
-            pdf(paste("BayesC_b_manhattan", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".pdf", sep=""))
-            plot(model$ETA[[1]]$b, xlab="", ylab="")
-            dev.off()
+			#pdf(paste("BayesC_d_manhattan", save_name, "_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".pdf", sep=""))
+            #plot(model$ETA[[1]]$d, xlab="", ylab="")
+            #dev.off()
+            #pdf(paste("BayesC_b_manhattan", save_name, "_", names(Y)[i], "_rep_", as.character(k), "_fold_", as.character(j), ".pdf", sep=""))
+            #plot(model$ETA[[1]]$b, xlab="", ylab="")
+            #dev.off()
 
             # Extract results from model
-            Coeff <- rbind(Coeff, model$ETA[[1]]$d) # feature coefficients (what is b? the estimated coeffs, d is the posterior probs)
+            #Probs <- rbind(Probs, model$ETA[[1]]$d) # feature posterior probabilities (what is b? the posterior mean of b, where betaj=bj*dj, see issue #32 in BGLR GitHub, set saveEffects=True to get the beta values (feature coefficient effects))
             yhat_val$yhat[validation] <- model$yHat[validation] # predicted labels for validation set
             yhat_test[paste("rep",j,sep="_")] <- model$yHat[test] # collect predicted labels
         }
-        Coef <- rbind(Coef, colMeans(Coeff)) # mean feature coefficients
+        #Prob <- rbind(Prob, colMeans(Probs)) # mean feature coefficients
         pred_val <- cbind(pred_val, yhat_val$yhat[which(yhat_val$yhat!=0)]) # predicted values of validation set
         pred_test <- cbind(pred_test, rowMeans(yhat_test[2:fold+1])) # predicted values of test set
     }
     # save average feature coefficients
-    write.csv(Coef, paste("Coef_", save_name, "_", names(Y)[i], ".csv", sep=""),
-        row.names=FALSE, quote=FALSE)
+    #write.csv(Prob, paste("Posterior_probs_", save_name, "_", names(Y)[i], ".csv", sep=""),
+        #row.names=FALSE, quote=FALSE)
     
     # save predicted values
     write.csv(pred_test, paste("Predict_value_cv_", save_name, "_", names(Y)[i],
