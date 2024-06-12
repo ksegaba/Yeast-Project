@@ -3,16 +3,26 @@
 Multi-Output Random Forest Regressor for GxE analysis
 
 Arguments:
-    -X (str): 
-    -y (str):
-    -label1 (str): 
-    -label2 (str):
-    -test (str):
-    -save (str):
-    -feat (str):
-    -Xindex (str):
-    -nGS (int):
-    -nTrain (int):
+    -X: path to feature data file
+    -y: path to label data file
+    -test: path to file of test set instances
+    -save: prefix for output files (may include path)
+    -feat: path to file of features to use
+    -Xindex: name of index column in X
+    -labels: comma delimited column names of label data file
+    -nGS: number of times to repeat grid search
+    -nTrain: number of times to repeat model training
+
+Usage:
+    save_path = "/mnt/scratch/seguraab/yeast_project/ORF_yeast_GxE_results/multi-output
+    python Multi-Output_RF.py\
+        -X /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno.csv\
+        -y /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv\
+        -test /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/Test.txt\
+        -save ${save_path}/MORF_orf_5env_YPDCUSO410MM_YPD6AU_YPDNACL1M_YPDNACL15M_YPDLICL250MM\
+        -feat all -Xindex ID\
+        -labels YPDCUSO410MM,YPD6AU,YPDNACL1M,YPDNACL15M,YPDLICL250MM\
+        -nGS 10 -nTrain 100
 
 Output:
     [1] _GridSearch.csv
@@ -263,15 +273,17 @@ if __name__ == "__main__":
         X = X.loc[:,feat[0]]
     
     if args.labels != "all":
-        print(args.labels)
         labels = []
         for i in range(len(args.labels)):
-            strng=""
+            label=""
             for char in args.labels[i]:
                 if char != ",":
-                    strng += char
-            labels.append(strng)
+                    label += char
+                else:
+                    labels.append(label)
+                    label = ""
         y = y[labels]
+        y.head()
 
     # Hyperparameter tuning, model training, and evaluation
     results_cv, results_test, imp, cv_preds, test_preds = Run_MultiOutputRF_reg(

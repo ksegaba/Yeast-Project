@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Code to make pairs of environment-specific fitness traits to run multi-trait 
 models on.
