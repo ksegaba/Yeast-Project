@@ -1,0 +1,58 @@
+#!/bin/bash
+#SBATCH --array=0-4
+#SBATCH --time=4:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=20G
+#SBATCH --job-name filter_hetero
+#SBATCH --output=%x_%A_%a.out
+
+cd /mnt/home/seguraab/Shiu_Lab/Project
+
+# module load GNU/7.3.0-2.30  OpenMPI/3.1.1  VCFtools/0.1.15-Perl-5.28.0
+
+# First calculate some statistics
+vcf=Data/Peter_2018/haplotypes/geno_11292023.vcf.gz
+# if [ $SLURM_ARRAY_TASK_ID -eq 0 ]
+# then
+#     out=Data/Peter_2018/haplotypes/geno_11292023
+#     vcftools --gzvcf $vcf --freq --out $out
+#     vcftools --gzvcf $vcf --het --out $out
+#     vcftools --gzvcf $vcf --hardy --out $out
+#     vcftools --gzvcf $vcf --TajimaD --out $out
+#     vcftools --gzvcf $vcf --012 --out $out
+# fi
+
+# # Filter by heterozygosity using VCFtools
+# out=Data/Peter_2018/haplotypes/geno_11292023_filtered_heterozygosity${hwe[${SLURM_ARRAY_TASK_ID}]}
+# hwe=(0.001 0.005 0.01 0.03 0.05)
+# vcftools --gzvcf $vcf --hwe ${hwe[${SLURM_ARRAY_TASK_ID}]} --out $out
+
+# Filter heterozygosity using bcftools
+module load GNU/6.4.0-2.28  OpenMPI/2.1.2  bcftools/1.9.64
+out=Data/Peter_2018/haplotypes/geno_11292023_filtered_heterozygosity_bcftools.vcf
+bcftools view -g ^het $vcf -o $out
+vcftools --vcf $out --012 --out Data/Peter_2018/haplotypes/geno_11292023_filtered_heterozygosity_bcftools # recode
+
+# Create matrix to run models with
+data=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/haplotypes/geno_11292023_filtered_heterozygosity_bcftools.012
+awk '{$1=""}1' $data | awk '{$1=$1}1' > ${data}.txt
+row_labels=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/haplotypes/geno_11292023_filtered_heterozygosity_bcftools.012.indv
+paste -d' ' $row_labels ${data}.txt > ${data}_matrix.txt
+col_labels=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/haplotypes/geno_11292023_filtered_heterozygosity_bcftools.012.pos
+awk 'BEGIN{OFS="_"} {print $1,$2}' $col_labels > ${col_labels}.txt
+awk '$1="chromsome"$1' ${col_labels}.txt > ${col_labels}_columns.txt
+paste -sd' ' ${col_labels}_columns.txt > ${col_labels}_columns_final.txt
+cat ${col_labels}_columns_final.txt ${data}_matrix.txt > ${data}_matrix_final.txt
+# Note: Add "ID" as the first column label manually with vim
+# Note: Convert to .csv with R
+
+# Run rrBLUP model
+PIPE=/mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass/
+DATA=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
+Rscript ${PIPE}/13_rrBLUP_training_test_split_fread_predict_values.r \
+    ${data}_matrix_final.csv ${DATA}/pheno.csv all YPDCAFEIN40 ${DATA}/Test.txt \
+    5 10 ${DATA}/CVFs.csv filtered_hetero_rrBLUP
+
+scontrol show job $SLURM_JOB_ID
