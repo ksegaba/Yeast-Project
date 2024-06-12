@@ -107,6 +107,19 @@ def main():
                 elif (chr == "chromosome12" and CHR == "chrXII"):
                     if (pos >= start and pos <=stop):
                         map[s] = [gene]
+                elif (chr == "chromosome13" and CHR == "chrXIII"):
+                    if (pos >= start and pos <=stop):
+                        map[s] = [gene]
+                elif (chr == "chromosome14" and CHR == "chrXIV"):
+                    if (pos >= start and pos <=stop):
+                        map[s] = [gene]
+                elif (chr == "chromosome15" and CHR == "chrXV"):
+                    if (pos >= start and pos <=stop):
+                        map[s] = [gene]
+                elif (chr == "chromosome16" and CHR == "chrXVI"):
+                    if (pos >= start and pos <=stop):
+                        map[s] = [gene]
+                    
     print(len(map))
 
     out = open("biallelic_snps_diploid_and_S288C_genes.txt", "w")
