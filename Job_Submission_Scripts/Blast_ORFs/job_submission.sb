@@ -22,6 +22,9 @@ ${path}/diamond blastx --db nr_db \
    --query ${dir}/allORFs_pangenome.fasta --un unaligned_peter_orf_nr_blastx.faa
 
 cd /mnt/home/seguraab/Shiu_Lab/Project/Data/Arabidopsis_Genome_TAIR10.1
+echo "create a blast database containing the TAIR10 protein sequences (not orfs)"
+${path}/makeblastdb -in protein.faa -out TAIR10_db -dbtype prot \
+   -title "A. Thaliana Protein Sequences"
 echo "Run Blastx (DNA to Protein) against TAIR10"
 ${path}/blastx -query ${dir}/allORFs_pangenome.fasta -db TAIR10_db \
    -max_target_seqs 2 -max_hsps 1 -evalue 1e-6 \
@@ -51,9 +54,9 @@ ${path}/blastx -query ${dir}/allORFs_pangenome.fasta -db human_db \
    -out peter_orf_human_blastx.txt
 
 cd /mnt/home/seguraab/Shiu_Lab/Project/Data/Neurospora_OR74A_Genome_NC12/
-echo "create a blast database containing the Human protein sequences (not orfs)"
+echo "create a blast database containing the Neurospora crossa protein sequences (not orfs)"
 ${path}/makeblastdb -in protein.faa -out NC12_db -dbtype prot \
-   -title "N. Cross OR74A Protein Sequences"
+   -title "N. Crossa OR74A Protein Sequences"
 
 echo "Run Blastx (DNA to Protein) against Neurospora"
 ${path}/blastx -query ${dir}/allORFs_pangenome.fasta -db NC12_db \
