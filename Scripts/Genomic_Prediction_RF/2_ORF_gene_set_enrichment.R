@@ -12,23 +12,23 @@ setwd("/mnt/home/seguraab/Shiu_Lab/Project")
 
 #### Evidence code-filtered GO term annotation file (see SNP_gene_set_enrichment.R)
 go <- read.csv("Data/yeast_GO/sgd_GO_BP.csv")
+# write.table(go, "Data/yeast_GO/sgd_GO_BP.tsv", sep="\t")
 length(unique(go$GO.ID)) # [1] 4909
 
 #### ORF to gene map file
-map <- read.delim("Data/Peter_2018/final_map_orf_to_gene.txt", sep="\t", header=1)
+map <- read.delim("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t", header=1)
 
 #### Get RF (after FS) feature importance score files
-rf_res_orf <- read.csv("Results/RESULTS_RF_ORFs_FS.txt", sep="\t", header=1) # RF FS model results
-rf_res_cnv <- read.csv("Results/RESULTS_RF_CNVs_FS.txt", sep="\t", header=1)
-dir <- "/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results/fs" # directory  to search
-orf_files <- unlist(lapply(paste(rf_res_orf$ID, "imp", sep="_"), 
+rf_res_pav <- read.csv("Scripts/Data_Vis/Section_2/RESULTS_RF_PAVs_FS.txt", sep="\t", header=1) # RF model results for PAVs
+rf_res_cnv <- read.csv("Scripts/Data_Vis/Section_2/RESULTS_RF_CNVs_FS.txt", sep="\t", header=1) # RF model results for CNVs
+dir <- "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/fs" # directory  to search
+pav_files <- unlist(lapply(paste(rf_res_pav$ID, "imp", sep="_"), 
                     function(x){list.files(path=dir, pattern=x, full.names=T)}))
 cnv_files <- unlist(lapply(paste(rf_res_cnv$ID, "imp", sep="_"),
                     function(x){list.files(path=dir, pattern=x, full.names=T)}))
 
-
 ### Map ORFs to genes & GO terms
-get_genes <- function(f){
+get_genes <- function(f, path){
     # add the genes and GO annotations to each file
     df <- read.delim(f, sep="\t") # read file
     df$X <- gsub(".", "-", df$X, fixed=T) # replace periods with dashes
@@ -36,13 +36,15 @@ get_genes <- function(f){
     out <- right_join(map, df, by=c("orf"="X")) # add gene information
     out <- left_join(out, go[,c('Gene', 'GO.ID', 'BP', 'CC', 'MF')], by=c("gene"="Gene")) # add GO information
     out <- out[order(out$mean_imp, decreasing=T),] # order by importance score
-    name <- str_extract(f, "[A-Z0-9]+_[a-z]+_[0-9]+_imp") # extract file name
+    name <- str_extract(f, "[A-Z0-9]+_[a-z_]+_[0-9]+_imp") # extract file name
+    print(name)
     name <- paste("Genes_", name, sep="")
-    path <- as.character("Scripts/Genomic_Prediction_RF/GO_Enrichment/ORFs_fs")
-    # write.table(out, file.path(path, name), "tsv", sep="."), sep="\t", quote=F, row.names=F)
+    write.table(out, paste(file.path(path, name), "tsv", sep="."), sep="\t", quote=F, row.names=F)
 }
-mclapply(orf_files, get_genes, mc.cores=35)
-mclapply(cnv_files, get_genes, mc.cores=35)
+path <- as.character("Scripts/Genomic_Prediction_RF/GO_Enrichment/PAVs_fs")
+mclapply(pav_files, get_genes, path, mc.cores=5) #35
+path <- as.character("Scripts/Genomic_Prediction_RF/GO_Enrichment/CNVs_fs")
+mclapply(cnv_files, get_genes, path, mc.cores=5) #35
 
 ################################################################################
 #                           GO Enrichment Analysis                             #
@@ -53,9 +55,10 @@ mclapply(cnv_files, get_genes, mc.cores=35)
 #                    Not in GO term|            |                              #
 ################################################################################
 ### Get files with genes
-dir <- "Scripts/Genomic_Prediction_RF/GO_Enrichment/ORFs_fs"
-orf_files <- list.files(path=dir, pattern="Genes_[A-Z0-9]+_orf", full.names=T)
-cnv_files <- list.files(path=dir, pattern="Genes_[A-Z0-9]+_cno", full.names=T)
+dir <- "Scripts/Genomic_Prediction_RF/GO_Enrichment/PAVs_fs"
+pav_files <- list.files(path=dir, pattern="^Genes_[A-Z0-9]+", full.names=T)
+dir <- "Scripts/Genomic_Prediction_RF/GO_Enrichment/CNVs_fs"
+cnv_files <- list.files(path=dir, pattern="^Genes_[A-Z0-9]+", full.names=T)
 
 ### Map all ORFs to GO terms - prep for background set
 all_orfs <- t(read.csv("Data/Peter_2018/ORFs_pres_abs.csv", nrows=1, header=F))
@@ -88,6 +91,7 @@ ora <- function(f, all_orfs, path){
 
     # read in top ORF feature file
     top <- read.delim(f, sep="\t")
+    top <- top[,c(1,2,3,14,15,16,17,18)]
     colnames(top) <- c("orf", "gene", "organism", "mean_imp", "GO", "BP", "CC", "MF")
     
     # get background set
@@ -156,5 +160,5 @@ go_enrichment <- function(f){
     ora(f, all_orfs, save)
 }
 
-mclapply(orf_files, go_enrichment, mc.cores=35)
+mclapply(pav_files, go_enrichment, mc.cores=35)
 mclapply(cnv_files, go_enrichment, mc.cores=35)
