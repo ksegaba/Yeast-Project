@@ -16,17 +16,10 @@ pwy <- read.csv("All-genes-pathways-S288c_pivoted.txt")
 
 ########################### Map pathways to ORFs ###########################
 setwd("/mnt/home/seguraab/Shiu_Lab/Project/")
-genes <- read.delim("Data/Peter_2018/final_map_orf_to_gene.txt", sep="\t", header=1)
+genes <- read.delim("Data/Peter_2018/final_map_orf_to_gene_CORRECTED.tsv", sep="\t", header=1)
 pwy2 <- left_join(pwy, genes, by=c("Accession.1"="gene")) # merge
-with_pwy <- pwy2[pwy2$Pathways.of.gene!="",] # genes with pathway annotations
-with_pwy <- with_pwy[which(!is.na(with_pwy$orf)),]
-no_pwy <- pwy2[pwy2$Pathways.of.gene=="",] # genes with no pathway annotations
 write.csv(pwy2, 
-    "Data/Peter_2018/ORFs_and_S288C_genes_pwy_all.csv", quote=F, row.names=F)
-write.csv(with_pwy, 
-    "Data/Peter_2018/ORFs_and_S288C_genes_pwy.csv", quote=F, row.names=F)
-write.csv(no_pwy, 
-    "Data/Peter_2018/ORFs_and_S288C_genes_no_pwy.csv", quote=F, row.names=F)
+    "Data/Peter_2018/ORFs_and_S288C_genes_pwy_all_CORRECTED.csv", quote=F, row.names=F)
 
 ################################################################################
 #                         Pathway Enrichment Analysis                          #
@@ -45,6 +38,8 @@ all_orfs <- left_join(data.frame(all_orfs), genes, by=c("all_orfs"="orf")) # add
 all_orfs <- left_join(all_orfs, pwy[,c("Accession.1", "Pathways.of.gene")],
                       by=c("gene"="Accession.1"), relationship="many-to-many") # add PWY information
 colnames(all_orfs) <- c("orf", "gene", "organism", "pathway")
+all_orfs$pathway <- trimws(all_orfs$pathway, which="both") # strip white spaces
+all_orfs$pathway <- na_if(all_orfs$pathway, "") # replace "" with NA
 remove(pwy)
 
 enrichment <- function(k, n, C, G){ 
@@ -107,7 +102,8 @@ pwy_enrichment <- function(f){
     ### ORA of top gene features
     # read in top gene feature file
     top <- read.delim(f, sep="\t") # read in shap values
-    
+    top <- top[,c(1,2,3,13,14,15,16,17)]
+
     # add pathway information
     top <- left_join(top, all_orfs[,c("orf", "pathway")], by=c("orf"="orf"))
 
@@ -132,9 +128,10 @@ pwy_enrichment <- function(f){
 
 
 # Read in top features' (FS) average SHAP values files
-dir <- "Scripts/Genomic_Prediction_RF/GO_Enrichment/ORFs_fs"
-orf_files <- list.files(path=dir, pattern="^Genes_[A-Z0-9]+_orf", full.names=T)
-cnv_files <- list.files(path=dir, pattern="^Genes_[A-Z0-9]+_cno", full.names=T)
+dir <- "Scripts/Genomic_Prediction_RF/GO_Enrichment/PAVs_fs"
+pav_files <- list.files(path=dir, pattern="^Genes_[A-Z0-9]+_", full.names=T)
+dir <- "Scripts/Genomic_Prediction_RF/GO_Enrichment/CNVs_fs"
+cnv_files <- list.files(path=dir, pattern="^Genes_[A-Z0-9]+_", full.names=T)
 
-mclapply(X=orf_files, FUN=pwy_enrichment, mc.cores=35)
+mclapply(X=pav_files, FUN=pwy_enrichment, mc.cores=35)
 mclapply(X=cnv_files, FUN=pwy_enrichment, mc.cores=35)
