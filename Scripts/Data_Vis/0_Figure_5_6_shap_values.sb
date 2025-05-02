@@ -10,7 +10,7 @@
 
 # ######################## GET RF MODEL SKLEARN VERSIONS #########################
 # ## First, check RF model performances for PCs, SNPs, PAVs, and CNVs
-# snp_path=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results
+# snp_path=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results
 # for file in ${snp_path}/baseline/*.pkl; do
 #     sklearn_v=$(python -m pickletools $file | grep -A 2 -F _sklearn_version | grep -P [0-9].[0-9]+.[0-9] -o)
 #     echo "${file}   ${sklearn_v}    baseline" >> /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Data_Vis/Section_2/RF_model_versions_v2.tsv
@@ -44,7 +44,7 @@
 #     echo "${file}   ${sklearn_v}    fs" >> /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Data_Vis/Section_2/RF_model_versions_v2.tsv
 # done
 
-# orf_path=/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results
+# orf_path=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results
 # for file in ${orf_path}/baseline/*.pkl; do
 #     sklearn_v=$(python -m pickletools $file | grep -A 2 -F _sklearn_version | grep -P [0-9].[0-9]+.[0-9] -o)
 #     echo "${file}   ${sklearn_v}    baseline" >> /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Data_Vis/Section_2/RF_model_versions_v2.tsv
@@ -78,18 +78,19 @@
 #     echo "${file}   ${sklearn_v}    fs" >> /mnt/home/seguraab/Shiu_Lab/Project/Scripts/Data_Vis/Section_2/RF_model_versions_v2.tsv
 # done
 
-# ############################ CALCULATE SHAP VALUES #############################
+############################ CALCULATE SHAP VALUES #############################
 shap=/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Data_Vis
 data=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
 
 ## BASELINE MODELS
-mapfile -t snp_models < /mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/baseline/snp_best_models.txt
+mapfile -t snp_models < /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/baseline/snp_best_models.txt
 snp_mod=${snp_models[${SLURM_ARRAY_TASK_ID}]}
 snp_trait=$(echo $snp_mod | grep -P YP[A-Z0-9]+ -o)
-mapfile -t pav_models < /mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results/baseline/pav_best_models.txt
+echo $snp_trait
+mapfile -t pav_models < /mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/baseline/pav_best_models.txt
 pav_mod=${pav_models[${SLURM_ARRAY_TASK_ID}]}
 pav_trait=$(echo $pav_mod | grep -P YP[A-Z0-9]+ -o)
-mapfile -t cnv_models < /mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results/baseline/cnv_best_models.txt
+mapfile -t cnv_models < /mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/baseline/cnv_best_models.txt
 cnv_mod=${cnv_models[${SLURM_ARRAY_TASK_ID}]}
 cnv_trait=$(echo $cnv_mod | grep -P YP[A-Z0-9]+ -o)
 
@@ -97,8 +98,8 @@ conda activate /mnt/home/seguraab/miniconda3/envs/shap
 
 ### SNP RF baseline models top 20 features (sklearn version 1.2.2)
 echo "SNPs RF baseline -----------------"
-cd /mnt/gs21/scratch/seguraab/yeast_project/SHAP/SNP/baseline
-scratch=/mnt/scratch/seguraab/yeast_project/SNP_yeast_RF_results/baseline
+cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/SNP/baseline
+scratch=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/baseline
 python ${shap}/SHAP_training_saving_interaction.py \
     -df ${data}/geno.csv \
     -df2 ${data}/pheno.csv \
@@ -110,8 +111,8 @@ python ${shap}/SHAP_training_saving_interaction.py \
 
 ### PAV RF baseline models top 20 features (sklearn version 1.2.2)
 echo "PAVs RF baseline -----------------"
-cd /mnt/gs21/scratch/seguraab/yeast_project/SHAP/PAV/baseline
-scratch=/mnt/scratch/seguraab/yeast_project/ORF_yeast_RF_results/baseline
+cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/PAV/baseline
+scratch=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/baseline
 python ${shap}/SHAP_training_saving_interaction.py \
     -df ${data}/ORFs_pres_abs.csv \
     -df2 ${data}/pheno.csv \
@@ -123,8 +124,8 @@ python ${shap}/SHAP_training_saving_interaction.py \
 
 ### CNV RF baseline models top 20 features (sklearn version 1.2.2)
 echo "CNVs RF baseline -----------------"
-cd /mnt/gs21/scratch/seguraab/yeast_project/SHAP/CNV/baseline
-scratch=/mnt/scratch/seguraab/yeast_project/ORF_yeast_RF_results/baseline
+cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/CNV/baseline
+scratch=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/baseline
 python ${shap}/SHAP_training_saving_interaction.py \
     -df ${data}/ORFs_no_NA.csv \
     -df2 ${data}/pheno.csv \
@@ -132,31 +133,34 @@ python ${shap}/SHAP_training_saving_interaction.py \
     -sep , -test ${data}/Test.txt -feat all \
     -model ${scratch}/${cnv_mod} \
     -top 20 -interaction n -interaction_score n \
-    -save ${cnv_trait}_cnv_rf_baseline}
+    -save ${cnv_trait}_cnv_rf_baseline
 
 conda deactivate
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 ## FEATURE SELECTION MODELS
-mapfile -t snp_models < /mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs/snp_best_fs_models.txt
+conda activate /mnt/home/seguraab/miniconda3/envs/shap
+mapfile -t snp_models < /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/fs/snp_best_fs_models.txt
+mapfile -t pav_models < /mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/fs/pav_best_fs_models.txt
+mapfile -t cnv_models < /mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/fs/cnv_best_fs_models.txt
+
 snp_mod=${snp_models[${SLURM_ARRAY_TASK_ID}]}
 snp_trait=$(echo $snp_mod | grep -P YP[A-Z0-9]+ -o)
 snp_feat=$(echo $snp_mod | grep -P '(?<=top_)[0-9]+(?=_models)' -o)
-mapfile -t pav_models < /mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results/fs/pav_best_fs_models.txt
+echo $snp_trait
 pav_mod=${pav_models[${SLURM_ARRAY_TASK_ID}]}
 pav_trait=$(echo $pav_mod | grep -P YP[A-Z0-9]+ -o)
 pav_feat=$(echo $pav_mod | grep -P '(?<=top_)[0-9]+(?=_models)' -o)
-mapfile -t cnv_models < /mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results/fs/cnv_best_fs_models.txt
+echo $pav_trait
 cnv_mod=${cnv_models[${SLURM_ARRAY_TASK_ID}]}
 cnv_trait=$(echo $cnv_mod | grep -P YP[A-Z0-9]+ -o)
 cnv_feat=$(echo $cnv_mod | grep -P '(?<=top_)[0-9]+(?=_models)' -o)
-
-conda activate /mnt/home/seguraab/miniconda3/envs/shap
+echo $cnv_trait
 
 ### SNP RF FS models top 20 features (sklearn version 1.2.2)
 echo "SNPs RF FS -----------------"
-cd /mnt/gs21/scratch/seguraab/yeast_project/SHAP/SNP/fs
-scratch=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs
+cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/SNP/fs
+scratch=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/fs
 python ${shap}/SHAP_training_saving_interaction.py \
     -df ${data}/geno.csv \
     -df2 ${data}/pheno.csv \
@@ -169,8 +173,8 @@ python ${shap}/SHAP_training_saving_interaction.py \
 
 ### PAV RF FS models top 20 features (sklearn version 1.2.2)
 echo "PAVs RF FS -----------------"
-cd /mnt/gs21/scratch/seguraab/yeast_project/SHAP/PAV/fs
-scratch=/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results/fs
+cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/PAV/fs
+scratch=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/fs
 python ${shap}/SHAP_training_saving_interaction.py \
     -df ${data}/ORFs_pres_abs.csv \
     -df2 ${data}/pheno.csv \
@@ -183,7 +187,7 @@ python ${shap}/SHAP_training_saving_interaction.py \
 
 ### CNV RF FS models top 20 features (sklearn version 1.2.2)
 echo "CNVs RF FS -----------------"
-cd /mnt/gs21/scratch/seguraab/yeast_project/SHAP/CNV/fs
+cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/CNV/fs
 python ${shap}/SHAP_training_saving_interaction.py \
     -df ${data}/ORFs_no_NA.csv \
     -df2 ${data}/pheno.csv \
