@@ -1,0 +1,449 @@
+#!/bin/bash --login
+#SBATCH --time=12:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=2
+# SBATCH --array=0-34 # for optimized RF/rrBLUP integrated models
+# SBATCH --cpus-per-task=12 # for RF models
+# SBATCH --mem-per-cpu=3G # for RF models
+# SBATCH --job-name optimized_rf_integrated
+# SBATCH --job-name ben_lit_rf_integrated
+# SBATCH --cpus-per-task=1 # for rrBLUP models
+# SBATCH --mem-per-cpu=10G # for rrBLUP models
+# SBATCH --job-name optimized_rrblup_integrated
+# SBATCH --job-name ben_lit_rrblup #_integrated
+#SBATCH --cpus-per-task=4 # for shap interaction
+#SBATCH --mem-per-cpu=100G # for shap interaction
+#SBATCH --job-name shap_interaction
+#SBATCH --output=%x_%j.out
+
+shap=/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Data_Vis
+data=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
+pipe=/mnt/home/seguraab/Shiu_Lab/Project/External_software/ML-Pipeline
+
+# ######################## Optimized RF Integrated Models ########################
+# # Note: for now, I didn't tell the code to standardize the features since for RF it's not necessary.
+# module purge
+# conda activate ml-pipeline
+
+# cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/optimized_single_env_RF/integrated_models
+
+# # get environment names
+# mapfile -t snp_models < /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/fs/snp_best_fs_models.txt
+# mod=${snp_models[${SLURM_ARRAY_TASK_ID}]}
+# trait=$(echo $mod | grep -P YP[A-Z0-9]+ -o)
+# echo $trait
+
+# ## SNP + PAV + CNV
+# python ${pipe}/ML_regression.py \
+# 	-df Integrated_all_variants_${trait}.csv \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name ${trait} \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_all_variants_${trait} \
+# 	-save integrated_all_variants_${trait}
+
+# ## SNP + PAV
+# python ${pipe}/ML_regression.py \
+# 	-df Integrated_snp_pav_${trait}.csv \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name ${trait} \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_snp_pav_${trait} \
+# 	-save integrated_snp_pav_${trait}
+
+# ## SNP + CNV
+# python ${pipe}/ML_regression.py \
+# 	-df Integrated_snp_cnv_${trait}.csv \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name ${trait} \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_snp_cnv_${trait} \
+# 	-save integrated_snp_cnv_${trait}
+
+# ## PAV + CNV benomyl benchmark features
+# python ${pipe}/ML_regression.py \
+# 	-df Integrated_pav_cnv_${trait}.csv \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name ${trait} \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_pav_cnv_${trait} \
+# 	-save integrated_pav_cnv_${trait}
+
+# conda deactivate
+
+# ######################## Optimized rrBLUP Integrated Models ########################
+# # Note: for now, the code does not standardize the features.
+# cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/optimized_single_env_rrBLUP
+
+# pipe=/mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass/
+
+# # get environment names
+# mapfile -t snp_models < /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/fs/snp_best_fs_models.txt
+# mod=${snp_models[${SLURM_ARRAY_TASK_ID}]}
+# trait=$(echo $mod | grep -P YP[A-Z0-9]+ -o)
+# echo $trait
+
+# ## SNP + PAV + CNV
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../optimized_single_env_RF/integrated_models/Integrated_all_variants_${trait}.csv \
+# 	${data}/pheno.csv all ${trait} ${data}/Test.txt 5 20 ${data}/CVFs_20rep.csv \
+# 	integrated_all_variants_${trait}_rrblup
+
+# ## SNP + PAV
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../optimized_single_env_RF/integrated_models/Integrated_snp_pav_${trait}.csv \
+# 	${data}/pheno.csv all ${trait} ${data}/Test.txt 5 20 ${data}/CVFs_20rep.csv \
+# 	integrated_snp_pav_${trait}_rrblup
+
+# ## SNP + CNV
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../optimized_single_env_RF/integrated_models/Integrated_snp_cnv_${trait}.csv \
+# 	${data}/pheno.csv all ${trait} ${data}/Test.txt 5 20 ${data}/CVFs_20rep.csv \
+# 	integrated_snp_cnv_${trait}_rrblup
+
+# ## PAV + CNV benomyl benchmark features
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../optimized_single_env_RF/integrated_models/Integrated_pav_cnv_${trait}.csv \
+# 	${data}/pheno.csv all ${trait} ${data}/Test.txt 5 20 ${data}/CVFs_20rep.csv \
+# 	integrated_pav_cnv_${trait}_rrblup
+
+# ####################### Benomyl Benchmark Gene RF Models #######################
+# module purge
+# conda activate ml-pipeline
+
+# cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/benomyl_models
+
+## SNP 
+# python ${pipe}/ML_regression.py -df ${data}/geno.csv \
+#     -df2 ${data}/pheno.csv -sep , \
+#     -y_name YPDBENOMYL500 \
+#     -test ${data}/Test.txt \
+#     -feat ../Features_all_variants_per_gene_benomyl_500ugml_snp.txt \
+#     -alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+#     -tag snp_all_variants_per_gene_benomyl_500ugml \
+#     -save snp_all_variants_per_gene_benomyl_500ugml
+# python ${pipe}/ML_regression.py -df ${data}/geno.csv \
+#    -df2 ${data}/pheno.csv -sep , \
+#    -y_name YPDBENOMYL500 \
+#    -test ${data}/Test.txt \
+#    -feat ../Features_one_variant_per_gene_benomyl_500ugml_snp.txt \
+#    -alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+#    -tag snp_one_variant_per_gene_benomyl_500ugml \
+#    -save snp_one_variant_per_gene_benomyl_500ugml
+
+## PAV 
+# python ${pipe}/ML_regression.py -df ${data}/ORFs_pres_abs.csv \
+#     -df2 ${data}/pheno.csv -sep , \
+#     -y_name YPDBENOMYL500 \
+#     -test ${data}/Test.txt \
+#     -feat ../Features_all_variants_per_gene_benomyl_500ugml_pav.txt \
+#     -alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+#     -tag pav_all_variants_per_gene_benomyl_500ugml \
+#     -save pav_all_variants_per_gene_benomyl_500ugml
+# python ${pipe}/ML_regression.py -df ${data}/ORFs_pres_abs.csv \
+#    -df2 ${data}/pheno.csv -sep , \
+#    -y_name YPDBENOMYL500 \
+#    -test ${data}/Test.txt \
+#    -feat ../Features_one_variant_per_gene_benomyl_500ugml_pav.txt \
+#    -alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+#    -tag pav_one_variant_per_gene_benomyl_500ugml \
+#    -save pav_one_variant_per_gene_benomyl_500ugml
+
+## CNV 
+# python ${pipe}/ML_regression.py -df ${data}/ORFs_no_NA.csv \
+#     -df2 ${data}/pheno.csv -sep , \
+#     -y_name YPDBENOMYL500 \
+#     -test ${data}/Test.txt \
+#     -feat ../Features_all_variants_per_gene_benomyl_500ugml_cnv.txt \
+#     -alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+#     -tag cnv_all_variants_per_gene_benomyl_500ugml \
+#     -save cnv_all_variants_per_gene_benomyl_500ugml
+# python ${pipe}/ML_regression.py -df ${data}/ORFs_no_NA.csv \
+#    -df2 ${data}/pheno.csv -sep , \
+#    -y_name YPDBENOMYL500 \
+#    -test ${data}/Test.txt \
+#    -feat ../Features_one_variant_per_gene_benomyl_500ugml_cnv.txt \
+#    -alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+#    -tag cnv_one_variant_per_gene_benomyl_500ugml \
+#    -save cnv_one_variant_per_gene_benomyl_500ugml
+
+## SNP + PAV + CNV benomyl benchmark features
+# python ${pipe}/ML_regression.py \
+# 	-df ../Features_all_variants_per_gene_benomyl_500ugml_snp_pav_cnv.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_all_variants_per_gene_benomyl_500ugml \
+# 	-save integrated_all_variants_per_gene_benomyl_500ugml
+# python ${pipe}/ML_regression.py \
+# 	-df ../Features_one_variant_per_gene_benomyl_500ugml_snp_pav_cnv.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_one_variant_per_gene_benomyl_500ugml \
+# 	-save integrated_one_variant_per_gene_benomyl_500ugml
+
+## SNP + PAV benomyl benchmark features
+# python ${pipe}/ML_regression.py \
+# 	-df ../Features_all_variants_per_gene_benomyl_500ugml_snp_pav.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_snp_pav_all_variants_per_gene_benomyl_500ugml \
+# 	-save integrated_snp_pav_all_variants_per_gene_benomyl_500ugml
+# python ${pipe}/ML_regression.py \
+# 	-df ../Features_one_variant_per_gene_benomyl_500ugml_snp_pav.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_snp_pav_one_variant_per_gene_benomyl_500ugml \
+# 	-save integrated_snp_pav_one_variant_per_gene_benomyl_500ugml
+
+## SNP + CNV benomyl benchmark features
+# python ${pipe}/ML_regression.py \
+# 	-df ../Features_all_variants_per_gene_benomyl_500ugml_snp_cnv.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_snp_cnv_all_variants_per_gene_benomyl_500ugml \
+# 	-save integrated_snp_cnv_all_variants_per_gene_benomyl_500ugml
+# python ${pipe}/ML_regression.py \
+# 	-df ../Features_one_variant_per_gene_benomyl_500ugml_snp_cnv.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_snp_cnv_one_variant_per_gene_benomyl_500ugml \
+# 	-save integrated_snp_cnv_one_variant_per_gene_benomyl_500ugml
+
+## PAV + CNV benomyl benchmark features
+# python ${pipe}/ML_regression.py \
+# 	-df ../Features_all_variants_per_gene_benomyl_500ugml_pav_cnv.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_pav_cnv_all_variants_per_gene_benomyl_500ugml \
+# 	-save integrated_pav_cnv_all_variants_per_gene_benomyl_500ugml
+# python ${pipe}/ML_regression.py \
+# 	-df ../Features_one_variant_per_gene_benomyl_500ugml_pav_cnv.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+# 	-tag integrated_pav_cnv_one_variant_per_gene_benomyl_500ugml \
+# 	-save integrated_pav_cnv_one_variant_per_gene_benomyl_500ugml
+
+# conda deactivate
+
+##################### Benomyl Benchmark Gene rrBLUP Models #####################
+# Note: I get a tcrossprod error with mixed.solve, so not all the models ran successfully.
+# rrBLUP standardizes features internally, but perhaps I should standardize CNVs before integrating them.
+# I'm not sure if it's a problem with PAV features though...
+
+# cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/benomyl_models/rrBLUP_benomyl_models
+
+# pipe=/mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass/
+
+# ## SNP
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	${data}/geno.csv ${data}/pheno.csv \
+# 	../../Features_one_variant_per_gene_benomyl_500ugml_snp.txt \
+# 	YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv snp_one_variant_per_gene_benomyl_500ugml_rrblup
+
+# ## PAV
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	${data}/ORFs_pres_abs.csv ${data}/pheno.csv \
+# 	../../Features_one_variant_per_gene_benomyl_500ugml_pav.txt \
+# 	YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv pav_one_variant_per_gene_benomyl_500ugml_rrblup
+
+## CNV
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	${data}/ORFs_no_NA.csv ${data}/pheno.csv \
+# 	../../Features_one_variant_per_gene_benomyl_500ugml_cnv.txt \
+# 	YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv cnv_one_variant_per_gene_benomyl_500ugml_rrblup
+
+## SNP + PAV + CNV
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../../Features_all_variants_per_gene_benomyl_500ugml_snp_pav_cnv.txt \
+# 	${data}/pheno.csv all YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv integrated_all_variants_per_gene_benomyl_500ugml_rrblup
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../../Features_one_variant_per_gene_benomyl_500ugml_snp_pav_cnv.txt \
+# 	${data}/pheno.csv all YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv integrated_snp_pav_cnv_one_variant_per_gene_benomyl_500ugml_rrblup
+
+## SNP + PAV
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../../Features_all_variants_per_gene_benomyl_500ugml_snp_pav.txt \
+# 	${data}/pheno.csv all YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv integrated_snp_pav_all_variants_per_gene_benomyl_500ugml_rrblup
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../../Features_one_variant_per_gene_benomyl_500ugml_snp_pav.txt \
+# 	${data}/pheno.csv all YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv integrated_snp_pav_one_variant_per_gene_benomyl_500ugml_rrblup
+
+## SNP + CNV
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../../Features_all_variants_per_gene_benomyl_500ugml_snp_cnv.txt \
+# 	${data}/pheno.csv all YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv integrated_snp_cnv_all_variants_per_gene_benomyl_500ugml_rrblup
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../../Features_one_variant_per_gene_benomyl_500ugml_snp_cnv.txt \
+# 	${data}/pheno.csv all YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv integrated_snp_cnv_one_variant_per_gene_benomyl_500ugml_rrblup
+
+## PAV + CNV benomyl benchmark features
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../../Features_all_variants_per_gene_benomyl_500ugml_pav_cnv.txt \
+# 	${data}/pheno.csv all YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv integrated_pav_cnv_all_variants_per_gene_benomyl_500ugml_rrblup
+# Rscript ${pipe}/13_rrBLUP_training_test_split_fread_predict_values.r \
+# 	../../Features_one_variant_per_gene_benomyl_500ugml_pav_cnv.txt \
+# 	${data}/pheno.csv all YPDBENOMYL500 ${data}/Test.txt 5 20 \
+# 	${data}/CVFs_20rep.csv integrated_pav_cnv_one_variant_per_gene_benomyl_500ugml_rrblup
+
+# ############################ Benomyl SHAP Interaction Scores ###########################
+# module purge
+# conda activate shap
+
+# cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/benomyl_models
+
+# features=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF
+# mapfile -t models < best_benomyl_models.txt
+
+# Calculate SHAP interaction scores
+## SNP model
+# cd SNP
+# python ${shap}/SHAP_training_saving_interaction.py \
+# 	-df ${data}/geno.csv \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-feat ${features}/Features_one_variant_per_gene_benomyl_500ugml_snp.txt \
+# 	-model ../${models[0]} \
+# 	-top 20 -interaction n -interaction_score y \
+# 	-save snp_one_variant_per_gene_benomyl_500ugml
+
+# echo "Summing SHAP values across isolates for SNP"
+# python ${shap}/Sum_SHAP_interaction.py \
+# 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/benomyl_models/SNP/ \
+# 	-dtype snp \
+# 	-save shap_interaction_scores_snp_one_variant_per_gene_benomyl_500ugml
+
+# ## PAV model
+# cd ../PAV
+# python ${shap}/SHAP_training_saving_interaction.py \
+# 	-df ${data}/ORFs_pres_abs.csv \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-feat ${features}/Features_one_variant_per_gene_benomyl_500ugml_pav.txt \
+# 	-model ../${models[1]} \
+# 	-top 20 -interaction n -interaction_score y \
+# 	-save pav_one_variant_per_gene_benomyl_500ugml
+
+# echo "Summing SHAP values across isolates for PAV"
+# python ${shap}/Sum_SHAP_interaction.py \
+# 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/benomyl_models/PAV/ \
+# 	-dtype pav \
+# 	-save shap_interaction_scores_pav_one_variant_per_gene_benomyl_500ugml
+
+# ## CNV model
+# cd ../CNV
+# python ${shap}/SHAP_training_saving_interaction.py \
+# 	-df ${data}/ORFs_no_NA.csv \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-feat ${features}/Features_one_variant_per_gene_benomyl_500ugml_cnv.txt \
+# 	-model ../${models[2]} \
+# 	-top 20 -interaction n -interaction_score y \
+# 	-save cnv_one_variant_per_gene_benomyl_500ugml
+
+# echo "Summing SHAP values across isolates for CNV"
+# python ${shap}/Sum_SHAP_interaction.py \
+# 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/benomyl_models/CNV/ \
+# 	-dtype cnv \
+# 	-save shap_interaction_scores_cnv_one_variant_per_gene_benomyl_500ugml
+
+# ## Integrated models
+# cd ../INTEGRATED/snp_pav_cnv
+# python ${shap}/SHAP_training_saving_interaction.py \
+# 	-df ${features}/Features_one_variant_per_gene_benomyl_500ugml_snp_pav_cnv.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-model ../../${models[3]} \
+# 	-top 20 -interaction n -interaction_score y \
+# 	-save integrated_snp_pav_cnv_one_variant_per_gene_benomyl_500ugml
+
+# echo "Summing SHAP values across isolates for integrated model"
+# python ${shap}/Sum_SHAP_interaction.py \
+# 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/benomyl_models/INTEGRATED/snp_pav_cnv/ \
+# 	-dtype integrated_snp_pav_cnv \
+# 	-save shap_interaction_scores_integrated_snp_pav_cnv_one_variant_per_gene_benomyl_500ugml
+
+# cd ../snp_pav
+# python ${shap}/SHAP_training_saving_interaction.py \
+# 	-df ${features}/Features_one_variant_per_gene_benomyl_500ugml_snp_pav.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-model ../../${models[4]} \
+# 	-top 20 -interaction n -interaction_score y \
+# 	-save integrated_snp_pav_one_variant_per_gene_benomyl_500ugml
+
+# echo "Summing SHAP values across isolates for integrated model"
+# python ${shap}/Sum_SHAP_interaction.py \
+# 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/benomyl_models/INTEGRATED/snp_pav/ \
+# 	-dtype integrated_snp_pav \
+# 	-save shap_interaction_scores_integrated_snp_pav_one_variant_per_gene_benomyl_500ugml
+
+# cd ../snp_cnv
+# python ${shap}/SHAP_training_saving_interaction.py \
+# 	-df ${features}/Features_one_variant_per_gene_benomyl_500ugml_snp_cnv.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-model ../../${models[5]} \
+# 	-top 20 -interaction n -interaction_score y \
+# 	-save integrated_snp_cnv_one_variant_per_gene_benomyl_500ugml
+
+# echo "Summing SHAP values across isolates for integrated model"
+# python ${shap}/Sum_SHAP_interaction.py \
+# 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/benomyl_models/INTEGRATED/snp_cnv/ \
+# 	-dtype integrated_snp_cnv \
+# 	-save shap_interaction_scores_integrated_snp_cnv_one_variant_per_gene_benomyl_500ugml
+
+# cd ../pav_cnv
+# python ${shap}/SHAP_training_saving_interaction.py \
+# 	-df ${features}/Features_one_variant_per_gene_benomyl_500ugml_pav_cnv.txt \
+# 	-df2 ${data}/pheno.csv -sep , \
+# 	-y_name YPDBENOMYL500 \
+# 	-test ${data}/Test.txt \
+# 	-model ../../${models[6]} \
+# 	-top 20 -interaction n -interaction_score y \
+# 	-save integrated_one_variant_per_gene_benomyl_500ugml # forgot to add pav_cnv
+
+# echo "Summing SHAP values across isolates for integrated model"
+# python ${shap}/Sum_SHAP_interaction.py \
+# 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/benomyl_models/INTEGRATED/pav_cnv/ \
+# 	-dtype integrated_one_ \
+# 	-save shap_interaction_scores_integrated_pav_cnv_one_variant_per_gene_benomyl_500ugml
+
+# conda deactivate
+
+scontrol show job $SLURM_JOB_ID
