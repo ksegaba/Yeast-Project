@@ -368,7 +368,7 @@ def make_fig3f(df, data_type, imp_type, ax, ax_ridx, ax_cidx):
 			df_rand[env] = np.random.default_rng(seed=i * 100 + j).permutation(df[env]) # randomized sample of if gene is a top gene or not (1/0)
 		
 		df_rand = pd.DataFrame(df_rand)
-		env_counts = df_rand.sum(axis=1) # Realculate number of environments a gene is a top feature for
+		env_counts = df_rand.sum(axis=1) # Recalculate number of environments a gene is a top feature for
 		counts_rand[str(i)] = env_counts # Save results
 		ks_res[str(i)] = ks_2samp(orig_env_counts, env_counts, alternative="greater") # 2-sample KS test (orig_env_counts is greater than random chance?)
 	
@@ -410,8 +410,8 @@ def make_fig3f(df, data_type, imp_type, ax, ax_ridx, ax_cidx):
 		# Recalculate number of environments a gene is a top feature for & the KS statistic
 		env_counts = df_rand_gps.sum(axis=1)
 		counts_rand_gps[str(i)] = env_counts
-		ks_res_gps[str(i)] = ks_2samp(orig_env_counts, env_counts, alternative="greater")
-		ks_rand_vs_gps[str(i)] = ks_2samp(counts_rand[str(i)], env_counts)
+		ks_res_gps[str(i)] = ks_2samp(orig_env_counts, env_counts, alternative="greater") # is original distribution greater than the grouped randomized distribution
+		ks_rand_vs_gps[str(i)] = ks_2samp(counts_rand[str(i)], env_counts) # is the individually randomized distribution than the grouped randomized one?
 	
 	ks_gps_df = pd.DataFrame.from_dict(ks_res_gps, orient="index")
 	f = ks_gps_df.hist(figsize=(8.5,4), bins=50)
@@ -567,133 +567,134 @@ ks_df5.to_csv("Scripts/Data_Vis/Section_4/Table_S_KS_res_fig_cnv_shap_top_genes.
 ks_gps_df5.to_csv("Scripts/Data_Vis/Section_4/Table_S_KS_res_fig_cnv_shap_top_genes_gps.csv", index=False)
 ks_rand_vs_gps_df5.to_csv("Scripts/Data_Vis/Section_4/Table_S_KS_res_fig_cnv_shap_top_genes_rand_v_gps.csv", index=False)
 
-################################################################################
-# Figure 4 or S#?
-################################################################################
-def make_fig_4(df, save_name, clust=True):
-	plt.figure(figsize=(8, 8))
-	if clust:
-		sns.clustermap(df, method="complete", metric="euclidean",
-					   cmap="RdBu_r", center=0)
-	else:
-		sns.heatmap(df, cmap="RdBu_r", center=0, square=True)
+# OLD CODE - perhaps move to a separate file
+# ################################################################################
+# # Figure 4 or S#?
+# ################################################################################
+# def make_fig_4(df, save_name, clust=True):
+# 	plt.figure(figsize=(8, 8))
+# 	if clust:
+# 		sns.clustermap(df, method="complete", metric="euclidean",
+# 					   cmap="RdBu_r", center=0)
+# 	else:
+# 		sns.heatmap(df, cmap="RdBu_r", center=0, square=True)
 	
-	plt.tight_layout()
-	plt.savefig(save_name)
-	plt.close()
+# 	plt.tight_layout()
+# 	plt.savefig(save_name)
+# 	plt.close()
 
-env_order = ['YPDCHX05', 'YPDCHX1', 'YPDANISO50', 'YPDANISO10', 'YPDANISO20',
-			 'YPDDMSO', 'YPDMV', 'YPDSDS', 'YPD40', 'YPD42', 'YPDKCL2M',
-			 'YPDCAFEIN40', 'YPDCAFEIN50', 'YPDBENOMYL200', 'YPDBENOMYL500',
-			 'YPDETOH','YPDNYSTATIN', 'YPACETATE', 'YPXYLOSE', 'YPRIBOSE',
-			 'YPSORBITOL', 'YPGLYCEROL', 'YPETHANOL', 'YPGALACTOSE',
-			 'YPDLICL250MM',  'YPDNACL15M', 'YPDNACL1M', 'YPDFORMAMIDE4',
-			 'YPDFORMAMIDE5', 'YPDHU', 'YPD14', 'YPDFLUCONAZOLE', 'YPDSODIUMMETAARSENITE',
-			 'YPD6AU', 'YPDCUSO410MM'] # According to Fig. 1A
+# env_order = ['YPDCHX05', 'YPDCHX1', 'YPDANISO50', 'YPDANISO10', 'YPDANISO20',
+# 			 'YPDDMSO', 'YPDMV', 'YPDSDS', 'YPD40', 'YPD42', 'YPDKCL2M',
+# 			 'YPDCAFEIN40', 'YPDCAFEIN50', 'YPDBENOMYL200', 'YPDBENOMYL500',
+# 			 'YPDETOH','YPDNYSTATIN', 'YPACETATE', 'YPXYLOSE', 'YPRIBOSE',
+# 			 'YPSORBITOL', 'YPGLYCEROL', 'YPETHANOL', 'YPGALACTOSE',
+# 			 'YPDLICL250MM',  'YPDNACL15M', 'YPDNACL1M', 'YPDFORMAMIDE4',
+# 			 'YPDFORMAMIDE5', 'YPDHU', 'YPD14', 'YPDFLUCONAZOLE', 'YPDSODIUMMETAARSENITE',
+# 			 'YPD6AU', 'YPDCUSO410MM'] # According to Fig. 1A
 
 
-######## Cluster the rank percentiles of the top 5% genes in the baseline models
-# Gini feature importance rank percentiles
-snp_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_imp_snp_rank_per.tsv", sep="\t", index_col=0)
-pav_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_imp_pav_rank_per.tsv", sep="\t", index_col=0)
-cnv_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_imp_cnv_rank_per.tsv", sep="\t", index_col=0)
+# ######## Cluster the rank percentiles of the top 5% genes in the baseline models
+# # Gini feature importance rank percentiles
+# snp_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_imp_snp_rank_per.tsv", sep="\t", index_col=0)
+# pav_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_imp_pav_rank_per.tsv", sep="\t", index_col=0)
+# cnv_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_imp_cnv_rank_per.tsv", sep="\t", index_col=0)
 
-# Average absolute SHAP feature importance rank percentiles
-snp_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_shap_snp_rank_per.tsv", sep="\t", index_col=0)
-pav_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_shap_pav_rank_per.tsv", sep="\t", index_col=0)
-cnv_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_shap_cnv_rank_per.tsv", sep="\t", index_col=0)
+# # Average absolute SHAP feature importance rank percentiles
+# snp_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_shap_snp_rank_per.tsv", sep="\t", index_col=0)
+# pav_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_shap_pav_rank_per.tsv", sep="\t", index_col=0)
+# cnv_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_baseline_shap_cnv_rank_per.tsv", sep="\t", index_col=0)
 
-# Map features to genes
-map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt",
-					   header=None, names=["snp", "chr", "pos", "gene"])
-map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_16_removed.txt", sep="\t")
+# # Map features to genes
+# map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt",
+# 					   header=None, names=["snp", "chr", "pos", "gene"])
+# map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_16_removed.txt", sep="\t")
 
-snp_gini_rank = map_snps[["snp", "gene"]].merge(snp_gini_rank, left_on="snp", right_index=True, how="left")
-pav_gini_rank = map_orfs[["orf", "gene"]].merge(pav_gini_rank, left_on="orf", right_index=True, how="left")
-cnv_gini_rank = map_orfs[["orf", "gene"]].merge(cnv_gini_rank, left_on="orf", right_index=True, how="left")
+# snp_gini_rank = map_snps[["snp", "gene"]].merge(snp_gini_rank, left_on="snp", right_index=True, how="left")
+# pav_gini_rank = map_orfs[["orf", "gene"]].merge(pav_gini_rank, left_on="orf", right_index=True, how="left")
+# cnv_gini_rank = map_orfs[["orf", "gene"]].merge(cnv_gini_rank, left_on="orf", right_index=True, how="left")
 
-snp_shap_rank = map_snps[["snp", "gene"]].merge(snp_shap_rank, left_on="snp", right_index=True, how="left")
-pav_shap_rank = map_orfs[["orf", "gene"]].merge(pav_shap_rank, left_on="orf", right_index=True, how="left")
-cnv_shap_rank = map_orfs[["orf", "gene"]].merge(cnv_shap_rank, left_on="orf", right_index=True, how="left")
+# snp_shap_rank = map_snps[["snp", "gene"]].merge(snp_shap_rank, left_on="snp", right_index=True, how="left")
+# pav_shap_rank = map_orfs[["orf", "gene"]].merge(pav_shap_rank, left_on="orf", right_index=True, how="left")
+# cnv_shap_rank = map_orfs[["orf", "gene"]].merge(cnv_shap_rank, left_on="orf", right_index=True, how="left")
 
-# If the feature is in the top 5% of all features, then keep the rank percentile, else NaN
-snp_gini_rank_5p = snp_gini_rank.set_index(["snp", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
-pav_gini_rank_5p = pav_gini_rank.set_index(["orf", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
-cnv_gini_rank_5p = cnv_gini_rank.set_index(["orf", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
+# # If the feature is in the top 5% of all features, then keep the rank percentile, else NaN
+# snp_gini_rank_5p = snp_gini_rank.set_index(["snp", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
+# pav_gini_rank_5p = pav_gini_rank.set_index(["orf", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
+# cnv_gini_rank_5p = cnv_gini_rank.set_index(["orf", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
 
-snp_shap_rank_5p = snp_shap_rank.set_index(["snp", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
-pav_shap_rank_5p = pav_shap_rank.set_index(["orf", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
-cnv_shap_rank_5p = cnv_shap_rank.set_index(["orf", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
+# snp_shap_rank_5p = snp_shap_rank.set_index(["snp", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
+# pav_shap_rank_5p = pav_shap_rank.set_index(["orf", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
+# cnv_shap_rank_5p = cnv_shap_rank.set_index(["orf", "gene"]).applymap(lambda x: x if x >= 0.95 else np.nan)
 
-## Plot the correlation matrix of the rank percentiles in the top 5%
-make_fig_4(snp_gini_rank_5p.corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_gini_rank_top_5p_corr.pdf")
-make_fig_4(snp_gini_rank_5p.corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_gini_rank_top_5p_corr_sorted.pdf", clust=False) # envs sorted by Fig. 1A order
-make_fig_4(pav_gini_rank_5p.corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_gini_rank_top_5p_corr.pdf") # some env pairs have no shared genes in the top 5%, so set NaN to 0
-make_fig_4(pav_gini_rank_5p.corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_gini_rank_top_5p_corr_sorted.pdf", clust=False)
-make_fig_4(cnv_gini_rank_5p.corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_gini_rank_top_5p_corr.pdf")
-make_fig_4(cnv_gini_rank_5p.corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_gini_rank_top_5p_corr_sorted.pdf", clust=False)
+# ## Plot the correlation matrix of the rank percentiles in the top 5%
+# make_fig_4(snp_gini_rank_5p.corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_gini_rank_top_5p_corr.pdf")
+# make_fig_4(snp_gini_rank_5p.corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_gini_rank_top_5p_corr_sorted.pdf", clust=False) # envs sorted by Fig. 1A order
+# make_fig_4(pav_gini_rank_5p.corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_gini_rank_top_5p_corr.pdf") # some env pairs have no shared genes in the top 5%, so set NaN to 0
+# make_fig_4(pav_gini_rank_5p.corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_gini_rank_top_5p_corr_sorted.pdf", clust=False)
+# make_fig_4(cnv_gini_rank_5p.corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_gini_rank_top_5p_corr.pdf")
+# make_fig_4(cnv_gini_rank_5p.corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_gini_rank_top_5p_corr_sorted.pdf", clust=False)
 
-make_fig_4(snp_shap_rank_5p.corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_shap_rank_top_5p_corr.pdf")
-make_fig_4(snp_shap_rank_5p.corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_shap_rank_top_5p_corr_sorted.pdf", clust=False)
-make_fig_4(pav_shap_rank_5p.corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_shap_rank_top_5p_corr.pdf")
-make_fig_4(pav_shap_rank_5p.corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_shap_rank_top_5p_corr_sorted.pdf", clust=False)
-make_fig_4(cnv_shap_rank_5p.corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_shap_rank_top_5p_corr.pdf")
-make_fig_4(cnv_shap_rank_5p.corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_shap_rank_top_5p_corr_sorted.pdf", clust=False)
+# make_fig_4(snp_shap_rank_5p.corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_shap_rank_top_5p_corr.pdf")
+# make_fig_4(snp_shap_rank_5p.corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_shap_rank_top_5p_corr_sorted.pdf", clust=False)
+# make_fig_4(pav_shap_rank_5p.corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_shap_rank_top_5p_corr.pdf")
+# make_fig_4(pav_shap_rank_5p.corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_shap_rank_top_5p_corr_sorted.pdf", clust=False)
+# make_fig_4(cnv_shap_rank_5p.corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_shap_rank_top_5p_corr.pdf")
+# make_fig_4(cnv_shap_rank_5p.corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_shap_rank_top_5p_corr_sorted.pdf", clust=False)
 
-## Plot the correlation matrix of the rank percentiles in the baseline models
-make_fig_4(snp_gini_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_gini_rank_corr.pdf") # intergenic snps are included
-make_fig_4(snp_gini_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_gini_rank_corr_sorted.pdf", clust=False) # intergenic snps are included
-make_fig_4(pav_gini_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_gini_rank_corr.pdf")
-make_fig_4(pav_gini_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_gini_rank_corr_sorted.pdf", clust=False)
-make_fig_4(cnv_gini_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_gini_rank_corr.pdf")
-make_fig_4(cnv_gini_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_gini_rank_corr_sorted.pdf", clust=False)
+# ## Plot the correlation matrix of the rank percentiles in the baseline models
+# make_fig_4(snp_gini_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_gini_rank_corr.pdf") # intergenic snps are included
+# make_fig_4(snp_gini_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_gini_rank_corr_sorted.pdf", clust=False) # intergenic snps are included
+# make_fig_4(pav_gini_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_gini_rank_corr.pdf")
+# make_fig_4(pav_gini_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_gini_rank_corr_sorted.pdf", clust=False)
+# make_fig_4(cnv_gini_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_gini_rank_corr.pdf")
+# make_fig_4(cnv_gini_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_gini_rank_corr_sorted.pdf", clust=False)
 
-make_fig_4(snp_shap_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_shap_rank_corr.pdf")
-make_fig_4(snp_shap_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_shap_rank_corr_sorted.pdf", clust=False)
-make_fig_4(pav_shap_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_shap_rank_corr.pdf")
-make_fig_4(pav_shap_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_shap_rank_corr_sorted.pdf", clust=False)
-make_fig_4(cnv_shap_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_shap_rank_corr.pdf")
-make_fig_4(cnv_shap_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_shap_rank_corr_sorted.pdf", clust=False)
+# make_fig_4(snp_shap_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_shap_rank_corr.pdf")
+# make_fig_4(snp_shap_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_baseline_shap_rank_corr_sorted.pdf", clust=False)
+# make_fig_4(pav_shap_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_shap_rank_corr.pdf")
+# make_fig_4(pav_shap_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_baseline_shap_rank_corr_sorted.pdf", clust=False)
+# make_fig_4(cnv_shap_rank.iloc[:,2:].corr(), "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_shap_rank_corr.pdf")
+# make_fig_4(cnv_shap_rank.iloc[:,2:].corr().loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_baseline_shap_rank_corr_sorted.pdf", clust=False)
 
-######## Cluster the rank percentiles of the optimized model genes
-# Gini feature importance rank percentiles
-snp_fs_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_imp_snp_rank_per.tsv", sep="\t", index_col=0)
-pav_fs_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_imp_pav_rank_per.tsv", sep="\t", index_col=0)
-cnv_fs_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_imp_cnv_rank_per.tsv", sep="\t", index_col=0)
+# ######## Cluster the rank percentiles of the optimized model genes
+# # Gini feature importance rank percentiles
+# snp_fs_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_imp_snp_rank_per.tsv", sep="\t", index_col=0)
+# pav_fs_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_imp_pav_rank_per.tsv", sep="\t", index_col=0)
+# cnv_fs_gini_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_imp_cnv_rank_per.tsv", sep="\t", index_col=0)
 
-# Average absolute SHAP feature importance rank percentiles
-snp_fs_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_shap_snp_rank_per.tsv", sep="\t", index_col=0)
-pav_fs_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_shap_pav_rank_per.tsv", sep="\t", index_col=0)
-cnv_fs_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_shap_cnv_rank_per.tsv", sep="\t", index_col=0)
+# # Average absolute SHAP feature importance rank percentiles
+# snp_fs_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_shap_snp_rank_per.tsv", sep="\t", index_col=0)
+# pav_fs_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_shap_pav_rank_per.tsv", sep="\t", index_col=0)
+# cnv_fs_shap_rank = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_shap_cnv_rank_per.tsv", sep="\t", index_col=0)
 
-# Map features to genes
-snp_fs_gini_rank = map_snps[["snp", "gene"]].merge(snp_fs_gini_rank, left_on="snp", right_index=True, how="left") # include all features, but only those that met FS cutoff will be non-NaN
-pav_fs_gini_rank = map_orfs[["orf", "gene"]].merge(pav_fs_gini_rank, left_on="orf", right_index=True, how="left")
-cnv_fs_gini_rank = map_orfs[["orf", "gene"]].merge(cnv_fs_gini_rank, left_on="orf", right_index=True, how="left")
+# # Map features to genes
+# snp_fs_gini_rank = map_snps[["snp", "gene"]].merge(snp_fs_gini_rank, left_on="snp", right_index=True, how="left") # include all features, but only those that met FS cutoff will be non-NaN
+# pav_fs_gini_rank = map_orfs[["orf", "gene"]].merge(pav_fs_gini_rank, left_on="orf", right_index=True, how="left")
+# cnv_fs_gini_rank = map_orfs[["orf", "gene"]].merge(cnv_fs_gini_rank, left_on="orf", right_index=True, how="left")
 
-snp_fs_shap_rank = map_snps[["snp", "gene"]].merge(snp_fs_shap_rank, left_on="snp", right_index=True, how="left")
-pav_fs_shap_rank = map_orfs[["orf", "gene"]].merge(pav_fs_shap_rank, left_on="orf", right_index=True, how="left")
-cnv_fs_shap_rank = map_orfs[["orf", "gene"]].merge(cnv_fs_shap_rank, left_on="orf", right_index=True, how="left")
+# snp_fs_shap_rank = map_snps[["snp", "gene"]].merge(snp_fs_shap_rank, left_on="snp", right_index=True, how="left")
+# pav_fs_shap_rank = map_orfs[["orf", "gene"]].merge(pav_fs_shap_rank, left_on="orf", right_index=True, how="left")
+# cnv_fs_shap_rank = map_orfs[["orf", "gene"]].merge(cnv_fs_shap_rank, left_on="orf", right_index=True, how="left")
 
-## Plot the correlation matrix of the rank percentiles in the optimized models
-make_fig_4(snp_fs_gini_rank.iloc[:,2:].corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_fs_gini_rank_corr.pdf") # Not all genes met FS cut-off, so filling NaN to 0s
-make_fig_4(snp_fs_gini_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_fs_gini_rank_corr_sorted.pdf", clust=False)
-make_fig_4(pav_fs_gini_rank.iloc[:,2:].corr().fillna(0),
-           "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_fs_gini_rank_corr.pdf") # YPRIBOSE AND YPXYLOSE were completely NaNs, so cannot calculate distance
-make_fig_4(pav_fs_gini_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order],
-           "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_fs_gini_rank_corr_sorted.pdf", clust=False)
-make_fig_4(cnv_fs_gini_rank.iloc[:,2:].corr().fillna(0),
-           "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_fs_gini_rank_corr.pdf")
-make_fig_4(cnv_fs_gini_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order],
-           "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_fs_gini_rank_corr_sorted.pdf", clust=False)
+# ## Plot the correlation matrix of the rank percentiles in the optimized models
+# make_fig_4(snp_fs_gini_rank.iloc[:,2:].corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_fs_gini_rank_corr.pdf") # Not all genes met FS cut-off, so filling NaN to 0s
+# make_fig_4(snp_fs_gini_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_fs_gini_rank_corr_sorted.pdf", clust=False)
+# make_fig_4(pav_fs_gini_rank.iloc[:,2:].corr().fillna(0),
+#            "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_fs_gini_rank_corr.pdf") # YPRIBOSE AND YPXYLOSE were completely NaNs, so cannot calculate distance
+# make_fig_4(pav_fs_gini_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order],
+#            "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_fs_gini_rank_corr_sorted.pdf", clust=False)
+# make_fig_4(cnv_fs_gini_rank.iloc[:,2:].corr().fillna(0),
+#            "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_fs_gini_rank_corr.pdf")
+# make_fig_4(cnv_fs_gini_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order],
+#            "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_fs_gini_rank_corr_sorted.pdf", clust=False)
 
-make_fig_4(snp_fs_shap_rank.iloc[:,2:].corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_fs_shap_rank_corr.pdf") # Not all genes met FS cut-off, so filling NaN to 0s
-make_fig_4(snp_fs_shap_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_fs_shap_rank_corr_sorted.pdf", clust=False)
-make_fig_4(pav_fs_shap_rank.iloc[:,2:].corr().fillna(0),
-           "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_fs_shap_rank_corr.pdf") # YPRIBOSE AND YPXYLOSE were completely NaNs, so cannot calculate distance
-make_fig_4(pav_fs_shap_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order],
-           "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_fs_shap_rank_corr_sorted.pdf", clust=False)
-make_fig_4(cnv_fs_shap_rank.iloc[:,2:].corr().fillna(0),
-           "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_fs_shap_rank_corr.pdf")
-make_fig_4(cnv_fs_shap_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order],
-           "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_fs_shap_rank_corr_sorted.pdf", clust=False)
+# make_fig_4(snp_fs_shap_rank.iloc[:,2:].corr().fillna(0), "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_fs_shap_rank_corr.pdf") # Not all genes met FS cut-off, so filling NaN to 0s
+# make_fig_4(snp_fs_shap_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order], "Scripts/Data_Vis/Section_4/Figure_4_or_S_snp_fs_shap_rank_corr_sorted.pdf", clust=False)
+# make_fig_4(pav_fs_shap_rank.iloc[:,2:].corr().fillna(0),
+#            "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_fs_shap_rank_corr.pdf") # YPRIBOSE AND YPXYLOSE were completely NaNs, so cannot calculate distance
+# make_fig_4(pav_fs_shap_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order],
+#            "Scripts/Data_Vis/Section_4/Figure_4_or_S_pav_fs_shap_rank_corr_sorted.pdf", clust=False)
+# make_fig_4(cnv_fs_shap_rank.iloc[:,2:].corr().fillna(0),
+#            "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_fs_shap_rank_corr.pdf")
+# make_fig_4(cnv_fs_shap_rank.iloc[:,2:].corr().fillna(0).loc[env_order, env_order],
+#            "Scripts/Data_Vis/Section_4/Figure_4_or_S_cnv_fs_shap_rank_corr_sorted.pdf", clust=False)

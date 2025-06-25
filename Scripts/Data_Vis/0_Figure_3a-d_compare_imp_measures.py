@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 ############################################################################
-# Figure 3
+# Figure 3 & S4
 ############################################################################
 
 import os
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import spearmanr
 
-os.chdir("/mnt/home/seguraab/Shiu_Lab/Project")
+os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
 target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
                "YPDSODIUMMETAARSENITE"]
@@ -29,17 +29,17 @@ for data_type in ["snp", "pav", "cnv"]:
         
         # Calculate spearman correlation
         r, p = spearmanr(df.iloc[:,0], df.iloc[:,1])
-        res["baseline"][data_type][env] = {"r": r, "p": p}
+        res["baseline"][data_type][env] = {"r": r, "p": p, "n":len(df)}
         
-        # Plotting
-        sns.kdeplot(x=df.iloc[:,0], y=df.iloc[:,1], cmap="viridis", fill=True,
-            cbar=True, bw_adjust=.5)
-        plt.xlabel("Gini rank percentile")
-        plt.ylabel("SHAP rank percentile")
-        plt.title(f"{data_type}: {env}")
-        plt.tight_layout()
-        plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_baseline_gini_vs_shap_rank_per_{data_type}_{env}.pdf")
-        plt.close()
+        # # Plotting
+        # sns.kdeplot(x=df.iloc[:,0], y=df.iloc[:,1], cmap="viridis", fill=True,
+        #     cbar=True, bw_adjust=.5)
+        # plt.xlabel("Gini rank percentile")
+        # plt.ylabel("SHAP rank percentile")
+        # plt.title(f"{data_type}: {env}")
+        # plt.tight_layout()
+        # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_baseline_gini_vs_shap_rank_per_{data_type}_{env}.pdf")
+        # plt.close()
     
     del gini_base_rank, shap_base_rank
 
@@ -55,17 +55,17 @@ for data_type in ["snp", "pav", "cnv"]:
         
         # Calculate spearman correlation
         r, p = spearmanr(df.iloc[:,0], df.iloc[:,1])
-        res["optimized"][data_type][env] = {"r": r, "p": p}
+        res["optimized"][data_type][env] = {"r": r, "p": p, "n":len(df)}
         
-        # Plotting
-        sns.kdeplot(x=df.iloc[:,0], y=df.iloc[:,1], cmap="viridis", fill=True,
-            cbar=True, bw_adjust=.5)
-        plt.xlabel("Gini rank percentile")
-        plt.ylabel("SHAP rank percentile")
-        plt.title(f"{data_type}: {env}")
-        plt.tight_layout()
-        plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_optimized_gini_vs_shap_rank_per_{data_type}_{env}.pdf")
-        plt.close()
+        # # Plotting
+        # sns.kdeplot(x=df.iloc[:,0], y=df.iloc[:,1], cmap="viridis", fill=True,
+        #     cbar=True, bw_adjust=.5)
+        # plt.xlabel("Gini rank percentile")
+        # plt.ylabel("SHAP rank percentile")
+        # plt.title(f"{data_type}: {env}")
+        # plt.tight_layout()
+        # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_optimized_gini_vs_shap_rank_per_{data_type}_{env}.pdf")
+        # plt.close()
     
     del gini_opt_rank, shap_opt_rank
 
@@ -122,32 +122,32 @@ for imp_type in ["imp", "shap"]:
         snp_pav_r, snp_pav_p = spearmanr(snp_pav.iloc[:,0], snp_pav.iloc[:,1])
         snp_cnv_r, snp_cnv_p = spearmanr(snp_cnv.iloc[:,0], snp_cnv.iloc[:,1])
         pav_cnv_r, pav_cnv_p = spearmanr(pav_cnv.iloc[:,0], pav_cnv.iloc[:,1])
-        res[imp_type][env] = {"SNP vs PAV": {"r": snp_pav_r, "p": snp_pav_p},
-                        "SNP vs CNV": {"r": snp_cnv_r, "p": snp_cnv_p},
-                        "PAV vs CNV": {"r": pav_cnv_r, "p": pav_cnv_p}}
+        res[imp_type][env] = {"SNP vs PAV": {"r": snp_pav_r, "p": snp_pav_p, "n": len(snp_pav)},
+                        "SNP vs CNV": {"r": snp_cnv_r, "p": snp_cnv_p, "n": len(snp_cnv)},
+                        "PAV vs CNV": {"r": pav_cnv_r, "p": pav_cnv_p, "n": len(pav_cnv)}}
         
-        # Plotting
-        fig, ax = plt.subplots(1, 3, figsize=(15, 4))
-        sns.kdeplot(x=snp_pav.iloc[:,0], y=snp_pav.iloc[:,1], cmap="viridis",
-                    fill=True, cbar=True, bw_adjust=.5, ax=ax[0])
-        ax[0].set_xlabel(f"SNP {imp_type} rank percentile")
-        ax[0].set_ylabel(f"PAV {imp_type} rank percentile")
-        ax[0].set_title("SNP vs PAV")
-        sns.kdeplot(x=snp_cnv.iloc[:,0], y=snp_cnv.iloc[:,1], cmap="viridis",
-                    fill=True, cbar=True, bw_adjust=.5, ax=ax[1])
-        ax[1].set_xlabel(f"SNP {imp_type} rank percentile")
-        ax[1].set_ylabel(f"CNV {imp_type} rank percentile")
-        ax[1].set_title("SNP vs CNV")
-        sns.kdeplot(x=pav_cnv.iloc[:,0], y=pav_cnv.iloc[:,1], cmap="viridis",
-                    fill=True, cbar=True, bw_adjust=.5, ax=ax[2])
-        ax[2].set_xlabel(f"PAV {imp_type} rank percentile")
-        ax[2].set_ylabel(f"CNV {imp_type} rank percentile")
-        ax[2].set_title("PAV vs CNV")
-        plt.tight_layout()
-        plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_{imp_type}_rank_per_{env}_variant_comparison_rank_per_pd.pdf") # rank per pandas
+        # # Plotting
+        # fig, ax = plt.subplots(1, 3, figsize=(15, 4))
+        # sns.kdeplot(x=snp_pav.iloc[:,0], y=snp_pav.iloc[:,1], cmap="viridis",
+        #             fill=True, cbar=True, bw_adjust=.5, ax=ax[0])
+        # ax[0].set_xlabel(f"SNP {imp_type} rank percentile")
+        # ax[0].set_ylabel(f"PAV {imp_type} rank percentile")
+        # ax[0].set_title("SNP vs PAV")
+        # sns.kdeplot(x=snp_cnv.iloc[:,0], y=snp_cnv.iloc[:,1], cmap="viridis",
+        #             fill=True, cbar=True, bw_adjust=.5, ax=ax[1])
+        # ax[1].set_xlabel(f"SNP {imp_type} rank percentile")
+        # ax[1].set_ylabel(f"CNV {imp_type} rank percentile")
+        # ax[1].set_title("SNP vs CNV")
+        # sns.kdeplot(x=pav_cnv.iloc[:,0], y=pav_cnv.iloc[:,1], cmap="viridis",
+        #             fill=True, cbar=True, bw_adjust=.5, ax=ax[2])
+        # ax[2].set_xlabel(f"PAV {imp_type} rank percentile")
+        # ax[2].set_ylabel(f"CNV {imp_type} rank percentile")
+        # ax[2].set_title("PAV vs CNV")
+        # plt.tight_layout()
+        # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_{imp_type}_rank_per_{env}_variant_comparison_rank_per_pd.pdf") # rank per pandas
         # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_{imp_type}_rank_per_{env}_variant_comparison.pdf") # rank
         # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_{imp_type}_rank_per_{env}_variant_comparison_rank_per.pdf") # rank per manual
-        plt.close()
+        # plt.close()
     
     del snp_base_rank, pav_base_rank, cnv_base_rank
 
@@ -195,30 +195,30 @@ for imp_type in ["imp", "shap"]:
         snp_pav_r, snp_pav_p = spearmanr(snp_pav.iloc[:,0], snp_pav.iloc[:,1])
         snp_cnv_r, snp_cnv_p = spearmanr(snp_cnv.iloc[:,0], snp_cnv.iloc[:,1])
         pav_cnv_r, pav_cnv_p = spearmanr(pav_cnv.iloc[:,0], pav_cnv.iloc[:,1])
-        res[imp_type][env] = {"SNP vs PAV": {"r": snp_pav_r, "p": snp_pav_p, "n_genes": len(snp_pav)},
-                        "SNP vs CNV": {"r": snp_cnv_r, "p": snp_cnv_p, "n_genes": len(snp_cnv)},
-                        "PAV vs CNV": {"r": pav_cnv_r, "p": pav_cnv_p, "n_genes": len(pav_cnv)}}
+        res[imp_type][env] = {"SNP vs PAV": {"r": snp_pav_r, "p": snp_pav_p, "n": len(snp_pav)},
+                        "SNP vs CNV": {"r": snp_cnv_r, "p": snp_cnv_p, "n": len(snp_cnv)},
+                        "PAV vs CNV": {"r": pav_cnv_r, "p": pav_cnv_p, "n": len(pav_cnv)}}
         
-        # Plotting
-        fig, ax = plt.subplots(1, 3, figsize=(15, 4))
-        sns.kdeplot(x=snp_pav.iloc[:,0], y=snp_pav.iloc[:,1], cmap="viridis",
-                    fill=True, cbar=True, bw_adjust=.5, ax=ax[0])
-        ax[0].set_xlabel(f"SNP {imp_type} rank percentile")
-        ax[0].set_ylabel(f"PAV {imp_type} rank percentile")
-        ax[0].set_title("SNP vs PAV")
-        sns.kdeplot(x=snp_cnv.iloc[:,0], y=snp_cnv.iloc[:,1], cmap="viridis",
-                    fill=True, cbar=True, bw_adjust=.5, ax=ax[1])
-        ax[1].set_xlabel(f"SNP {imp_type} rank percentile")
-        ax[1].set_ylabel(f"CNV {imp_type} rank percentile")
-        ax[1].set_title("SNP vs CNV")
-        sns.kdeplot(x=pav_cnv.iloc[:,0], y=pav_cnv.iloc[:,1], cmap="viridis",
-                    fill=True, cbar=True, bw_adjust=.5, ax=ax[2])
-        ax[2].set_xlabel(f"PAV {imp_type} rank percentile")
-        ax[2].set_ylabel(f"CNV {imp_type} rank percentile")
-        ax[2].set_title("PAV vs CNV")
-        plt.tight_layout()
-        plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_{imp_type}_optimized_rank_per_{env}_variant_comparison_rank_per_pd.pdf") # rank per pandas
-        plt.close()
+        # # Plotting
+        # fig, ax = plt.subplots(1, 3, figsize=(15, 4))
+        # sns.kdeplot(x=snp_pav.iloc[:,0], y=snp_pav.iloc[:,1], cmap="viridis",
+        #             fill=True, cbar=True, bw_adjust=.5, ax=ax[0])
+        # ax[0].set_xlabel(f"SNP {imp_type} rank percentile")
+        # ax[0].set_ylabel(f"PAV {imp_type} rank percentile")
+        # ax[0].set_title("SNP vs PAV")
+        # sns.kdeplot(x=snp_cnv.iloc[:,0], y=snp_cnv.iloc[:,1], cmap="viridis",
+        #             fill=True, cbar=True, bw_adjust=.5, ax=ax[1])
+        # ax[1].set_xlabel(f"SNP {imp_type} rank percentile")
+        # ax[1].set_ylabel(f"CNV {imp_type} rank percentile")
+        # ax[1].set_title("SNP vs CNV")
+        # sns.kdeplot(x=pav_cnv.iloc[:,0], y=pav_cnv.iloc[:,1], cmap="viridis",
+        #             fill=True, cbar=True, bw_adjust=.5, ax=ax[2])
+        # ax[2].set_xlabel(f"PAV {imp_type} rank percentile")
+        # ax[2].set_ylabel(f"CNV {imp_type} rank percentile")
+        # ax[2].set_title("PAV vs CNV")
+        # plt.tight_layout()
+        # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_{imp_type}_optimized_rank_per_{env}_variant_comparison_rank_per_pd.pdf") # rank per pandas
+        # plt.close()
     
     del snp_base_rank, pav_base_rank, cnv_base_rank
 
@@ -242,7 +242,8 @@ ab_data = pd.read_csv("Scripts/Data_Vis/Section_4/Figure_3_gini_vs_shap_rank_per
 # 3A
 fig, ax = plt.subplots(1, 2, figsize=(10, 5))
 sns.heatmap(ab_data.loc[ab_data.model=="baseline", :].pivot_table(index="variant", columns="env", values="r"),
-            cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0], cbar=True, square=True)
+            cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0], cbar=True, square=True,
+            center=0.5)
 sns.heatmap(ab_data.loc[ab_data.model=="baseline", :].pivot_table(index="variant", columns="env", values="p"),
             cmap="Reds", annot=True, annot_kws={"size": 7}, fmt=".2e", ax=ax[1], cbar=True, square=True)
 ax[0].set_title("Gini vs SHAP Rank Percentiles Baseline Models")
@@ -252,13 +253,14 @@ cbar.set_label("rho")
 cbar = ax[1].collections[0].colorbar
 cbar.set_label("p-value")
 plt.tight_layout()
-plt.savefig("Scripts/Data_Vis/Section_4/Figure_3a_baseline_gini_vs_shap_rank_per_pd_spearman.pdf")
+plt.savefig("Scripts/Data_Vis/Section_4/Figure_3a_baseline_gini_vs_shap_rank_per_pd_spearman_CORRECTED.pdf")
 plt.close()
 
 # 3B
 fig, ax = plt.subplots(1, 2, figsize=(10, 5))
 sns.heatmap(ab_data.loc[ab_data.model=="optimized", :].pivot_table(index="variant", columns="env", values="r"),
-            cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0], cbar=True, square=True)
+            cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0], cbar=True, square=True,
+            center=0.5)
 sns.heatmap(ab_data.loc[ab_data.model=="optimized", :].pivot_table(index="variant", columns="env", values="p"),
             cmap="Reds", annot=True, annot_kws={"size": 7}, fmt=".2e", ax=ax[1], cbar=True, square=True)
 ax[0].set_title("Gini vs SHAP Rank Percentiles Optimized Models")
@@ -268,17 +270,19 @@ cbar.set_label("rho")
 cbar = ax[1].collections[0].colorbar
 cbar.set_label("p-value")
 plt.tight_layout()
-plt.savefig("Scripts/Data_Vis/Section_4/Figure_3b_optimized_gini_vs_shap_rank_per_pd_spearman.pdf")
+plt.savefig("Scripts/Data_Vis/Section_4/Figure_3b_optimized_gini_vs_shap_rank_per_pd_spearman_CORRECTED.pdf")
 plt.close()
 
 # 3C
 c_data = pd.read_csv("Scripts/Data_Vis/Section_4/Table_S5_figure_3_baseline_rf_rank_per_pd_variant_comparison_spearman.tsv", sep="\t")
 fig, ax = plt.subplots(2, 2, figsize=(10, 10))
 sns.heatmap(c_data.loc[c_data.imp_type=="gini", :].pivot_table(index="comparison", columns="env", values="r"),
-            cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0][0], cbar=True, square=True)
+            cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0][0], cbar=True, square=True,
+            center=0)
 sns.heatmap(c_data.loc[c_data.imp_type=="gini", :].pivot_table(index="comparison", columns="env", values="p"),
             cmap="Reds", annot=True, annot_kws={"size": 7}, fmt=".2e", ax=ax[0][1], cbar=True, square=True)
-sns.heatmap(c_data.loc[c_data.imp_type=="shap", :].pivot_table(index="comparison", columns="env", values="r"),
+sns.heatmap(c_data.loc[c_data.imp_type=="shap", :].pivot_table(index="comparison", columns="env", values="r",
+            center=0),
             cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[1][0], cbar=True, square=True)
 sns.heatmap(c_data.loc[c_data.imp_type=="shap", :].pivot_table(index="comparison", columns="env", values="p"),
             cmap="Reds", annot=True, annot_kws={"size": 7}, fmt=".2e", ax=ax[1][1], cbar=True, square=True)
@@ -289,17 +293,19 @@ cbar.set_label("rho")
 cbar = ax[0][1].collections[0].colorbar
 cbar.set_label("p-value")
 plt.tight_layout()
-plt.savefig("Scripts/Data_Vis/Section_4/Figure_3c_baseline_rf_rank_per_pd_variant_comparison_spearman.pdf")
+plt.savefig("Scripts/Data_Vis/Section_4/Figure_3c_baseline_rf_rank_per_pd_variant_comparison_spearman_CORRECTED.pdf")
 plt.close()
 
 c_data = pd.read_csv("Scripts/Data_Vis/Section_4/Table_S5_figure_3_optimized_rf_rank_per_pd_variant_comparison_spearman.tsv", sep="\t")
 fig, ax = plt.subplots(2, 2, figsize=(10, 10))
 sns.heatmap(c_data.loc[c_data.imp_type=="gini", :].pivot_table(index="comparison", columns="env", values="r"),
-            cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0][0], cbar=True, square=True)
+            cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0][0], cbar=True, square=True,
+            center=0)
 sns.heatmap(c_data.loc[c_data.imp_type=="gini", :].pivot_table(index="comparison", columns="env", values="p"),
             cmap="Reds", annot=True, annot_kws={"size": 7}, fmt=".2e", ax=ax[0][1], cbar=True, square=True)
 sns.heatmap(c_data.loc[c_data.imp_type=="shap", :].pivot_table(index="comparison", columns="env", values="r"),
-            cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[1][0], cbar=True, square=True)
+            cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[1][0], cbar=True, square=True,
+            center=0)
 sns.heatmap(c_data.loc[c_data.imp_type=="shap", :].pivot_table(index="comparison", columns="env", values="p"),
             cmap="Reds", annot=True, annot_kws={"size": 7}, fmt=".2e", ax=ax[1][1], cbar=True, square=True)
 ax[0][0].set_title("Gini, Variant comparison, Optimized Models")
@@ -309,5 +315,5 @@ cbar.set_label("rho")
 cbar = ax[0][1].collections[0].colorbar
 cbar.set_label("p-value")
 plt.tight_layout()
-plt.savefig("Scripts/Data_Vis/Section_4/Figure_3c_optimized_rf_rank_per_pd_variant_comparison_spearman.pdf")
+plt.savefig("Scripts/Data_Vis/Section_4/Figure_3c_optimized_rf_rank_per_pd_variant_comparison_spearman_CORRECTED.pdf")
 plt.close()
