@@ -20,7 +20,7 @@ from sklearn.cluster import KMeans
 from scipy.spatial.distance import euclidean
 from scipy.stats import mannwhitneyu
 
-os.chdir("/mnt/home/seguraab/Shiu_Lab/Project")
+os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
 # Read in the benchmark gene and gene map data
 ben_orf = pd.read_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes_orfs.txt")
@@ -391,81 +391,76 @@ clades.loc[["S288C", "SACE_GAV"], "Clades"]
 # S288C                 Reference
 # SACE_GAV    M3. Mosaic region 3
 
-########### Principal Component Analysis on genetic distance matrices
+############### K-means clustering of genetic distance matrices ################
 snp_train = eu_dist_snp.loc[~eu_dist_snp.index.isin(test[0]), ~eu_dist_snp.index.isin(test[0])]
 pav_train = eu_dist_pav.loc[~eu_dist_pav.index.isin(test[0]), ~eu_dist_pav.index.isin(test[0])]
 
-pca = PCA(n_components=5)
-pca_snp = pca.fit(snp_train)
-pca_snp_df = pca_snp.transform(snp_train)
-vexp_pca_snp = pca_snp.explained_variance_ratio_ # variance explained by each component
-
-pca_p = PCA(n_components=5)
-pca_pav = pca_p.fit(pav_train)
-pca_pav_df = pca_p.transform(pav_train)
-vexp_pca_pav = pca_pav.explained_variance_ratio_
-
-pca_snp_df = pd.DataFrame(pca_snp_df, index=snp_train.index)
-pca_pav_df = pd.DataFrame(pca_pav_df, index=pav_train.index)
-pca_snp_df.columns = [f"PC{i+1}" for i in range(5)]
-pca_pav_df.columns = [f"PC{i+1}" for i in range(5)]
-pca_pav_df.rename(index={"in_S288C": "S288C"}, inplace=True)
-
-# Apply K-means clustering to the PCA results
 inertia_snp = []
 inertia_pav = []
 for k in range(2, 11):
-    kmeans_snp = KMeans(n_clusters=k, random_state=42).fit(pca_snp_df)
-    kmeans_pav = KMeans(n_clusters=k, random_state=42).fit(pca_pav_df)
+    kmeans_snp = KMeans(n_clusters=k, random_state=42).fit(snp_train)
+    kmeans_pav = KMeans(n_clusters=k, random_state=42).fit(pav_train)
     inertia_snp.append(kmeans_snp.inertia_)
     inertia_pav.append(kmeans_pav.inertia_)
 
 # Plot the elbow plot
 fig, ax = plt.subplots(1, 2, figsize=(12, 6))
 ax[0].plot([k for k in range(2, 11)], inertia_snp, marker="o")
-ax[0].set_title("Elbow Plot for PCA of SNP genetic distance")
+ax[0].set_title("Elbow Plot for Kmeans clustering of SNP genetic distance")
 ax[0].set_xlabel("Number of clusters (k)")
 ax[0].set_ylabel("Inertia")
 ax[1].plot([k for k in range(2, 11)], inertia_pav, marker="o")
-ax[1].set_title("Elbow Plot for PCA of PAV genetic distance")
+ax[1].set_title("Elbow Plot for Kmeans clustering of PAV genetic distance")
 ax[1].set_xlabel("Number of clusters (k)")
 ax[1].set_ylabel("Inertia")
 plt.tight_layout()
-plt.savefig("Scripts/Data_Vis/Section_5/PCA_snp_or_pav_genetic_distance_elbow_plot.pdf",
+plt.savefig("Scripts/Data_Vis/Section_5/Kmeans_snp_or_pav_genetic_distance_elbow_plot.pdf",
             bbox_inches="tight", dpi=300)
 plt.close()
 
 # Fit K-means with the optimal number of clusters
-kmeans_snp = KMeans(n_clusters=6, random_state=42).fit(pca_snp_df)
-kmeans_pav = KMeans(n_clusters=4, random_state=42).fit(pca_pav_df)
+kmeans_snp = KMeans(n_clusters=6, random_state=42).fit(snp_train)
+kmeans_pav = KMeans(n_clusters=4, random_state=42).fit(pav_train)
 
-# Plot the PCA of eu_dist_snp and eu_dist_pav for the training data only (shap values were calculated from the training data)
-fig, ax = plt.subplots(2, 2, figsize=(12, 12))
-sns.scatterplot(x=pca_snp_df["PC1"], y=pca_snp_df["PC2"], hue=kmeans_snp.labels_,
-                ax=ax[0][0], palette="tab10", alpha=0.7, edgecolor="none")
-sns.scatterplot(x=pca_pav_df["PC1"], y=pca_pav_df["PC2"], hue=kmeans_pav.labels_,
-                ax=ax[0][1], palette="tab10", alpha=0.7, edgecolor="none")
-sns.scatterplot(x=pca_snp_df["PC1"], y=pca_snp_df["PC2"],
-                hue=clades.loc[pca_snp_df.index, "Clades"],
-                ax=ax[1][0], palette="tab20", alpha=0.7, edgecolor="none")
-sns.scatterplot(x=pca_pav_df["PC1"], y=pca_pav_df["PC2"],
-                hue=clades.loc[pca_pav_df.index, "Clades"],
-                ax=ax[1][1], palette="tab20", alpha=0.7, edgecolor="none")
-for i in range(2):
-    ax[i][0].annotate("S288C", (pca_snp_df.loc["S288C","PC1"],
-                                pca_snp_df.loc["S288C","PC2"]), color="red")
-    ax[i][0].annotate("W303", (pca_snp_df.loc["SACE_GAV","PC1"],
-                               pca_snp_df.loc["SACE_GAV","PC2"]), color="red")
-    ax[i][1].annotate("S288C", (pca_pav_df.loc["S288C","PC1"],
-                                pca_pav_df.loc["S288C","PC2"]), color="red")
-    ax[i][1].annotate("W303", (pca_pav_df.loc["SACE_GAV","PC1"],
-                               pca_pav_df.loc["SACE_GAV","PC2"]), color="red")
+# Visualize the clusters using PCA
+pca = PCA(n_components=2)
+pca_snp = pca.fit(snp_train)
+pca_snp_df = pca_snp.transform(snp_train)
+vexp_pca_snp = pca_snp.explained_variance_ratio_ # variance explained by each component
 
-for axis in ax.flat:
-    axis.set_box_aspect(1)
+pca_p = PCA(n_components=2)
+pca_pav = pca_p.fit(pav_train)
+pca_pav_df = pca_p.transform(pav_train)
+vexp_pca_pav = pca_pav.explained_variance_ratio_
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# SNP plot
+axes[0].scatter(pca_snp_df[:, 0], pca_snp_df[:, 1], c=kmeans_snp.labels_, cmap='tab10', s=60)
+axes[0].set_title('K-means Clusters (SNP Features)')
+axes[0].set_xlabel(f'PC1 ({vexp_pca_snp[0]:.2%} variance explained)')
+axes[0].set_ylabel(f'PC2 ({vexp_pca_snp[1]:.2%} variance explained)')
+axes[0].annotate("S288C", (pca_snp_df[snp_train.index.get_loc("S288C"), 0],
+                           pca_snp_df[snp_train.index.get_loc("S288C"), 1]),
+                 color='red', ha='left', fontsize=10, fontweight='bold')
+axes[0].annotate("W303", (pca_snp_df[snp_train.index.get_loc("SACE_GAV"), 0],
+                           pca_snp_df[snp_train.index.get_loc("SACE_GAV"), 1]),
+                 color='red', ha='left', fontsize=10, fontweight='bold')
+
+# PAV plot
+axes[1].set_title('K-means Clusters (PAV Features)')
+axes[1].set_xlabel(f'PC1 ({vexp_pca_pav[0]:.2%} variance explained)')
+axes[1].set_ylabel(f'PC2 ({vexp_pca_pav[1]:.2%} variance explained)')
+axes[1].annotate("S288C", (pca_pav_df[pav_train.index.get_loc("in_S288C"), 0],
+                           pca_pav_df[pav_train.index.get_loc("in_S288C"), 1]),
+                 color='black', ha='left', fontsize=10, fontweight='bold')
+axes[1].scatter(pca_pav_df[:, 0], pca_pav_df[:, 1], c=kmeans_pav.labels_, cmap='tab10', s=60)
+axes[1].annotate("W303", (pca_pav_df[pav_train.index.get_loc("SACE_GAV"), 0],
+                           pca_pav_df[pav_train.index.get_loc("SACE_GAV"), 1]),
+                 color='red', ha='left', fontsize=10, fontweight='bold')
 
 plt.tight_layout()
-plt.savefig("Scripts/Data_Vis/Section_5/PCA_snp_or_pav_genetic_distance.pdf", bbox_inches="tight", dpi=300)
+plt.savefig("Scripts/Data_Vis/Section_5/PCA_snp_or_pav_genetic_distance_CORRECTED.pdf", bbox_inches="tight", dpi=300)
 plt.close()
 
 # Calculate distance between the cluster centers
@@ -484,14 +479,14 @@ dist_snp = cluster_distance(centroids_snp)
 dist_pav = cluster_distance(centroids_pav)
 
 # Identify the clusters most distinct to the cluster in which S288C and W303 are in
-cluster_assignments_snp = pd.DataFrame(kmeans_snp.labels_, index=pca_snp_df.index,
-                                       columns=["Cluster"]) # S288C is in cluster 0
-cluster_assignments_pav = pd.DataFrame(kmeans_pav.labels_, index=pca_pav_df.index,
+cluster_assignments_snp = pd.DataFrame(kmeans_snp.labels_, index=snp_train.index,
                                        columns=["Cluster"]) # S288C is in cluster 1
+cluster_assignments_pav = pd.DataFrame(kmeans_pav.labels_, index=pav_train.index,
+                                       columns=["Cluster"]) # S288C is in cluster 2
 cluster_assignments_snp.loc["SACE_GAV",:] # W303 is in cluster 5
 cluster_assignments_pav.loc["SACE_GAV",:] # W303 is in cluster 0
-s288c_distinct_clusters_snp = [0, dist_snp.loc[0,:].idxmax()]
-s288c_distinct_clusters_pav = [1, dist_pav.loc[1,:].idxmax()]
+s288c_distinct_clusters_snp = [1, dist_snp.loc[1,:].idxmax()]
+s288c_distinct_clusters_pav = [2, dist_pav.loc[2,:].idxmax()]
 w303_distinct_clusters_snp = [5, dist_snp.loc[5,:].idxmax()]
 w303_distinct_clusters_pav = [0, dist_pav.loc[0,:].idxmax()]
 
@@ -843,7 +838,7 @@ for env in target_envs:
     rand_res_df = pd.DataFrame.from_dict(rand_res, orient='index')
     rand_res_df = rand_res_df.applymap(lambda x: pd.Series(x)).stack().apply(pd.Series)
     rand_res_df.columns = ["Data", "Strain", "Alternative", "Statistic", "P-value"]
-    rand_res_df.to_csv(f"Scripts/Data_Vis/Section_5/PCA_snp_or_pav_genetic_distance_randomized_mwu_results_{env}.csv")
+    rand_res_df.to_csv(f"Scripts/Data_Vis/Section_5/Kmeans_snp_or_pav_genetic_distance_randomized_mwu_results_{env}.csv")
 
 
 mwu_res = pd.DataFrame.from_dict({(i, j, k, h, l): mwu_res[i][j][k][h][l]
@@ -856,7 +851,7 @@ mwu_res = pd.DataFrame.from_dict({(i, j, k, h, l): mwu_res[i][j][k][h][l]
 mwu_res.sort_values(by="p-value", inplace=True)
 mwu_res.loc[mwu_res.index.get_level_values(1)=='greater',:]
 mwu_res.index.names = ["Strain", "Alternative", "Factor", "Environment",  "Data"]
-mwu_res.to_csv("Scripts/Data_Vis/Section_5/PCA_snp_or_pav_genetic_distance_mwu_results.csv")
+mwu_res.to_csv("Scripts/Data_Vis/Section_5/Kmeans_snp_or_pav_genetic_distance_mwu_results.csv")
 
 
 #### Determine how many of the optimized features are unknown ORFs or intergenic SNPs.
