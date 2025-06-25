@@ -29,7 +29,7 @@ mapping = {"YPACETATE":"YP Acetate 2%", "YPD14":"YPD 14ºC", "YPD40":"YPD 40ºC"
 		   "YPRIBOSE":"YP Ribose 2%", "YPGLYCEROL":"YP Glycerol 2%",
 		   "YPXYLOSE":"YP Xylose 2%", "YPSORBITOL":"YP Sorbitol 2%"}
 
-## SPEARMAN's RHO CORRELATIONS BETWEEN ENVIRONMENTS
+## SPEARMAN's RHO CORRELATIONS OF COMMON FEATURES BETWEEN ENVIRONMENTS
 for i,mod_type in enumerate(["baseline", "FS"]):
 	for j,data_type in enumerate(["snp", "pav", "cnv"]):
 		for k,imp_type in enumerate(["imp", "shap"]):
