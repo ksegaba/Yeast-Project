@@ -237,6 +237,11 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
 					# Save results
 					enrich_res.append(["RF_single-env_baseline", data_type, imp_type, env, lit_gene_envs[i], a,\
 					b, c, d, odds, pval, np.log2(odds), np.log10(pval), direction])
+					if direction=="+" and pval < 0.05:
+						# save literature features ranked above threshold
+						env_df_top.loc[env_df_top.index.isin(var),:].to_csv(
+							f"Scripts/Data_Vis/Section_5/Enrichment_of_literature_genes_in_{data_type}_{imp_type}_{env}_{i}_above_{int(percentile*100)}%_RF.csv",
+							sep="\t", index=True, header=True)
 	#
 	enrich_res = pd.DataFrame(enrich_res)
 	enrich_res.columns = ["Model Type", "DataType", "ImpType", "Env", "LitGeneList",
@@ -269,3 +274,13 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
 				plt.savefig(f"Scripts/Data_Vis/Section_5/Enrichment_of_literature_genes_in_above_{int(percentile*100)}_RF_{dat_type}_{i_type}.pdf")
 				plt.close()
 			del significant_sub2, significant_sub
+
+
+## Cross-environment enrichment: Benomyl genes enriched in YPDCAFEIN50 (90th SHAP-based rank percentile, SNPs)
+enriched = pd.read_csv('Scripts/Data_Vis/Section_5/Enrichment_of_literature_genes_in_snp_shap_YPDCAFEIN50_0_above_90%_RF.csv', sep='\t', index_col=0)
+ben_snp = pd.read_csv('Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes_snps.txt', header=0) 
+caf_snp = pd.read_csv('Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes_snps.txt', header=0)
+
+# Shared benomyl and caffeine benchmark genes represented in the SNP features
+common_ben_caf = pd.merge(ben_snp, caf_snp, on='0', how='inner')
+enriched.loc[enriched.index.isin(common_ben_caf['0']),:].shape # 24 genes
