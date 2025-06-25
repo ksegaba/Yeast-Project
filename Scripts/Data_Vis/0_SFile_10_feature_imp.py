@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 ################################################################################
-### SUPPLEMENTARY DATA FILE 10
+### SUPPLEMENTARY DATA FILES 7, 8 & 9
 ###############################################################################
 
 import os
@@ -9,7 +9,7 @@ import re
 import pandas as pd
 import datatable as dt
 
-os.chdir("/mnt/home/seguraab/Shiu_Lab/Project")
+os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
 # Isolate growth condition labels; will be used throughout the script
 mapping = {"YPACETATE":"YP Acetate 2%", "YPD14":"YPD 14ºC", "YPD40":"YPD 40ºC",
@@ -33,52 +33,12 @@ mapping = {"YPACETATE":"YP Acetate 2%", "YPD14":"YPD 14ºC", "YPD40":"YPD 40ºC"
 ## Combine RF FS & baseline model gini importance values for SNPs, PAVs, and CNVs individually
 # read feature to gene map files
 map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED.tsv", sep="\t", header=None, names=["snp", "chr", "pos", "gene"])
-map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_CORRECTED.tsv", sep="\t")
-map_orfs.drop_duplicates(subset="orf", keep=False, inplace=True) # drop orfs that mapped to multiple genes (16 orfs)
-map_orfs.to_csv("~/Shiu_Lab/Project/Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t", index=False)
+map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t")
 #old: map_orfs = map_orfs.loc[~map_orfs.gene.str.contains("//"),:] # drop orfs that mapped to multiple genes (16 orfs)
 #old: map_orfs.to_csv("~/Shiu_Lab/Project/Data/Peter_2018/final_map_orf_to_gene_16_removed.txt", sep="\t", index=False)
 map_snps.merge(map_orfs, how="inner", on="gene").gene.nunique() # 5370 shared genes
 map_snps["gene_with_intergenic"] = map_snps.apply(lambda row: f"intergenic//{row['snp']}" if row["gene"] == "intergenic" else row["gene"], axis=1)
 
-''' What are the 16 ORFs that were removed?
-map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_CORRECTED.tsv", sep="\t")
-map_orfs.loc[map_orfs.orf.duplicated(), "orf"]
-                                   	Gene	Benomyl	Caffeine	CuSO4	Sodium_meta-arsenite
-758       2391-YCR040W_NumOfGenes_2	YCR040W
-                                   	YCL066W
-1407      3079-YDR385W_NumOfGenes_2	YOR133W
-                                   	YDR385W
-1810                   3509-YER179W	YER179W
-                                   	SPAR_E02530
-2562      4306-YHR055C_NumOfGenes_4	YHR055C >> I'm surprised these aren't in the CuSO4 benchmark genes. They're CUP1-1 and CUP1-2
-                                   	YHR053C
-2564      4307-YHR056C_NumOfGenes_3	YHR056C
-                                   	YHR054C
-2745      4500-YIL018W_NumOfGenes_2	YIL018W	no	yes	no	no >> this orf is the only one that mapped to benchmark genes
-                                   	YFR031C-A	no	yes	no	no
-2888      4654-YIL172C_NumOfGenes_6	YJL221C
-                                   	YIL172C
-3526      5351-YKR059W_NumOfGenes_2	YKR059W
-                                   	YJL138C
-3777    5617-YLR154C-H_NumOfGenes_4	YLR159C-A
-                                   	YLR157C-C
-3779      5619-YLR157C_NumOfGenes_4	YLR160C
-                                   	YLR158C
-3781      5620-YLR161W_NumOfGenes_5	YLR161W
-                                   	YLR159W
-4059     5919-YLR467W_NumOfGenes_63	YOR396W
-                                   	YLR467W
-4868      6792-YNR073C_NumOfGenes_3	YNR073C
-                                   	YEL070W
-5390      7349-YOR394W_NumOfGenes_7	YPL282C
-                                   	YOR394W
-5660      7624-YPL281C_NumOfGenes_3	YPL281C
-                                   	YOR393W
-5741      7703-YPR080W_NumOfGenes_2	YPR080W
-                                   	YBR118W
-Name: orf, dtype: object
-'''
 
 ###### What are the ORFs that got added to the corrected ORF to gene map? ######
 og_map = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene.txt", sep="\t")
@@ -188,7 +148,7 @@ cnv_shap_baseline_files = [f"{dir}/CNV/baseline/{file}" for file in os.listdir(d
 
 # read feature to gene map files
 map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED.tsv", sep="\t", header=None, names=["snp", "chr", "pos", "gene"])
-map_orfs = pd.read_csv("~/Shiu_Lab/Project/Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t")
+map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t")
 map_snps["gene_with_intergenic"] = map_snps.apply(lambda row: f"intergenic//{row['snp']}" if row["gene"] == "intergenic" else row["gene"], axis=1) # label intergenic snps
 
 # combine shap values for all envs per data type
@@ -225,3 +185,25 @@ combine_shap_indiv(cnv_shap_files, map=map_orfs, dtype="cnv", save="Scripts/Data
 combine_shap_indiv(snp_shap_baseline_files, save="Scripts/Data_Vis/Section_4/RF_baseline_shap_snp.tsv")
 combine_shap_indiv(pav_shap_baseline_files, map=map_orfs, dtype="pav", save="Scripts/Data_Vis/Section_4/RF_baseline_shap_pav.tsv")
 combine_shap_indiv(cnv_shap_baseline_files, map=map_orfs, dtype="cnv", save="Scripts/Data_Vis/Section_4/RF_baseline_shap_cnv.tsv")
+
+### Combine the SHAP values for all environments into one excel file
+target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM", "YPDSODIUMMETAARSENITE"]
+def combine_shap_excel(shap_files, prefix="", save=""):
+	# with pd.ExcelWriter(save) as writer:
+	for file in shap_files:
+		file = file.replace('average_', '')
+		env = re.search(r"Y[A-Z0-9]+", file).group(0)
+		if env in target_envs: # I added this for the baseline shap files bc they're too large
+			print(env)
+			os.system(f"cp {file} {save.replace('all_envs', env)}")
+		# run this for the FS shap files
+		# print(env)
+		# shap = dt.fread(file).to_pandas() # read in shap values
+		# shap.to_excel(writer, sheet_name=f"{prefix}_{env}", index=False)
+
+combine_shap_excel(snp_shap_files, prefix="snp", save="Scripts/Data_Vis/Section_4/supplementary_data_file_8_RF_FS_shap_snp_all_envs.xlsx")
+combine_shap_excel(pav_shap_files, prefix="pav", save="Scripts/Data_Vis/Section_4/supplementary_data_file_8_RF_FS_shap_pav_all_envs.xlsx")
+combine_shap_excel(cnv_shap_files, prefix="cnv", save="Scripts/Data_Vis/Section_4/supplementary_data_file_8_RF_FS_shap_cnv_all_envs.xlsx")
+combine_shap_excel(snp_shap_baseline_files, prefix="snp", save="Scripts/Data_Vis/Section_4/supplementary_data_file_9_RF_baseline_shap_snp_all_envs.tsv")
+combine_shap_excel(pav_shap_baseline_files, prefix="pav", save="Scripts/Data_Vis/Section_4/supplementary_data_file_9_RF_baseline_shap_pav_all_envs.tsv")
+combine_shap_excel(cnv_shap_baseline_files, prefix="cnv", save="Scripts/Data_Vis/Section_4/supplementary_data_file_9_RF_baseline_shap_cnv_all_envs.tsv")
