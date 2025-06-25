@@ -88,11 +88,15 @@ def main():
     #         Res.loc[Res.shape[0],:] = [SHAP.index[i],SHAP.index[j],SHAP.iloc[i,j]]
     #     print(i)
     # Added by Kenia 02/09/2024
-    Res = SHAP.where(np.triu(SHAP, k=1).astype(bool)).stack()
-    Res.rename('Interaction', inplace=True)
-    Res.rename_axis(index=['Feature1', 'Feature2'], inplace=True)
-    Res.to_csv(args.save + '_summed.txt',sep='\t',header=True,index=True) # Modified by Kenia 02/09/2024
-    
+    try: # Added by Kenia 05/03/2024
+        Res = SHAP.where(np.triu(SHAP, k=1).astype(bool)).stack()
+        Res.rename('Interaction', inplace=True)
+        Res.rename_axis(index=['Feature1', 'Feature2'], inplace=True)
+        Res.to_csv(args.save + '_summed.txt',sep='\t',header=True,index=True) # Modified by Kenia 02/09/2024
+    except UnboundLocalError as e:
+        print(e)
+        print("Do not pass -y argument and ensure -path ends in / to avoid this error.")
+        sys.exit(1)
     # Res2 = Res[Res['Interaction'] > 0] # Commented out by Kenia 02/01/2024
     # Res2.to_csv(args.save + '_non_zero.txt',sep='\t',header=True,index=True)
 
