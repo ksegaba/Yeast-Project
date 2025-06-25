@@ -7,18 +7,21 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.metrics import r2_score
 
-os.chdir("/mnt/home/seguraab/Shiu_Lab/Project")
+os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
 ################################################################################
 ### TABLE S10
 ################################################################################
 """Generate the maximum gini importance feature subsets from SNP, PAV, CNV
-RF baseline models that will be used to build a new set of XGBoost models, which
-only contains one feature per gene, for SHAP interaction score analysis"""
+RF baseline models that will be used to build a new set of RF models, which
+only contains one feature per gene, for SHAP interaction score analysis or all
+variants per gene (only for benomyl 500 ug/ml)."""
 
 target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
 			   "YPDSODIUMMETAARSENITE"]
 d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF"
+
+ben_genes = pd.read_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes.txt", sep="\t")
 
 for data_type in ["snp", "pav", "cnv"]:
 	# Read and prepare dataset
@@ -33,7 +36,26 @@ for data_type in ["snp", "pav", "cnv"]:
 		df.set_index(["orf", "gene"], inplace=True)
 	#
 	for env in target_envs:
-		# Take the max importance (either gini or shap) per gene
+		if env == "YPDBENOMYL500":
+			# For benomyl, we will use all variants per gene
+			if data_type == "snp":
+				ben_feat = df.loc[df.index.get_level_values("gene").\
+						isin(ben_genes['Gene Systematic Name']),:].\
+						index.get_level_values("snp")
+				ben_feat = pd.Series(ben_feat)
+			else:
+				ben_feat = df.loc[df.index.get_level_values("gene").\
+						isin(ben_genes['Gene Systematic Name']),:].\
+						index.get_level_values("orf")
+				ben_feat = ben_feat.str.replace("-", ".")
+				ben_feat = pd.Series(ben_feat).apply(lambda x: "X" + x if not x.startswith("X") else x)
+			
+			ben_feat.to_csv(
+				f"{d}/Features_all_variants_per_gene_benomyl_500ugml_{data_type}.txt",
+				index=False, header=False)
+			del ben_feat
+		
+		# Take the max importance (either gini or shap) per gene (all envs)
 		env_imp = df.loc[:,env].dropna().sort_values(ascending=False)
 		env_imp = env_imp.loc[env_imp != 0.0,:] # remove features with 0 gini importance
 		max_features = pd.concat([env_imp.groupby("gene").idxmax().apply(lambda x: x[0]),
@@ -54,6 +76,108 @@ for data_type in ["snp", "pav", "cnv"]:
 			index=False, header=False)
 
 ################################################################################
+### Feature lists for the "only benchmark genes", "only important non-benchmark
+### genes", and "benchmark plus plus important non-benchmark genes" models
+### The real Table S11?
+################################################################################
+# feature to gene maps
+map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED_expanded_benchmark.tsv", sep="\t")
+map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed_expanded_benchmark.tsv", sep="\t", index_col=0)
+map_orfs.index = map_orfs.index.str.replace("-", ".", regex=False) # replace . with - in the index names
+map_orfs.index = map_orfs.apply(lambda x: "X" + x.name, axis=1) # remove X from the beginning of the index names
+map_orfs.reset_index(inplace=True)
+map_orfs.rename(columns={"index": "orf"}, inplace=True) # rename index column to orf
+
+# benchmark genes to features maps
+ben_snp = map_snps.loc[map_snps.Benomyl == 1, ["snp", "gene"]]
+ben_orf = map_orfs.loc[map_orfs.Benomyl == 1, ["orf", "gene"]]
+caf_snp = map_snps.loc[map_snps.Caffeine == 1, ["snp", "gene"]]
+caf_orf = map_orfs.loc[map_orfs.Caffeine == 1, ["orf", "gene"]]
+cu_snp = map_snps.loc[map_snps.CuSO4 == 1, ["snp", "gene"]]
+cu_orf = map_orfs.loc[map_orfs.CuSO4 == 1, ["orf", "gene"]]
+sma_snp = map_snps.loc[map_snps["Sodium_meta-arsenite"] == 1, ["snp", "gene"]]
+sma_orf = map_orfs.loc[map_orfs["Sodium_meta-arsenite"] == 1, ["orf", "gene"]]
+
+# feature importance scores from RF models built with the complete feature sets
+snp_gini = dt.fread("Scripts/Data_Vis/Section_4/RF_baseline_imp_snp.tsv").to_pandas()
+pav_gini = dt.fread("Scripts/Data_Vis/Section_4/RF_baseline_imp_pav.tsv").to_pandas()
+cnv_gini = dt.fread("Scripts/Data_Vis/Section_4/RF_baseline_imp_cnv.tsv").to_pandas()
+
+snp_gini.set_index("snp", inplace=True)
+pav_gini.set_index("orf", inplace=True)
+cnv_gini.set_index("orf", inplace=True)
+
+pav_gini.index = pav_gini.index.str.replace("-", ".", regex=False) # replace . with - in the index names
+cnv_gini.index = cnv_gini.index.str.replace("-", ".", regex=False)
+pav_gini.index = "X" + pav_gini.index.astype(str) # add X to the beginning of the index names
+cnv_gini.index = "X" + cnv_gini.index.astype(str) # add X to the beginning of the index names
+
+# feature importance scores from RF models built with the optimized feature sets
+snp_gini_fs = dt.fread("Scripts/Data_Vis/Section_4/RF_FS_imp_snp.tsv").to_pandas()
+pav_gini_fs = dt.fread("Scripts/Data_Vis/Section_4/RF_FS_imp_pav.tsv").to_pandas()
+cnv_gini_fs = dt.fread("Scripts/Data_Vis/Section_4/RF_FS_imp_cnv.tsv").to_pandas()
+
+snp_gini_fs.set_index("snp", inplace=True)
+pav_gini_fs.set_index("orf", inplace=True)
+cnv_gini_fs.set_index("orf", inplace=True)
+
+pav_gini_fs.index = pav_gini_fs.index.str.replace("-", ".", regex=False) # replace . with - in the index names
+cnv_gini_fs.index = cnv_gini_fs.index.str.replace("-", ".", regex=False)
+pav_gini_fs.index = "X" + pav_gini_fs.index.astype(str) # add X to the beginning of the index names
+cnv_gini_fs.index = "X" + cnv_gini_fs.index.astype(str) # add X to the beginning of the index names
+
+
+# Create feature tables that only contain benchmark genes (one variant per gene)
+path = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF"
+target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
+			   "YPDSODIUMMETAARSENITE"]
+snp_bench_list = [caf_snp, caf_snp, ben_snp, cu_snp, sma_snp]
+orf_bench_list = [caf_orf, caf_orf, ben_orf, cu_orf, sma_orf]
+for i,env in enumerate(target_envs):
+	for data_type in ["snp", "pav", "cnv"]:
+		# subset the benchmark genes from the feature importance tables
+		if data_type == "snp":
+			gini_env = snp_gini.loc[
+				snp_gini.index.isin(snp_bench_list[i].snp), ["gene", env]]
+			gini_fs_env = snp_gini_fs.loc[
+				~snp_gini_fs.index.isin(snp_bench_list[i].snp), ["gene", env]].dropna() # this still has intergenic snps
+			
+		elif data_type == "pav":
+			gini_env = pav_gini.loc[
+				pav_gini.index.isin(orf_bench_list[i].orf), ["gene", env]]
+			gini_fs_env = pav_gini_fs.loc[
+				~pav_gini_fs.index.isin(orf_bench_list[i].orf), ["gene", env]].dropna()
+		
+		elif data_type == "cnv":
+			gini_env = cnv_gini.loc[cnv_gini.index.isin(orf_bench_list[i].orf), ["gene", env]]
+			gini_fs_env = cnv_gini_fs.loc[
+				~cnv_gini_fs.index.isin(orf_bench_list[i].orf), ["gene", env]].dropna()
+			
+		# Are their missing gini importance values?
+		assert gini_env[env].isna().sum() == 0, f"Missing {data_type} gini importance values for benchmark genes in {env}!"
+		assert gini_fs_env[env].isna().sum() == 0, f"Missing {data_type} gini importance values for important non-benchmark genes in {env}!"
+		
+		# Keep one feature per gene
+		best_feat = gini_env.groupby("gene")[env].idxmax()
+		best_fs_feat = gini_fs_env.groupby("gene")[env].idxmax()
+		
+		# Ensure there are no duplicate features (those that mapped to multiple genes)
+		assert best_feat.nunique() == len(best_feat), f"Duplicate {data_type} features found for {env}!"
+		assert best_fs_feat.nunique() == len(best_fs_feat), f"Duplicate {data_type} features found in FS for {env}!"
+		
+		# Write the feature lists to files
+		best_feat.to_csv(f"{path}/Features_baseline_only_benchmark_genes_{env}_{data_type}.txt", index=False, header=False)
+		best_fs_feat.to_csv(f"{path}/Features_fs_only_important_non_bench_genes_{env}_{data_type}.txt", index=False, header=False)
+		
+		combined = pd.concat([best_feat, best_fs_feat], axis=0)
+		assert combined.nunique() == len(combined), f"Duplicate {data_type} features found in combined for {env}!"
+		combined.to_csv(f"{path}/Features_important_non_bench_plus_bench_genes_{env}_{data_type}.txt", index=False, header=False)
+		
+		del best_feat, best_fs_feat, gini_env, gini_fs_env, combined
+
+# No assertion errors were triggered.
+
+################################################################################
 ### TABLE S11
 ################################################################################
 """After running features selection on the RF models used for SHAP interaction
@@ -71,7 +195,7 @@ Fourth kind: only top non-benchmark genes
 map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED_expanded_benchmark.tsv", sep="\t") # some models may include intergenic snps and snps that mapped to multiple genes in B_nl 
 map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed_expanded_benchmark.tsv", sep="\t")
 
-# Read in the XGBoost FS performance results
+# Read in the RF FS performance results
 target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
 			   "YPDSODIUMMETAARSENITE"]
 d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/models_fs"
@@ -121,7 +245,7 @@ for data_type in ["snp", "pav", "cnv"]:
 		rep = int(scores_val.iloc[:,1:].apply(lambda x: r2_score(scores_val["Y"], x), axis=0).idxmax().split("_")[1]) # best training repetition
 		best_fs_models.write(f"{d}/{tag}_models_rep_{rep-1}.pkl\n")
 		
-		# Read in the top model feature importances (had to do this bc there was a bug in the xgb code)
+		# Read in the top model feature importances
 		imp = pd.read_csv(f"{d}/{data_type}_{env}_max_gini_from_RF_baseline_imp_top_{top}_imp", index_col=0, sep="\t")
 		imp = imp.loc[imp.mean_imp != 0.0,:] # drop unimportant features
 		
