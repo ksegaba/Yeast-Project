@@ -26,7 +26,7 @@ mapping = {"YPACETATE":"YP Acetate 2%", "YPD14":"YPD 14ºC", "YPD40":"YPD 40ºC"
 		   "YPRIBOSE":"YP Ribose 2%", "YPGLYCEROL":"YP Glycerol 2%",
 		   "YPXYLOSE":"YP Xylose 2%", "YPSORBITOL":"YP Sorbitol 2%"}
 
-################################################################################ #********* done for SNP, PAV, and CNV baseline and FS
+################################################################################
 ### Data File 1
 ###############################################################################
 ## Combine RF FS & baseline model gini importance values for SNPs, PAVs, and CNVs individually
@@ -38,40 +38,46 @@ map_snps.merge(map_orfs, how="inner", on="gene").gene.nunique() # 5356 shared ge
 map_snps["gene_with_intergenic"] = map_snps.apply(lambda row: f"intergenic//{row['snp']}" if row["gene"] == "intergenic" else row["gene"], axis=1)
 
 # paths to feature importance score files
-dir = "/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/fs"
-snp_rf_res = pd.read_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_SNPs_FS.txt", sep="\t")  # SNP FS results
+dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/fs"
+snp_rf_res = pd.read_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_SNPs_FS_5env.txt", sep="\t")  # SNP FS results
 snp_fs_files = [os.path.join(dir, f"{x}_imp") for x in snp_rf_res['ID']]
-dir = "/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results/baseline"
+dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/baseline"
 snp_baseline_files = [os.path.join(dir, f"{x}_rf_baseline_imp") for x in mapping.keys()]
-dir = "/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results/fs"
-pav_rf_res = pd.read_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_PAVs_FS.txt", sep="\t")  # ORF pres/abs FS results
+dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/fs"
+pav_rf_res = pd.read_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_PAVs_FS_5env.txt", sep="\t")  # ORF pres/abs FS results
 pav_fs_files = [os.path.join(dir, f"{x}_imp") for x in pav_rf_res['ID']]
-cnv_rf_res = pd.read_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_CNVs_FS.txt", sep="\t")  # CNV FS results
+cnv_rf_res = pd.read_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_CNVs_FS_5env.txt", sep="\t")  # CNV FS results
 cnv_fs_files = [os.path.join(dir, f"{x}_imp") for x in cnv_rf_res['ID']]
-dir = "/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results/baseline"
+dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/baseline"
 pav_baseline_files = [os.path.join(dir, f"{x}_pav_baseline_imp") for x in mapping.keys()]
 cnv_baseline_files = [os.path.join(dir, f"{x}_cnv_baseline_imp") for x in mapping.keys()]
 
 ## combine gini importance for all envs per data type
 def combine_imp_indiv(imp_files, map=map_snps, dtype="snp", save="", mapping=mapping):
 	for i,env in enumerate(mapping.keys()):
-		print(env)
-		# Read gini importance file
-		file = [f for f in imp_files if env in f]
-		print(len(file)) # should be 1
-		imp = dt.fread(file[0]).to_pandas()
-		imp.set_index(imp.iloc[:,0], inplace=True) # feature names as index
-		imp = imp.loc[:,"mean_imp"] # use mean gini importances
-		imp.rename(env, inplace=True)
-		imp = pd.DataFrame(imp)
-		if dtype != "snp":
-			imp.index = imp.apply(lambda x: re.sub("^X", "", x.name), axis=1) # rename index
-			imp.index = imp.apply(lambda x: re.sub("\.", "-", x.name), axis=1)
-		if i == 0:
-			merged = imp.copy(deep=True)
-		else:
-			merged = pd.concat([merged, imp], axis=1, ignore_index=False) # add to dictionary
-		del imp
+	# for i,env in enumerate(["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM", "YPDSODIUMMETAARSENITE"]):
+		try:
+			print(env)
+			# Read gini importance file
+			file = [f for f in imp_files if env in f]
+			print(len(file)) # should be 1
+			imp = dt.fread(file[0]).to_pandas()
+			imp.set_index(imp.iloc[:,0], inplace=True) # feature names as index
+			imp = imp.loc[:,"mean_imp"] # use mean gini importances
+			imp.rename(env, inplace=True)
+			imp = pd.DataFrame(imp)
+			if dtype != "snp":
+				imp.index = imp.apply(lambda x: re.sub("^X", "", x.name), axis=1) # rename index
+				imp.index = imp.apply(lambda x: re.sub("\.", "-", x.name), axis=1)
+			if i == 0:
+				merged = imp.copy(deep=True)
+			else:
+				merged = pd.concat([merged, imp], axis=1, ignore_index=False) # add to dictionary
+			del imp
+		except:
+			print(f"Error with {env}")
+			continue
+	
 	print(merged.shape)
 	# map to genes
 	if dtype == "snp":
@@ -81,17 +87,17 @@ def combine_imp_indiv(imp_files, map=map_snps, dtype="snp", save="", mapping=map
 	merged.to_csv(save, sep="\t", index=False)
 	return merged
 
-combine_imp_indiv(snp_fs_files, save="Scripts/Data_Vis/Section_4/RF_FS_imp_snp.tsv")
-combine_imp_indiv(pav_fs_files, map=map_orfs, dtype="pav", save="Scripts/Data_Vis/Section_4/RF_FS_imp_pav.tsv")
-combine_imp_indiv(cnv_fs_files, map=map_orfs, dtype="cnv", save="Scripts/Data_Vis/Section_4/RF_FS_imp_cnv.tsv")
-combine_imp_indiv(snp_baseline_files, save="Scripts/Data_Vis/Section_4/RF_baseline_imp_snp.tsv")
+combine_imp_indiv(snp_fs_files, save="Scripts/Data_Vis/Section_4/RF_FS_imp_snp_5env.tsv")
+combine_imp_indiv(pav_fs_files, map=map_orfs, dtype="pav", save="Scripts/Data_Vis/Section_4/RF_FS_imp_pav_5env.tsv")
+combine_imp_indiv(cnv_fs_files, map=map_orfs, dtype="cnv", save="Scripts/Data_Vis/Section_4/RF_FS_imp_cnv_5env.tsv")
+combine_imp_indiv(snp_baseline_files, save="Scripts/Data_Vis/Section_4/RF_baseline_imp_snp_24env.tsv")
 combine_imp_indiv(pav_baseline_files, map=map_orfs, dtype="pav", save="Scripts/Data_Vis/Section_4/RF_baseline_imp_pav.tsv")
 combine_imp_indiv(cnv_baseline_files, map=map_orfs, dtype="cnv", save="Scripts/Data_Vis/Section_4/RF_baseline_imp_cnv.tsv")
 
 ################################################################################ #********* done for SNP, PAV, and CNV baseline and FS
 ## Combine RF FS & baseline model SHAP values for SNPs, PAVs, and CNVs individually
 # paths to feature SHAP value files
-dir = "/mnt/gs21/scratch/seguraab/yeast_project/SHAP"
+dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP"
 snp_shap_files = [f"{dir}/SNP/fs/{file}" for file in os.listdir(dir + "/SNP/fs") if file.startswith("SHAP_values_sorted_average_Y")]
 snp_shap_baseline_files = [f"{dir}/SNP/baseline/{file}" for file in os.listdir(dir + "/SNP/baseline") if file.startswith("SHAP_values_sorted_average_Y")]
 pav_shap_files = [f"{dir}/PAV/fs/{file}" for file in os.listdir(dir + "/PAV/fs") if file.startswith("SHAP_values_sorted_average_Y")]
@@ -107,23 +113,29 @@ map_snps["gene_with_intergenic"] = map_snps.apply(lambda row: f"intergenic//{row
 
 # combine shap values for all envs per data type
 def combine_shap_indiv(shap_files, map=map_snps, merged={}, dtype="snp", save="", mapping=mapping):
-	for i,env in enumerate(mapping.keys()):
-		print(env)
-		# Read SHAP file
-		file = [f for f in shap_files if env in f]
-		print(len(file)) # should be 1
-		shap = dt.fread(file[0]).to_pandas()
-		shap.set_index(shap.iloc[:,0], inplace=True)
-		shap = shap.iloc[:,1:]
-		shap.rename(columns={"C1":env}, inplace=True)
-		if dtype != "snp":
-			shap.index = shap.apply(lambda x: re.sub("^X", "", x.name), axis=1) # rename index
-			shap.index = shap.apply(lambda x: re.sub("\.", "-", x.name), axis=1)
-		if i == 0:
-			merged = shap.copy(deep=True)
-		else:
-			merged = pd.concat([merged, shap], axis=1, ignore_index=False) # add to dictionary
-		del shap
+	# for i,env in enumerate(mapping.keys()):
+	for i,env in enumerate(["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM", "YPDSODIUMMETAARSENITE"]):
+		try:
+			print(env)
+			# Read SHAP file
+			file = [f for f in shap_files if env in f]
+			print(len(file)) # should be 1
+			shap = dt.fread(file[0]).to_pandas()
+			shap.set_index(shap.iloc[:,0], inplace=True)
+			shap = shap.iloc[:,1:]
+			shap.rename(columns={"C1":env}, inplace=True)
+			if dtype != "snp":
+				shap.index = shap.apply(lambda x: re.sub("^X", "", x.name), axis=1) # rename index
+				shap.index = shap.apply(lambda x: re.sub("\.", "-", x.name), axis=1)
+			if i == 0:
+				merged = shap.copy(deep=True)
+			else:
+				merged = pd.concat([merged, shap], axis=1, ignore_index=False) # add to dictionary
+			del shap
+		except:
+			print(f"Error with {env}")
+			continue
+	
 	print(merged.shape)
 	# map to genes
 	if dtype == "snp":
@@ -133,10 +145,10 @@ def combine_shap_indiv(shap_files, map=map_snps, merged={}, dtype="snp", save=""
 	merged.to_csv(save, sep="\t", index=False)
 	return merged
 
-combine_shap_indiv(snp_shap_files, save="Scripts/Data_Vis/Section_4/RF_FS_shap_snp.tsv")
-combine_shap_indiv(pav_shap_files, map=map_orfs, dtype="pav", save="Scripts/Data_Vis/Section_4/RF_FS_shap_pav.tsv")
-combine_shap_indiv(cnv_shap_files, map=map_orfs, dtype="cnv", save="Scripts/Data_Vis/Section_4/RF_FS_shap_cnv.tsv")
-combine_shap_indiv(snp_shap_baseline_files, save="Scripts/Data_Vis/Section_4/RF_baseline_shap_snp.tsv")
+combine_shap_indiv(snp_shap_files, save="Scripts/Data_Vis/Section_4/RF_FS_shap_snp_5env.tsv")
+combine_shap_indiv(pav_shap_files, map=map_orfs, dtype="pav", save="Scripts/Data_Vis/Section_4/RF_FS_shap_pav_5env.tsv")
+combine_shap_indiv(cnv_shap_files, map=map_orfs, dtype="cnv", save="Scripts/Data_Vis/Section_4/RF_FS_shap_cnv_5env.tsv")
+combine_shap_indiv(snp_shap_baseline_files, save="Scripts/Data_Vis/Section_4/RF_baseline_shap_snp_24env.tsv")
 combine_shap_indiv(pav_shap_baseline_files, map=map_orfs, dtype="pav", save="Scripts/Data_Vis/Section_4/RF_baseline_shap_pav.tsv")
 combine_shap_indiv(cnv_shap_baseline_files, map=map_orfs, dtype="cnv", save="Scripts/Data_Vis/Section_4/RF_baseline_shap_cnv.tsv")
 
