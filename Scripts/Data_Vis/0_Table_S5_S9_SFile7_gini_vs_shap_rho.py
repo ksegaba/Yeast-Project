@@ -9,14 +9,12 @@
 
 import os
 import re
-import multiprocessing
 import pandas as pd
 import datatable as dt
 import numpy as np
 from scipy.stats import spearmanr
 from tqdm import tqdm
 from scipy.stats import ks_2samp
-from functools import partial
 
 os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
