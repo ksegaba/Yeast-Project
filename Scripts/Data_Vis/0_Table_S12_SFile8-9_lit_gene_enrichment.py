@@ -343,10 +343,10 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
     enrich_res = pd.DataFrame(enrich_res)
     enrich_res.columns = ["Model Type", "DataType", "ImpType", "Env",
                           "percentile", "percentile_rank_value", "LitGeneList",
-                          f"Is benchmark & in top {1-int(percentile*100)}%",
-                          f"Is benchmark & not in top {1-int(percentile*100)}%",
-                          f"Not benchmark & in top {1-int(percentile*100)}%",
-                          f"Not benchmark & not in top {1-int(percentile*100)}%", "Odds Ratio",
+                          f"Is benchmark & in top {100-int(percentile*100)}%",
+                          f"Is benchmark & not in top {100-int(percentile*100)}%",
+                          f"Not benchmark & in top {100-int(percentile*100)}%",
+                          f"Not benchmark & not in top {100-int(percentile*100)}%", "Odds Ratio",
                           "p-value", "log2(odds ratio)", "log10(p-value)", "direction"]
     enrich_res_sub = enrich_res.loc[enrich_res["p-value"] != 1.0, :]
     q_values = false_discovery_control(
