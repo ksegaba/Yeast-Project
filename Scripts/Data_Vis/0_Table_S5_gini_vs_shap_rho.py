@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 
 ################################################################################
-# TABLE S4
+# In this script, I do the following:
+# 1. Combine the average Gini importances for all environments (Table S9 & Supplementary data file 7)
+# 2. Combine the average absolute SHAP values for all environments (Table S9 & Supplementary data file 7)
+# 3. Calculate spearman's rho correlations between Gini and SHAP values for each environment (Table S5)
 ################################################################################
 
 import os
+import re
 import multiprocessing
 import pandas as pd
 import datatable as dt
@@ -35,235 +39,291 @@ mapping = {"YPACETATE": "YP Acetate 2%", "YPD14": "YPD 14ยบC", "YPD40": "YPD 40ย
            "YPRIBOSE": "YP Ribose 2%", "YPGLYCEROL": "YP Glycerol 2%",
            "YPXYLOSE": "YP Xylose 2%", "YPSORBITOL": "YP Sorbitol 2%"}
 
-# SPEARMAN'S RHO CORRELATIONS BETWEEN IMPORTANCE MEASURES
+# read feature to gene map files; will be used throughout the script
+map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED.tsv",
+                       sep="\t", header=None, names=["snp", "chr", "pos", "gene"])
+map_orfs = pd.read_csv(
+    "Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t")
+map_snps.merge(map_orfs, how="inner", on="gene").gene.nunique()  # 5370 genes
+map_snps["gene_with_intergenic"] = map_snps.apply(
+    lambda row: f"intergenic//{row['snp']}" if row["gene"] == "intergenic" else row["gene"], axis=1)
+
+################################################################################
+# 1. Combine the average Gini importances for all environments
+################################################################################
+# paths to feature importance score files of optimized and complete RF models
+# SNP optimized and complete RF modeling results
+dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/fs"
+snp_rf_res = pd.read_csv(
+    "Scripts/Data_Vis/Section_2/RESULTS_RF_SNPs_FS.txt", sep="\t")
+snp_optimized_files = [os.path.join(dir, f"{x}_imp_with_actual_feature_names_09102025")
+                       for x in snp_rf_res['ID']]  # optimized RF models
+dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/baseline"
+snp_complete_files = [os.path.join(
+    dir, f"{x}_rf_baseline_imp_with_actual_feature_names_09102025") for x in mapping.keys()]  # complete RF models
+
+# ORF pres/abs optimized and complete RF modeling results
+dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/fs"
+pav_rf_res = pd.read_csv(
+    "Scripts/Data_Vis/Section_2/RESULTS_RF_PAVs_FS.txt", sep="\t")
+pav_fs_files = [os.path.join(dir, f"{x}_imp") for x in pav_rf_res['ID']]
+cnv_rf_res = pd.read_csv(
+    "Scripts/Data_Vis/Section_2/RESULTS_RF_CNVs_FS.txt", sep="\t")  # CNV FS results
+cnv_fs_files = [os.path.join(dir, f"{x}_imp") for x in cnv_rf_res['ID']]
+dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/baseline"
+pav_complete_files = [os.path.join(
+    dir, f"{x}_pav_baseline_imp") for x in mapping.keys()]
+cnv_complete_files = [os.path.join(
+    dir, f"{x}_cnv_baseline_imp") for x in mapping.keys()]
+
+
+def combine_imp_indiv(imp_files, map=map_snps, dtype="snp", save="", mapping=mapping):
+    # combine gini importance for all envs per data type
+    for i, env in enumerate(mapping.keys()):
+        print(env)
+        # Read gini importance file
+        file = [f for f in imp_files if env in f]
+        print(len(file))  # should be 1
+        imp = dt.fread(file[0]).to_pandas()
+        imp.set_index(imp.iloc[:, 0], inplace=True)  # feature names as index
+        imp = imp.loc[:, "mean_imp"]  # use mean gini importances
+        imp.rename(env, inplace=True)
+        imp = pd.DataFrame(imp)
+        if dtype != "snp":
+            imp.index = imp.apply(lambda x: re.sub(
+                "^X", "", x.name), axis=1)  # rename index
+            imp.index = imp.apply(lambda x: re.sub("\.", "-", x.name), axis=1)
+        if i == 0:
+            merged = imp.copy(deep=True)
+        else:
+            merged = pd.concat([merged, imp], axis=1,
+                               ignore_index=False)  # add to dictionary
+        del imp
+    print(merged.shape)
+    # map to genes
+    if dtype == "snp":
+        merged = map_snps[["snp", "gene", "gene_with_intergenic"]].merge(
+            merged, how="right", left_on="snp", right_index=True)
+    else:
+        merged = map_orfs[["orf", "gene"]].merge(
+            merged, how="right", left_on="orf", right_index=True)
+    merged.to_csv(save, sep="\t", index=False)
+    return merged
+
+
+combine_imp_indiv(snp_optimized_files, map=map_snps, dtype="snp",
+                  save="Scripts/Data_Vis/Section_3/RF_optimized_gini_snp.tsv")
+combine_imp_indiv(pav_fs_files, map=map_orfs, dtype="pav",
+                  save="Scripts/Data_Vis/Section_3/RF_optimized_gini_pav.tsv")
+combine_imp_indiv(cnv_fs_files, map=map_orfs, dtype="cnv",
+                  save="Scripts/Data_Vis/Section_3/RF_optimized_gini_cnv.tsv")
+combine_imp_indiv(snp_complete_files, map=map_snps, dtype="snp",
+                  save="Scripts/Data_Vis/Section_3/RF_complete_gini_snp.tsv")
+combine_imp_indiv(pav_complete_files, map=map_orfs, dtype="pav",
+                  save="Scripts/Data_Vis/Section_3/RF_complete_gini_pav.tsv")
+combine_imp_indiv(cnv_complete_files, map=map_orfs, dtype="cnv",
+                  save="Scripts/Data_Vis/Section_3/RF_complete_gini_cnv.tsv")
+
+################################################################################
+# 2. Combine the average absolute SHAP values for all environments
+################################################################################
+# paths to feature average absolute SHAP value files
+dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP"
+snp_shap_optimized_files = [f"{dir}/SNP/fs/{file}" for file in os.listdir(
+    dir + "/SNP/fs") if file.endswith("_with_actual_feature_names_09102025")]
+snp_shap_complete_files = [f"{dir}/SNP/baseline/{file}" for file in os.listdir(
+    dir + "/SNP/baseline") if file.endswith("_with_actual_feature_names_09102025")]
+pav_shap_optimized_files = [f"{dir}/PAV/fs/{file}" for file in os.listdir(
+    dir + "/PAV/fs") if file.startswith("SHAP_values_sorted_average_Y")]
+pav_shap_complete_files = [f"{dir}/PAV/baseline/{file}" for file in os.listdir(
+    dir + "/PAV/baseline") if file.startswith("SHAP_values_sorted_average_Y")]
+cnv_shap_optimized_files = [f"{dir}/CNV/fs/{file}" for file in os.listdir(
+    dir + "/CNV/fs") if file.startswith("SHAP_values_sorted_average_Y")]
+cnv_shap_complete_files = [f"{dir}/CNV/baseline/{file}" for file in os.listdir(
+    dir + "/CNV/baseline") if file.startswith("SHAP_values_sorted_average_Y")]
+
+
+def combine_shap_indiv(shap_files, map=map_snps, merged={}, dtype="snp", save="", mapping=mapping):
+    # combine shap values for all envs per data type
+    for i, env in enumerate(mapping.keys()):
+        print(env)
+        # Read SHAP file
+        file = [f for f in shap_files if env in f]
+        print(len(file))  # should be 1
+        shap = dt.fread(file[0]).to_pandas()
+        shap.set_index(shap.iloc[:, 0], inplace=True)
+        if dtype == "snp":
+            shap = shap.iloc[:, 2:]  # only the numeric columns
+            shap.rename(columns={"C2": env}, inplace=True)
+        if dtype != "snp":
+            shap = shap.iloc[:, 1:]
+            shap.rename(columns={"C1": env}, inplace=True)
+            shap.index = shap.apply(lambda x: re.sub(
+                "^X", "", x.name), axis=1)  # rename index
+            shap.index = shap.apply(
+                lambda x: re.sub("\.", "-", x.name), axis=1)
+        if i == 0:
+            merged = shap.copy(deep=True)
+        else:
+            merged = pd.concat([merged, shap], axis=1,
+                               ignore_index=False)  # add to dictionary
+        del shap
+    print(merged.shape)
+    # map to genes
+    if dtype == "snp":
+        merged = map_snps[["snp", "gene", "gene_with_intergenic"]].merge(
+            merged, how="right", left_on="snp", right_index=True)
+        merged.iloc[1:, :].to_csv(save, sep="\t", index=False)
+    else:
+        merged = map_orfs[["orf", "gene"]].merge(
+            merged, how="right", left_on="orf", right_index=True)
+        merged.to_csv(save, sep="\t", index=False)
+    return merged
+
+
+combine_shap_indiv(snp_shap_optimized_files, map=map_snps, dtype="snp",
+                   save="Scripts/Data_Vis/Section_3/RF_optimized_shap_snp.tsv")
+combine_shap_indiv(pav_shap_optimized_files, map=map_orfs, dtype="pav",
+                   save="Scripts/Data_Vis/Section_3/RF_optimized_shap_pav.tsv")
+combine_shap_indiv(cnv_shap_optimized_files, map=map_orfs, dtype="cnv",
+                   save="Scripts/Data_Vis/Section_3/RF_optimized_shap_cnv.tsv")
+combine_shap_indiv(snp_shap_complete_files, map=map_snps, dtype="snp",
+                   save="Scripts/Data_Vis/Section_3/RF_complete_shap_snp.tsv")
+combine_shap_indiv(pav_shap_complete_files, map=map_orfs, dtype="pav",
+                   save="Scripts/Data_Vis/Section_3/RF_complete_shap_pav.tsv")
+combine_shap_indiv(cnv_shap_complete_files, map=map_orfs, dtype="cnv",
+                   save="Scripts/Data_Vis/Section_3/RF_complete_shap_cnv.tsv")
+
+################################################################################
+# 3. Calculate spearman's rho correlations between Gini and SHAP values for each environment.
+################################################################################
 res = [["Model Type", "Data Type", "Env", "rho", "pval", "NumShared"]]
 for data_type in ["snp", "pav", "cnv"]:
-    # Feature selection models
+    # Optimized RF models
     gini = dt.fread(
-        f"Scripts/Data_Vis/Section_4/RF_FS_imp_{data_type}.tsv").to_pandas()
+        f"Scripts/Data_Vis/Section_3/RF_optimized_gini_{data_type}.tsv").to_pandas()
     shap = dt.fread(
-        f"Scripts/Data_Vis/Section_4/RF_FS_shap_{data_type}.tsv").to_pandas()
+        f"Scripts/Data_Vis/Section_3/RF_optimized_shap_{data_type}.tsv").to_pandas()
     #
-    # Baseline models
-    gini_base = dt.fread(
-        f"Scripts/Data_Vis/Section_4/RF_baseline_imp_{data_type}.tsv").to_pandas()
-    shap_base = dt.fread(
-        f"Scripts/Data_Vis/Section_4/RF_baseline_shap_{data_type}.tsv").to_pandas()
+    # Complete RF models
+    gini_comp = dt.fread(
+        f"Scripts/Data_Vis/Section_3/RF_complete_gini_{data_type}.tsv").to_pandas()
+    shap_comp = dt.fread(
+        f"Scripts/Data_Vis/Section_3/RF_complete_shap_{data_type}.tsv").to_pandas()
     if data_type == "snp":
         gini.set_index("snp", inplace=True)
         shap.set_index("snp", inplace=True)
-        gini_base.set_index("snp", inplace=True)
-        shap_base.set_index("snp", inplace=True)
+        gini_comp.set_index("snp", inplace=True)
+        shap_comp.set_index("snp", inplace=True)
     else:
         gini.set_index("orf", inplace=True)
         shap.set_index("orf", inplace=True)
-        gini_base.set_index("orf", inplace=True)
-        shap_base.set_index("orf", inplace=True)
+        gini_comp.set_index("orf", inplace=True)
+        shap_comp.set_index("orf", inplace=True)
     #
     # Convert data to rank percentiles
-    # just FS features #+ remaining baseline features
-    gini_env_rank_out = pd.DataFrame()
+    gini_env_rank_out = pd.DataFrame()  # just FS features
     shap_env_rank_out = pd.DataFrame()
-    # gini_rank_out = pd.DataFrame() # just FS features
-    # shap_rank_out = pd.DataFrame()
-    gini_base_rank_out = pd.DataFrame()  # just baseline features
-    shap_base_rank_out = pd.DataFrame()
+    gini_comp_rank_out = pd.DataFrame()  # just baseline features
+    shap_comp_rank_out = pd.DataFrame()
     for env in mapping.keys():
-        # First rank the feature selection features
+        # First rank the optimized RF model features
         gini_env = gini.loc[:, env]
         shap_env = shap.loc[:, env]
         # remove the extra features from the feature selection dataset
         gini_env.dropna(inplace=True)
         shap_env.dropna(inplace=True)
-        # save the feature names for later
-        fs_gini_feat = gini_env[gini_env != 0].index
-        fs_shap_feat = shap_env[shap_env != 0].index
-        # Concatenate the remaining baseline model features to the end of
-        # the feature selection models (for proper ranking of FS features, so that none are lost)
-        # gini_env = pd.concat([gini_env,
-        #     gini_base.loc[~gini_base.index.isin(gini_env.index),env]], axis=0) # add the remaining features from baseline models
-        # shap_env = pd.concat([shap_env,
-        #     shap_base.loc[~shap_base.index.isin(shap_env.index),env]], axis=0)
-        # Drop features with zero importance
+        # drop features with zero importance
         gini_env = gini_env[gini_env != 0]
         shap_env = shap_env[shap_env != 0]
-        #
-        # Calculate the rank percentiles
-        gini_env.sort_values(ascending=False, inplace=True)
-        # ranks as percentiles (1= most important)
-        gini_env_rank = gini_env.rank(
+        # calculate the rank percentiles (1= most important)
+        gini_env_rank = gini_env.sort_values(ascending=False).rank(
             axis=0, method="average", numeric_only=True, pct=True)
-        shap_env_rank = shap_env.abs().sort_values(
-            ascending=False)  # sort values by absolute shap value
-        # based on absolute average shap value
-        shap_env_rank = shap_env_rank.rank(
+        shap_env_rank = shap_env.sort_values(ascending=False).rank(
             axis=0, method="average", numeric_only=True, pct=True)
         gini_env_rank_out = pd.concat(
             [gini_env_rank_out, gini_env_rank], axis=1, ignore_index=False)
         shap_env_rank_out = pd.concat(
             [shap_env_rank_out, shap_env_rank], axis=1, ignore_index=False)
-        # drop the baseline features (keep only the feature selection features)
-        # gini_env_rank = gini_env_rank[fs_gini_feat]
-        # shap_env_rank = shap_env_rank[fs_shap_feat]
-        # gini_rank_out = pd.concat([gini_rank_out, gini_env_rank], axis=1, ignore_index=False)
-        # shap_rank_out = pd.concat([shap_rank_out, shap_env_rank], axis=1, ignore_index=False)
-        # Now rank the baseline features
-        gini_base_env = gini_base.loc[:, env].dropna()
-        shap_base_env = shap_base.loc[:, env].dropna()
-        gini_base_env = gini_base_env[gini_base_env != 0]
-        shap_base_env = shap_base_env[shap_base_env != 0]
-        gini_base_env.sort_values(ascending=False, inplace=True)
-        shap_base_env.sort_values(ascending=False, inplace=True)
-        gini_base_env_rank = gini_base_env.rank(
+        #
+        # Now rank the complete RF model features
+        gini_comp_env = gini_comp.loc[:, env].dropna()
+        shap_comp_env = shap_comp.loc[:, env].dropna()
+        gini_comp_env = gini_comp_env[gini_comp_env != 0]
+        shap_comp_env = shap_comp_env[shap_comp_env != 0]
+        gini_comp_env_rank = gini_comp_env.sort_values(ascending=False).rank(
             axis=0, method="average", numeric_only=True, pct=True)
-        shap_base_env_rank = shap_base_env.abs().rank(
+        shap_comp_env_rank = shap_comp_env.sort_values(ascending=False).rank(
             axis=0, method="average", numeric_only=True, pct=True)
-        gini_base_rank_out = pd.concat(
-            [gini_base_rank_out, gini_base_env_rank], axis=1, ignore_index=False)
-        shap_base_rank_out = pd.concat(
-            [shap_base_rank_out, shap_base_env_rank], axis=1, ignore_index=False)
-    # gini_env_rank_out.to_csv(
-    #     f"Scripts/Data_Vis/Section_4/RF_FS_imp_{data_type}_rank_per.tsv", sep="\t")
-    # shap_env_rank_out.to_csv(
-    #     f"Scripts/Data_Vis/Section_4/RF_FS_shap_{data_type}_rank_per.tsv", sep="\t")
-    # # gini_env_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_plus_baseline_imp_{data_type}_rank_per.tsv", sep="\t")
-    # # shap_env_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_plus_baseline_shap_{data_type}_rank_per.tsv", sep="\t")
-    # # gini_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_imp_{data_type}_rank_per.tsv", sep="\t")
-    # # shap_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_shap_{data_type}_rank_per.tsv", sep="\t")
-    # gini_base_rank_out.to_csv(
-    #     f"Scripts/Data_Vis/Section_4/RF_baseline_imp_{data_type}_rank_per.tsv", sep="\t")
-    # shap_base_rank_out.to_csv(
-    #     f"Scripts/Data_Vis/Section_4/RF_baseline_shap_{data_type}_rank_per.tsv", sep="\t")
-    #
-    # Calculate spearman's rho
-    for env in mapping.keys():
-        # First, for the baseline features
-        df = pd.concat([gini_base_rank_out.loc[:, env],
-                       shap_base_rank_out.loc[:, env]], ignore_index=False, axis=1).dropna()
-        rho = df.corr(method=lambda x, y: spearmanr(
-            x, y, alternative="two-sided").statistic)
-        pval = df.corr(method=lambda x, y: spearmanr(
-            x, y, alternative="two-sided").pvalue)
-        res.append(["baseline", data_type, env,
-                   rho.iloc[0, 1], pval.iloc[0, 1], len(df)])
-        # Second, for the feature selection features
-        # df = pd.concat([gini_rank_out.loc[:,env], shap_rank_out.loc[:,env]], ignore_index=False, axis=1).dropna()
+        gini_comp_rank_out = pd.concat(
+            [gini_comp_rank_out, gini_comp_env_rank], axis=1, ignore_index=False)
+        shap_comp_rank_out = pd.concat(
+            [shap_comp_rank_out, shap_comp_env_rank], axis=1, ignore_index=False)
+        #
+        # Calculate spearman's rho
+        # First, for the optimized RF model features
         df = pd.concat([gini_env_rank_out.loc[:, env],
                        shap_env_rank_out.loc[:, env]], ignore_index=False, axis=1).dropna()
         rho = df.corr(method=lambda x, y: spearmanr(
             x, y, alternative="two-sided").statistic)
         pval = df.corr(method=lambda x, y: spearmanr(
             x, y, alternative="two-sided").pvalue)
-        res.append(["FS", data_type, env, rho.iloc[0, 1],
+        res.append(["optimized", data_type, env, rho.iloc[0, 1],
                    pval.iloc[0, 1], len(df)])
+        # Second, for the complete RF model features
+        df = pd.concat([gini_comp_rank_out.loc[:, env],
+                       shap_comp_rank_out.loc[:, env]], ignore_index=False, axis=1).dropna()
+        rho = df.corr(method=lambda x, y: spearmanr(
+            x, y, alternative="two-sided").statistic)
+        pval = df.corr(method=lambda x, y: spearmanr(
+            x, y, alternative="two-sided").pvalue)
+        res.append(["complete", data_type, env,
+                   rho.iloc[0, 1], pval.iloc[0, 1], len(df)])
+
 
 res = pd.DataFrame(res)
 res.columns = res.iloc[0, :]
 res = res.iloc[1:, :]
 res.sort_values(by='rho', ascending=False, inplace=True)
-res.to_csv("Scripts/Data_Vis/Section_4/Table_S4_gini_vs_shap_rank_per_corr.tsv",
+res.to_csv("Scripts/Data_Vis/Section_3/Table_S5_gini_vs_shap_rank_per_corr.tsv",
            sep="\t", index=False)
 
 # Is model performance correlated with the correlation between Gini and SHAP values?
 rho = pd.read_csv(
-    '/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/Section_4/Table_S4_gini_vs_shap_rank_per_corr.tsv', sep='\t')
+    'Scripts/Data_Vis/Section_3/Table_S5_gini_vs_shap_rank_per_corr.tsv', sep='\t')
 snp = pd.read_csv(
-    '/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/Section_2/RESULTS_RF_SNPs_FS.txt', sep='\t', index_col='Y')
+    'Scripts/Data_Vis/Section_2/RESULTS_RF_SNPs_FS.txt', sep='\t', index_col='Y')
 pav = pd.read_csv(
-    '/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/Section_2/RESULTS_RF_PAVs_FS.txt', sep='\t', index_col='Y')
+    'Scripts/Data_Vis/Section_2/RESULTS_RF_PAVs_FS.txt', sep='\t', index_col='Y')
 cnv = pd.read_csv(
-    '/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/Section_2/RESULTS_RF_CNVs_FS.txt', sep='\t', index_col='Y')
+    'Scripts/Data_Vis/Section_2/RESULTS_RF_CNVs_FS.txt', sep='\t', index_col='Y')
 
-r2_v_rho_snp = rho[(rho['Model Type'] == 'FS') & (rho['Data Type'] == 'snp')].\
+r2_v_rho_snp = rho[(rho['Model Type'] == 'optimized') & (rho['Data Type'] == 'snp')].\
     merge(snp['r2_test'], right_index=True, left_on="Env")
 # np.float64(-0.032360053556767396)
 r2_v_rho_snp[['rho', 'r2_test']].corr().iloc[0, 1]
 
-r2_v_rho_pav = rho[(rho['Model Type'] == 'FS') & (rho['Data Type'] == 'pav')].\
+r2_v_rho_pav = rho[(rho['Model Type'] == 'optimized') & (rho['Data Type'] == 'pav')].\
     merge(pav['r2_test'], right_index=True, left_on="Env")
 # np.float64(0.3300096647369571)
 r2_v_rho_pav[['rho', 'r2_test']].corr().iloc[0, 1]
 
-r2_v_rho_cnv = rho[(rho['Model Type'] == 'FS') & (rho['Data Type'] == 'cnv')].\
+r2_v_rho_cnv = rho[(rho['Model Type'] == 'optimized') & (rho['Data Type'] == 'cnv')].\
     merge(cnv['r2_test'], right_index=True, left_on="Env")
 # np.float64(0.287642642641329)
 r2_v_rho_cnv[['rho', 'r2_test']].corr().iloc[0, 1]
 
-r2_v_rho_snp = rho[(rho['Model Type'] == 'baseline') & (rho['Data Type'] == 'snp')].\
+r2_v_rho_snp = rho[(rho['Model Type'] == 'complete') & (rho['Data Type'] == 'snp')].\
     merge(snp['r2_test'], right_index=True, left_on="Env")
 # np.float64(-0.370472133387726)
 r2_v_rho_snp[['rho', 'r2_test']].corr().iloc[0, 1]
 
-r2_v_rho_pav = rho[(rho['Model Type'] == 'baseline') & (rho['Data Type'] == 'pav')].\
+r2_v_rho_pav = rho[(rho['Model Type'] == 'complete') & (rho['Data Type'] == 'pav')].\
     merge(pav['r2_test'], right_index=True, left_on="Env")
 # np.float64(0.2079527477389604)
 r2_v_rho_pav[['rho', 'r2_test']].corr().iloc[0, 1]
 
-r2_v_rho_cnv = rho[(rho['Model Type'] == 'baseline') & (rho['Data Type'] == 'cnv')].\
+r2_v_rho_cnv = rho[(rho['Model Type'] == 'complete') & (rho['Data Type'] == 'cnv')].\
     merge(cnv['r2_test'], right_index=True, left_on="Env")
 # np.float64(0.3529860550102224)
 r2_v_rho_cnv[['rho', 'r2_test']].corr().iloc[0, 1]
-
-
-# Hypothesis test to prove ranking distributions are not random
-# Use 0_Manuscript_Tables_slurm.sb to run the code below
-# SH said this is not necessary, we only do this when we have a point estimate and are comparing it to a distribution of means
-'''
-n = 1000000 # number of repetitions
-res = pd.read_csv("Scripts/Data_Vis/Section_4/Table_S4_gini_vs_shap_rank_per_corr.tsv", sep="\t")
-res["D_gini_mean"] = 0
-res["D_gini_sd"] = 0
-res["pval_gini_mean"] = 0
-res["pval_gini_sd"] = 0
-res["D_shap_mean"] = 0
-res["D_shap_sd"] = 0
-res["pval_shap_mean"] = 0
-res["pval_shap_sd"] = 0
-
-def get_rand_ranks(j, i):
-	""" Function to get random ranks and perform a KS test to compare to actual ranks"""
-	row = res.iloc[i,:]
-	# Read in optimized model (after feature selection) rank percentile datasets
-	gini_rank = dt.fread(f"Scripts/Data_Vis/Section_4/RF_FS_imp_{row['Data Type']}_rank_per.tsv").to_pandas()
-	shap_rank = dt.fread(f"Scripts/Data_Vis/Section_4/RF_FS_shap_{row['Data Type']}_rank_per.tsv").to_pandas()
-	gini_rank.set_index("C0", inplace=True)
-	shap_rank.set_index("C0", inplace=True)
-	actual_rank_gini = gini_rank.loc[:,row['Env']].dropna() # Drop extra features from other envs
-	actual_rank_shap = shap_rank.loc[:,row['Env']].dropna()
-
-	# Generate random ranks
-	rand_samp_gini = pd.Series(np.random.random_sample(size=len(actual_rank_gini)))
-	rand_samp_shap = pd.Series(np.random.random_sample(size=len(actual_rank_shap)))
-	rand_samp_gini.index = actual_rank_gini.index
-	rand_samp_shap.index = actual_rank_shap.index
-
-	## KS-test
-	D_gini, p_gini = ks_2samp(actual_rank_gini, rand_samp_gini, alternative="greater")
-	D_shap, p_shap = ks_2samp(actual_rank_shap, rand_samp_shap, alternative="greater")
-	
-	return (D_gini, p_gini, D_shap, p_shap)
-
-pool = multiprocessing.Pool(40)
-results = []
-for i in tqdm(range(len(res))):
-	row = res.iloc[i,:]
-	## Generate random ranks and perform KS test
-	result = pool.map(partial(get_rand_ranks, i=i), range(n), chunksize=1)
-	results.append(result)
-	
-	## Unpack KS test results and add to res table
-	gini_D, gini_p, shap_D, shap_p = zip(*results[i])
-	res.iloc[i, res.columns.get_loc("D_gini_mean")] = np.mean(gini_D)
-	res.iloc[i, res.columns.get_loc("D_gini_sd")] = np.std(gini_D)
-	res.iloc[i, res.columns.get_loc("pval_gini_mean")] = np.mean(gini_p)
-	res.iloc[i, res.columns.get_loc("pval_gini_sd")] = np.std(gini_p)
-	res.iloc[i, res.columns.get_loc("D_shap_mean")] = np.mean(shap_D)
-	res.iloc[i, res.columns.get_loc("D_shap_sd")] = np.std(shap_D)
-	res.iloc[i, res.columns.get_loc("pval_shap_mean")] = np.mean(shap_p)
-	res.iloc[i, res.columns.get_loc("pval_shap_sd")] = np.std(shap_p)
-
-res.to_csv("Scripts/Data_Vis/Section_4/Table_S_gini_vs_shap_rank_per_corr_hypothesis_test_vfinal.tsv", sep="\t", index=False)
-
-pool.close()
-pool.join()
-'''
