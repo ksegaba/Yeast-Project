@@ -13,7 +13,7 @@ setwd("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 #### Evidence code-filtered GO term annotation file (see SNP_gene_set_enrichment.R)
 go <- read.csv("Data/yeast_GO/sgd_GO_BP.csv")
 # write.table(go, "Data/yeast_GO/sgd_GO_BP.tsv", sep="\t")
-length(unique(go$GO.ID)) # [1] 4909
+length(unique(go$GO.ID)) # [1] 4902
 
 #### ORF to gene map file
 map <- read.delim("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t", header=1)
