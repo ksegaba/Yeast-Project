@@ -11,10 +11,10 @@ suppressPackageStartupMessages(library(parallel))
 suppressPackageStartupMessages(library(GSEABase))
 
 ########### Reshape pathway data (doesn't have pathway descriptions) ###########
-setwd("/mnt/home/seguraab/Shiu_Lab/")
+setwd("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/")
 pwy <- read.csv("Co-function/Data/MetaCyc/All-genes-pathways-S288c.txt", sep="\t")
 pwy2 <- pwy %>% separate_rows(Pathways.of.gene, sep="[/]+") %>% as.data.frame()
-# write.csv(pwy2, "Co-function/Data/MetaCyc/All-genes-pathways-S288c_pivoted.txt", quote=F, row.names=F)
+write.csv(pwy2, "Co-function/Data/MetaCyc/All-genes-pathways-S288c_pivoted.txt", quote=F, row.names=F)
 
 ################################################################################
 #                         Pathway Enrichment Analysis                          #
@@ -25,24 +25,29 @@ pwy2 <- pwy %>% separate_rows(Pathways.of.gene, sep="[/]+") %>% as.data.frame()
 #                    Not in pathway|             |                             #
 ################################################################################
 # Prep gene-pathway map for background set
-setwd("/mnt/home/seguraab/Shiu_Lab/Project")
-all_genes <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt", header=F)
+setwd("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
+all_genes <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED.tsv", sep="\t", header=F)
 colnames(all_genes) <- c("snp", "chr", "pos", "gene")
+all_genes <- all_genes[all_genes$gene!="intergenic",] # drop intergenic snps
+all_genes <- all_genes[!grepl(",", all_genes$gene),] # drop snps that mapped to multiple genes
+
 pwys <-  read.csv("../Co-function/Data/MetaCyc/All-genes-pathways-S288c_pivoted.txt")
 all_genes <- left_join(all_genes, pwys, by=c("gene"="Accession.1"), relationship="many-to-many")
 all_genes <- all_genes[,c("gene", "Pathways.of.gene")]
 all_genes <- all_genes[!duplicated(all_genes),]
 colnames(all_genes) <- c("gene", "pathway")
-# write.csv(all_genes, "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_pathway_map.csv", quote=F, row.names=F)
+all_genes$pathway <- trimws(all_genes$pathway, which="both") # strip white spaces
+all_genes$pathway <- na_if(all_genes$pathway, "") # replace "" with NA
+write.csv(all_genes, "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED_pathway_map.csv", quote=F, row.names=F)
 
 enrichment <- function(k, n, C, G){ 
     # determine direction of enrichment
     # if >= 1: + (overrepresented)
     # if < 1: - (underrepresented)
-    # k: number of genes in cluster with GO
-    # n: total number of genes in cluster
-    # C: total number of genes (in cluster + background) with GO
-    # G: total number of genes (in cluster + background)
+    # k: number of genes in target_list with GO
+    # n: total number of genes in target_list
+    # C: total number of genes (in target_list + background) with GO
+    # G: total number of genes (in target_list + background)
     return((k/C)/(n/G))
 }
 
@@ -118,8 +123,8 @@ pwy_enrichment <- function(f){
 
 
 # Read in top features' (FS) average SHAP values files
-dir <- "/mnt/home/seguraab/Shiu_Lab/Project/Scripts/Genomic_Prediction_RF/GO_Enrichment/SNPs_fs" # path to FS average SHAP files
+dir <- "/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/Section_3/GO_Enrichment/SNPs_fs" # path to optimized gini files
 files <- list.files(path=dir, pattern="^Genes_", full.names=TRUE, recursive=FALSE)
 
-mclapply(X=files, FUN=pwy_enrichment, mc.cores=35) # match go to orfs
+mclapply(X=files, FUN=pwy_enrichment, mc.cores=35) #35 match go to orfs
 

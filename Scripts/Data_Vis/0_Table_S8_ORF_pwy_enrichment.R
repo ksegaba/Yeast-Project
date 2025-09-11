@@ -11,15 +11,15 @@ suppressPackageStartupMessages(library(parallel))
 suppressPackageStartupMessages(library(GSEABase))
 
 ############ Read pathway data (doesn't have pathway descriptions) #############
-setwd("/mnt/home/seguraab/Shiu_Lab/Co-function/Data/MetaCyc/")
+setwd("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Co-function/Data/MetaCyc/")
 pwy <- read.csv("All-genes-pathways-S288c_pivoted.txt")
 
 ########################### Map pathways to ORFs ###########################
-setwd("/mnt/home/seguraab/Shiu_Lab/Project/")
-genes <- read.delim("Data/Peter_2018/final_map_orf_to_gene_CORRECTED.tsv", sep="\t", header=1)
+setwd("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/")
+genes <- read.delim("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t", header=1)
 pwy2 <- left_join(pwy, genes, by=c("Accession.1"="gene")) # merge
 write.csv(pwy2, 
-    "Data/Peter_2018/ORFs_and_S288C_genes_pwy_all_CORRECTED.csv", quote=F, row.names=F)
+    "Data/Peter_2018/ORFs_and_S288C_genes_pwy_all_CORRECTED_16_removed.csv", quote=F, row.names=F)
 
 ################################################################################
 #                         Pathway Enrichment Analysis                          #
@@ -46,10 +46,10 @@ enrichment <- function(k, n, C, G){
     # determine direction of enrichment
     # if >= 1: + (overrepresented)
     # if < 1: - (underrepresented)
-    # k: number of genes in cluster with GO
-    # n: total number of genes in cluster
-    # C: total number of genes (in cluster + background) with GO
-    # G: total number of genes (in cluster + background)
+    # k: number of genes in target list with GO
+    # n: total number of genes in target list
+    # C: total number of genes (in target list + background) with GO
+    # G: total number of genes (in target list + background)
     return((k/C)/(n/G))
 }
 
@@ -128,9 +128,9 @@ pwy_enrichment <- function(f){
 
 
 # Read in top features' (FS) average SHAP values files
-dir <- "Scripts/Genomic_Prediction_RF/GO_Enrichment/PAVs_fs"
+dir <- "Scripts/Data_Vis/Section_3/GO_Enrichment/PAVs_fs"
 pav_files <- list.files(path=dir, pattern="^Genes_[A-Z0-9]+_", full.names=T)
-dir <- "Scripts/Genomic_Prediction_RF/GO_Enrichment/CNVs_fs"
+dir <- "Scripts/Data_Vis/Section_3/GO_Enrichment/CNVs_fs"
 cnv_files <- list.files(path=dir, pattern="^Genes_[A-Z0-9]+_", full.names=T)
 
 mclapply(X=pav_files, FUN=pwy_enrichment, mc.cores=35)

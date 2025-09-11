@@ -8,7 +8,7 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(parallel))
 suppressPackageStartupMessages(library(GSEABase))
 
-setwd("/mnt/home/seguraab/Shiu_Lab/Project")
+setwd("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
 #### Evidence code-filtered GO term annotation file (see SNP_gene_set_enrichment.R)
 go <- read.csv("Data/yeast_GO/sgd_GO_BP.csv")
@@ -41,9 +41,9 @@ get_genes <- function(f, path){
     name <- paste("Genes_", name, sep="")
     write.table(out, paste(file.path(path, name), "tsv", sep="."), sep="\t", quote=F, row.names=F)
 }
-path <- as.character("Scripts/Genomic_Prediction_RF/GO_Enrichment/PAVs_fs")
+path <- as.character("Scripts/Data_Vis/Section_3/GO_Enrichment/PAVs_fs")
 mclapply(pav_files, get_genes, path, mc.cores=5) #35
-path <- as.character("Scripts/Genomic_Prediction_RF/GO_Enrichment/CNVs_fs")
+path <- as.character("Scripts/Data_Vis/Section_3/GO_Enrichment/CNVs_fs")
 mclapply(cnv_files, get_genes, path, mc.cores=5) #35
 
 ################################################################################
@@ -55,9 +55,9 @@ mclapply(cnv_files, get_genes, path, mc.cores=5) #35
 #                    Not in GO term|            |                              #
 ################################################################################
 ### Get files with genes
-dir <- "Scripts/Genomic_Prediction_RF/GO_Enrichment/PAVs_fs"
+dir <- "Scripts/Data_Vis/Section_3/GO_Enrichment/PAVs_fs"
 pav_files <- list.files(path=dir, pattern="^Genes_[A-Z0-9]+", full.names=T)
-dir <- "Scripts/Genomic_Prediction_RF/GO_Enrichment/CNVs_fs"
+dir <- "Scripts/Data_Vis/Section_3/GO_Enrichment/CNVs_fs"
 cnv_files <- list.files(path=dir, pattern="^Genes_[A-Z0-9]+", full.names=T)
 
 ### Map all ORFs to GO terms - prep for background set
@@ -76,10 +76,10 @@ enrichment <- function(k, n, C, G){
     # Determine the direction of enrichment
     # if >= 1: + (overrepresented)
     # if < 1: - (underrepresented)
-    # k: number of ORFs in cluster with GO
-    # n: total number of ORFs in cluster
-    # C: total number of ORFs (in cluster + background) with GO
-    # G: total number of ORFs (in cluster + background)
+    # k: number of ORFs in target list with GO
+    # n: total number of ORFs in target list
+    # C: total number of ORFs (in target list + background) with GO
+    # G: total number of ORFs (in target list + background)
     return((k/C)/(n/G))
 }
 
