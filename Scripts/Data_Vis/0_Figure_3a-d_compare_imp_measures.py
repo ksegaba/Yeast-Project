@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 ############################################################################
-# Figure 3 & S4
+# This script generates:
+# 1. Figure 3A (SHAP variant comparison heatmap for optimized RF models)
+# 2. Figures S4A-E (A-B: Gini vs SHAP heatmap for complete RF models; C-E: Gini
+#    or SHAP variant comparison heatmaps for complete and/or optimized RF models)
 ############################################################################
 
 import os
@@ -11,304 +14,85 @@ from scipy.stats import spearmanr
 
 os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
+# Only plot for these environments
 target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
                "YPDSODIUMMETAARSENITE"]
 
-# # 3a. Gini vs SHAP kernel density plots for baseline models
-# # Based on average values
-# res = {"baseline": {"snp": {}, "pav": {}, "cnv": {}},
-#        "optimized": {"snp": {}, "pav": {}, "cnv": {}}}
-# for data_type in ["snp", "pav", "cnv"]:
-#     gini_base_rank = pd.read_csv(
-#         f"Scripts/Data_Vis/Section_4/RF_baseline_imp_{data_type}.tsv", sep="\t", index_col=0)
-#     shap_base_rank = pd.read_csv(
-#         f"Scripts/Data_Vis/Section_4/RF_baseline_shap_{data_type}.tsv", sep="\t", index_col=0)
-
-#     for env in target_envs:
-#         df = pd.concat([gini_base_rank.loc[:, env], shap_base_rank.loc[:, env]],
-#                        ignore_index=False, axis=1).dropna()
-#         df = df.abs().rank(pct=True)
-
-#         # Calculate spearman correlation
-#         r, p = spearmanr(df.iloc[:, 0], df.iloc[:, 1])
-#         res["baseline"][data_type][env] = {"r": r, "p": p, "n": len(df)}
-
-#         # # Plotting
-#         # sns.kdeplot(x=df.iloc[:,0], y=df.iloc[:,1], cmap="viridis", fill=True,
-#         #     cbar=True, bw_adjust=.5)
-#         # plt.xlabel("Gini rank percentile")
-#         # plt.ylabel("SHAP rank percentile")
-#         # plt.title(f"{data_type}: {env}")
-#         # plt.tight_layout()
-#         # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_baseline_gini_vs_shap_rank_per_{data_type}_{env}.pdf")
-#         # plt.close()
-
-#     del gini_base_rank, shap_base_rank
-
-# # 3b. Gini vs SHAP kernel density plots for optimized models
-# for data_type in ["snp", "pav", "cnv"]:
-#     gini_opt_rank = pd.read_csv(
-#         f"Scripts/Data_Vis/Section_4/RF_FS_imp_{data_type}.tsv", sep="\t", index_col=0)
-#     shap_opt_rank = pd.read_csv(
-#         f"Scripts/Data_Vis/Section_4/RF_FS_shap_{data_type}.tsv", sep="\t", index_col=0)
-
-#     for env in target_envs:
-#         df = pd.concat([gini_opt_rank.loc[:, env], shap_opt_rank.loc[:, env]],
-#                        ignore_index=False, axis=1).dropna()
-#         df = df.abs().rank(pct=True)
-
-#         # Calculate spearman correlation
-#         r, p = spearmanr(df.iloc[:, 0], df.iloc[:, 1])
-#         res["optimized"][data_type][env] = {"r": r, "p": p, "n": len(df)}
-
-#         # # Plotting
-#         # sns.kdeplot(x=df.iloc[:,0], y=df.iloc[:,1], cmap="viridis", fill=True,
-#         #     cbar=True, bw_adjust=.5)
-#         # plt.xlabel("Gini rank percentile")
-#         # plt.ylabel("SHAP rank percentile")
-#         # plt.title(f"{data_type}: {env}")
-#         # plt.tight_layout()
-#         # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_optimized_gini_vs_shap_rank_per_{data_type}_{env}.pdf")
-#         # plt.close()
-
-#     del gini_opt_rank, shap_opt_rank
-
-# # Save the pandas rank percentile results
-# out = pd.DataFrame.from_dict({(i, j, k, h): res[i][j][k][h]
-#                               for i in res.keys()
-#                               for j in res[i].keys()
-#                               for k in res[i][j].keys()
-#                               for h in res[i][j][k].keys()},
-#                              orient='index')
-# out.index = pd.MultiIndex.from_tuples(
-#     out.index, names=["model", "variant", "env", "stat"])
-# out = out.pivot_table(
-#     index=["model", "variant", "env"], columns="stat", values=0)
-# out.to_csv("Scripts/Data_Vis/Section_4/Figure_3_gini_vs_shap_rank_per_pd_spearman.tsv",
-#            sep="\t")
-
-# ## 3c. Genetic variant comparisons: kernel density plots for baseline models
-# # Based on rank percentiles
-# res = {"imp": {}, "shap": {}}
-# for imp_type in ["imp", "shap"]:
-#     snp_base_rank = pd.read_csv(f"Scripts/Data_Vis/Section_4/RF_baseline_{imp_type}_snp.tsv", sep="\t")
-#     pav_base_rank = pd.read_csv(f"Scripts/Data_Vis/Section_4/RF_baseline_{imp_type}_pav.tsv", sep="\t")
-#     cnv_base_rank = pd.read_csv(f"Scripts/Data_Vis/Section_4/RF_baseline_{imp_type}_cnv.tsv", sep="\t")
-
-#     for env in target_envs:
-#         ## SNP vs PAV
-#         snp_pav = pd.concat([snp_base_rank.loc[:,["gene", env]].groupby("gene").max(),
-#                             pav_base_rank.loc[:,["gene", env]].groupby("gene").max()],
-#                             ignore_index=False, axis=1).dropna()
-#         snp_pav = snp_pav.abs().rank(pct=True)
-#         # snp_pav = snp_pav / len(snp_pav) # Calculate the rank percentiles
-#         # snp_pav.columns = ["SNP", "PAV"]
-
-#         ## SNP vs CNV
-#         snp_cnv = pd.concat([snp_base_rank.loc[:,["gene", env]].groupby("gene").max(),
-#                             cnv_base_rank.loc[:,["gene", env]].groupby("gene").max()],
-#                             ignore_index=False, axis=1).dropna()
-#         snp_cnv = snp_cnv.abs().rank(pct=True)
-#         # snp_cnv = snp_cnv / len(snp_cnv)
-#         # snp_cnv.columns = ["SNP", "CNV"]
-
-#         ## PAV vs CNV
-#         pav_cnv = pd.concat([pav_base_rank.loc[:, ["orf", env]].set_index("orf"),
-#                             cnv_base_rank.loc[:, ["orf", env]].set_index("orf")],
-#                             ignore_index=False, axis=1).dropna()
-#         pav_cnv = pav_cnv.abs().rank(pct=True)
-#         # pav_cnv = pav_cnv / len(pav_cnv)
-#         # pav_cnv.columns = ["PAV", "CNV"]
-
-#         # print(snp_pav.sort_values(by="SNP"),
-#         #       snp_cnv.sort_values(by="SNP"),
-#         #       pav_cnv.sort_values(by="PAV"))
-
-#         # Calculate spearman correlation
-#         snp_pav_r, snp_pav_p = spearmanr(snp_pav.iloc[:,0], snp_pav.iloc[:,1])
-#         snp_cnv_r, snp_cnv_p = spearmanr(snp_cnv.iloc[:,0], snp_cnv.iloc[:,1])
-#         pav_cnv_r, pav_cnv_p = spearmanr(pav_cnv.iloc[:,0], pav_cnv.iloc[:,1])
-#         res[imp_type][env] = {"SNP vs PAV": {"r": snp_pav_r, "p": snp_pav_p, "n": len(snp_pav), 'total_pavs': len(pav_base_rank), 'total_snps': len(snp_base_rank), 'total_cnvs': None},
-#                         "SNP vs CNV": {"r": snp_cnv_r, "p": snp_cnv_p, "n": len(snp_cnv), 'total_cnvs': len(cnv_base_rank), 'total_snps': len(snp_base_rank), 'total_pavs': None},
-#                         "PAV vs CNV": {"r": pav_cnv_r, "p": pav_cnv_p, "n": len(pav_cnv), 'total_pavs': len(pav_base_rank), 'total_cnvs': len(cnv_base_rank), 'total_snps': None}}
-
-#         # # Plotting
-#         # fig, ax = plt.subplots(1, 3, figsize=(15, 4))
-#         # sns.kdeplot(x=snp_pav.iloc[:,0], y=snp_pav.iloc[:,1], cmap="viridis",
-#         #             fill=True, cbar=True, bw_adjust=.5, ax=ax[0])
-#         # ax[0].set_xlabel(f"SNP {imp_type} rank percentile")
-#         # ax[0].set_ylabel(f"PAV {imp_type} rank percentile")
-#         # ax[0].set_title("SNP vs PAV")
-#         # sns.kdeplot(x=snp_cnv.iloc[:,0], y=snp_cnv.iloc[:,1], cmap="viridis",
-#         #             fill=True, cbar=True, bw_adjust=.5, ax=ax[1])
-#         # ax[1].set_xlabel(f"SNP {imp_type} rank percentile")
-#         # ax[1].set_ylabel(f"CNV {imp_type} rank percentile")
-#         # ax[1].set_title("SNP vs CNV")
-#         # sns.kdeplot(x=pav_cnv.iloc[:,0], y=pav_cnv.iloc[:,1], cmap="viridis",
-#         #             fill=True, cbar=True, bw_adjust=.5, ax=ax[2])
-#         # ax[2].set_xlabel(f"PAV {imp_type} rank percentile")
-#         # ax[2].set_ylabel(f"CNV {imp_type} rank percentile")
-#         # ax[2].set_title("PAV vs CNV")
-#         # plt.tight_layout()
-#         # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_{imp_type}_rank_per_{env}_variant_comparison_rank_per_pd.pdf") # rank per pandas
-#         # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_{imp_type}_rank_per_{env}_variant_comparison.pdf") # rank
-#         # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_{imp_type}_rank_per_{env}_variant_comparison_rank_per.pdf") # rank per manual
-#         # plt.close()
-
-#     del snp_base_rank, pav_base_rank, cnv_base_rank
-
-# # Save the pandas rank percentile results
-# out = pd.DataFrame.from_dict({(i, j, k, h): res[i][j][k][h]
-#                               for i in res.keys()
-#                               for j in res[i].keys()
-#                               for k in res[i][j].keys()
-#                               for h in res[i][j][k].keys()},
-#                        orient='index')
-# out.index = pd.MultiIndex.from_tuples(out.index, names=["imp_type", "env", "comparison", "stat"])
-# out = out.pivot_table(index=["imp_type", "env", "comparison"], columns="stat", values=0)
-# out.rename(index={"imp": "gini"}, inplace=True)
-# out.to_csv("Scripts/Data_Vis/Section_4/Table_S5_figure_3_baseline_rf_rank_per_pd_variant_comparison_spearman.tsv",
-#            sep="\t")
-# # Note: some of the PAV vs CNV comparisons have 7709 instead of 7708 genes bc a row with the index 'NaN' was not removed. All of these are actually 7708 genes.
-
-# ## 3c. Genetic variant comparisons: kernel density plots for optimized models
-# # Based on rank percentiles
-# res = {"imp": {}, "shap": {}}
-# for imp_type in ["imp", "shap"]:
-#     snp_base_rank = pd.read_csv(f"Scripts/Data_Vis/Section_4/RF_FS_{imp_type}_snp.tsv", sep="\t")
-#     pav_base_rank = pd.read_csv(f"Scripts/Data_Vis/Section_4/RF_FS_{imp_type}_pav.tsv", sep="\t")
-#     cnv_base_rank = pd.read_csv(f"Scripts/Data_Vis/Section_4/RF_FS_{imp_type}_cnv.tsv", sep="\t")
-
-#     if 'nan' in pav_base_rank.orf.astype(str).values:
-#         pav_base_rank = pav_base_rank[pav_base_rank.orf.astype(str).values != 'nan']
-#     if 'nan' in cnv_base_rank.orf.astype(str).values:
-#         cnv_base_rank = cnv_base_rank[cnv_base_rank.orf.astype(str).values != 'nan']
-#     if 'nan' in snp_base_rank.snp.astype(str).values:
-#         snp_base_rank = snp_base_rank[snp_base_rank.snp.astype(str).values != 'nan']
-#     print(len(pav_base_rank), len(cnv_base_rank), len(snp_base_rank))
-#     for env in target_envs:
-#         ## SNP vs PAV
-#         snp_pav = pd.concat([snp_base_rank.loc[:,["gene", env]].groupby("gene").max(),
-#                             pav_base_rank.loc[:,["gene", env]].groupby("gene").max()],
-#                             ignore_index=False, axis=1).dropna()
-#         snp_pav = snp_pav.abs().rank(pct=True)
-
-#         ## SNP vs CNV
-#         snp_cnv = pd.concat([snp_base_rank.loc[:,["gene", env]].groupby("gene").max(),
-#                             cnv_base_rank.loc[:,["gene", env]].groupby("gene").max()],
-#                             ignore_index=False, axis=1).dropna()
-#         snp_cnv = snp_cnv.abs().rank(pct=True)
-
-#         ## PAV vs CNV
-#         pav_cnv = pd.concat([pav_base_rank.loc[:, ["orf", env]].set_index("orf"),
-#                             cnv_base_rank.loc[:, ["orf", env]].set_index("orf")],
-#                             ignore_index=False, axis=1).dropna()
-#         # if 'nan' in pav_cnv.index.astype(str):
-#         #     pav_cnv = pav_cnv[pav_cnv.index.astype(str) != 'nan']
-#         pav_cnv = pav_cnv.abs().rank(pct=True)
-
-#         # Calculate spearman correlation
-#         snp_pav_r, snp_pav_p = spearmanr(snp_pav.iloc[:,0], snp_pav.iloc[:,1])
-#         snp_cnv_r, snp_cnv_p = spearmanr(snp_cnv.iloc[:,0], snp_cnv.iloc[:,1])
-#         pav_cnv_r, pav_cnv_p = spearmanr(pav_cnv.iloc[:,0], pav_cnv.iloc[:,1])
-#         res[imp_type][env] = {"SNP vs PAV": {"r": snp_pav_r, "p": snp_pav_p, "n": len(snp_pav), 'total_pavs': len(pav_base_rank[env].dropna()), 'total_snps': len(snp_base_rank[env].dropna()), 'total_cnvs': None},
-#                         "SNP vs CNV": {"r": snp_cnv_r, "p": snp_cnv_p, "n": len(snp_cnv), 'total_cnvs': len(cnv_base_rank[env].dropna()), 'total_snps': len(snp_base_rank[env].dropna()), 'total_pavs': None},
-#                         "PAV vs CNV": {"r": pav_cnv_r, "p": pav_cnv_p, "n": len(pav_cnv), 'total_pavs': len(pav_base_rank[env].dropna()), 'total_cnvs': len(cnv_base_rank[env].dropna()), 'total_snps': None}}
-
-#         # # Plotting
-#         # fig, ax = plt.subplots(1, 3, figsize=(15, 4))
-#         # sns.kdeplot(x=snp_pav.iloc[:,0], y=snp_pav.iloc[:,1], cmap="viridis",
-#         #             fill=True, cbar=True, bw_adjust=.5, ax=ax[0])
-#         # ax[0].set_xlabel(f"SNP {imp_type} rank percentile")
-#         # ax[0].set_ylabel(f"PAV {imp_type} rank percentile")
-#         # ax[0].set_title("SNP vs PAV")
-#         # sns.kdeplot(x=snp_cnv.iloc[:,0], y=snp_cnv.iloc[:,1], cmap="viridis",
-#         #             fill=True, cbar=True, bw_adjust=.5, ax=ax[1])
-#         # ax[1].set_xlabel(f"SNP {imp_type} rank percentile")
-#         # ax[1].set_ylabel(f"CNV {imp_type} rank percentile")
-#         # ax[1].set_title("SNP vs CNV")
-#         # sns.kdeplot(x=pav_cnv.iloc[:,0], y=pav_cnv.iloc[:,1], cmap="viridis",
-#         #             fill=True, cbar=True, bw_adjust=.5, ax=ax[2])
-#         # ax[2].set_xlabel(f"PAV {imp_type} rank percentile")
-#         # ax[2].set_ylabel(f"CNV {imp_type} rank percentile")
-#         # ax[2].set_title("PAV vs CNV")
-#         # plt.tight_layout()
-#         # plt.savefig(f"Scripts/Data_Vis/Section_4/Figure_3_{imp_type}_optimized_rank_per_{env}_variant_comparison_rank_per_pd.pdf") # rank per pandas
-#         # plt.close()
-
-#     del snp_base_rank, pav_base_rank, cnv_base_rank
-
-# # Save the pandas rank percentile results
-# out = pd.DataFrame.from_dict({(i, j, k, h): res[i][j][k][h]
-#                               for i in res.keys()
-#                               for j in res[i].keys()
-#                               for k in res[i][j].keys()
-#                               for h in res[i][j][k].keys()},
-#                        orient='index')
-# out.index = pd.MultiIndex.from_tuples(out.index, names=["imp_type", "env", "comparison", "stat"])
-# out = out.pivot_table(index=["imp_type", "env", "comparison"], columns="stat", values=0)
-# out.rename(index={"imp": "gini"}, inplace=True)
-# out.to_csv("Scripts/Data_Vis/Section_4/Table_S5_figure_3_optimized_rf_rank_per_pd_variant_comparison_spearman.tsv",
-#            sep="\t")
-# # Note: the PAV and CNV columns have 1 extra row in the total_... columns because the 'NaN' row was not removed in pav_base_rank etc.
-
-# S4A-B Heatmaps
-# ab_data = pd.read_csv(
-#     "Scripts/Data_Vis/Section_4/Figure_3_gini_vs_shap_rank_per_pd_spearman.tsv", sep="\t")
+# Figure S4A-B Gini vs SHAP Heatmaps
 ab_data = pd.read_csv(
-    "Scripts/Data_Vis/Section_4/Table_S4_gini_vs_shap_rank_per_corr.tsv", sep="\t")
+    "Scripts/Data_Vis/Section_3/Table_S5_gini_vs_shap_rank_per_corr.tsv", sep="\t")
+ab_data["annotations"] = ab_data.apply(
+    lambda x: f"{x.rho:.2f}\n({x.NumShared})", axis=1)
+complete_rho = ab_data.loc[(ab_data["Model Type"] == "complete") & (
+    ab_data.Env.isin(target_envs)), :].pivot_table(
+        index="Data Type", columns="Env", values="rho")
+complete_ann = ab_data.loc[(ab_data["Model Type"] == "complete") & (
+    ab_data.Env.isin(target_envs)), :].pivot(
+        index="Data Type", columns="Env", values="annotations")
+optimized_rho = ab_data.loc[(ab_data["Model Type"] == "optimized") & (
+    ab_data.Env.isin(target_envs)), :].pivot_table(
+        index="Data Type", columns="Env", values="rho")
+optimized_ann = ab_data.loc[(ab_data["Model Type"] == "optimized") & (
+    ab_data.Env.isin(target_envs)), :].pivot(
+        index="Data Type", columns="Env", values="annotations")
 
-# 3A
 fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-sns.heatmap(ab_data.loc[(ab_data["Model Type"] == "baseline") & (
-    ab_data.Env.isin(target_envs)), :].pivot_table(index="Data Type", columns="Env", values="rho"),
-    cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0],
-    cbar=True, square=True, center=0.5)
-sns.heatmap(ab_data.loc[(ab_data["Model Type"] == "FS") & (
-    ab_data.Env.isin(target_envs)), :].pivot_table(index="Data Type", columns="Env", values="rho"),
-    cmap="RdBu_r", annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[1],
-    cbar=True, square=True, center=0.5)
+sns.heatmap(complete_rho, cmap="RdBu_r", annot=complete_ann, fmt="",
+            annot_kws={"size": 6}, ax=ax[0], cbar=True, square=True, center=0.5)
+sns.heatmap(optimized_rho, cmap="RdBu_r", annot=optimized_ann, fmt="",
+            annot_kws={"size": 6}, ax=ax[1], cbar=True, square=True, center=0.5)
 ax[0].set_title("Gini vs SHAP Rank Percentiles Baseline Models")
 ax[1].set_title("Gini vs SHAP Rank Percentiles Optimized Models")
 cbar = ax[0].collections[0].colorbar
 cbar.set_label("rho")
-cbar = ax[1].collections[0].colorbar
-cbar.set_label("rho")
 plt.tight_layout()
 plt.savefig(
-    "Scripts/Data_Vis/Section_4/Figure_S4ab_gini_vs_shap_rank_per_pd_spearman_CORRECTED.pdf")
+    "Scripts/Data_Vis/Section_3/Figure_S4ab_gini_vs_shap_rank_per_pd_spearman.pdf")
 plt.close()
 
-# 3A, S4C-E Heatmaps
-# c_data = pd.read_csv(
-#     "Scripts/Data_Vis/Section_4/Table_S5_figure_3_baseline_rf_rank_per_pd_variant_comparison_spearman.tsv", sep="\t")
+# Figure 3A, S4C-E variant vs variant heatmaps
 c_data = pd.read_csv(
-    "Scripts/Data_Vis/Section_4/Table_S5_rank_per_corr_btwn_data_types_with_n_shared_genes_CORRECTED.tsv", sep="\t")
+    "Scripts/Data_Vis/Section_3/Table_S6_rank_per_corr_btwn_data_types_with_n_shared_genes.tsv", sep="\t")
+c_data["annotations"] = c_data.apply(
+    lambda x: f"{x.rho:.2f}\n({x.NumSharedGenes})", axis=1)
+gini_opt_rho = c_data.loc[(c_data["Importance Type"].str.contains("gini")) & (
+    c_data["Model Type"] == "optimized") & (c_data.Env.isin(target_envs)), :].pivot_table(
+    index="Comparison", columns="Env", values="rho")
+gini_opt_ann = c_data.loc[(c_data["Importance Type"].str.contains("gini")) & (
+    c_data["Model Type"] == "optimized") & (c_data.Env.isin(target_envs)), :].pivot(
+    index="Comparison", columns="Env", values="annotations")
+shap_opt_rho = c_data.loc[(c_data["Importance Type"].str.contains("SHAP")) & (
+    c_data["Model Type"] == "optimized") & (c_data.Env.isin(target_envs)), :].pivot_table(
+    index="Comparison", columns="Env", values="rho")
+shap_opt_ann = c_data.loc[(c_data["Importance Type"].str.contains("SHAP")) & (
+    c_data["Model Type"] == "optimized") & (c_data.Env.isin(target_envs)), :].pivot(
+    index="Comparison", columns="Env", values="annotations")
+gini_comp_rho = c_data.loc[(c_data["Importance Type"].str.contains("gini")) & (
+    c_data["Model Type"] == "complete") & (c_data.Env.isin(target_envs)), :].pivot_table(
+    index="Comparison", columns="Env", values="rho")
+gini_comp_ann = c_data.loc[(c_data["Importance Type"].str.contains("gini")) & (
+    c_data["Model Type"] == "complete") & (c_data.Env.isin(target_envs)), :].pivot(
+    index="Comparison", columns="Env", values="annotations")
+shap_comp_rho = c_data.loc[(c_data["Importance Type"].str.contains("SHAP")) & (
+    c_data["Model Type"] == "complete") & (c_data.Env.isin(target_envs)), :].pivot_table(
+    index="Comparison", columns="Env", values="rho")
+shap_comp_ann = c_data.loc[(c_data["Importance Type"].str.contains("SHAP")) & (
+    c_data["Model Type"] == "complete") & (c_data.Env.isin(target_envs)), :].pivot(
+    index="Comparison", columns="Env", values="annotations")
+
 fig, ax = plt.subplots(2, 2, figsize=(10, 10))
-sns.heatmap(c_data.loc[(c_data["Importance Type"].str.contains("gini")) & (
-    c_data["Model Type"] == "FS") & (c_data.Env.isin(target_envs)), :].
-    pivot_table(index="Comparison", columns="Env", values="rho"), cmap="RdBu_r",
-    annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0][0], cbar=True, square=True,
-    center=0)
-sns.heatmap(c_data.loc[(c_data["Importance Type"].str.contains("SHAP")) & (
-    c_data["Model Type"] == "FS") & (c_data.Env.isin(target_envs)), :].
-    pivot_table(index="Comparison", columns="Env", values="rho"), cmap="RdBu_r",
-    annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[0][1], cbar=True, square=True,
-    center=0)
-sns.heatmap(c_data.loc[(c_data["Importance Type"].str.contains("gini")) & (
-    c_data["Model Type"] == "baseline") & (c_data.Env.isin(target_envs)), :].
-    pivot_table(index="Comparison", columns="Env", values="rho"), cmap="RdBu_r",
-    annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[1][0], cbar=True, square=True,
-    center=0)
-sns.heatmap(c_data.loc[(c_data["Importance Type"].str.contains("SHAP")) & (
-    c_data["Model Type"] == "baseline") & (c_data.Env.isin(target_envs)), :].
-    pivot_table(index="Comparison", columns="Env", values="rho"), cmap="RdBu_r",
-    annot=True, annot_kws={"size": 7}, fmt=".2f", ax=ax[1][1], cbar=True, square=True,
-    center=0)
+sns.heatmap(gini_opt_rho, cmap="RdBu_r", annot=gini_opt_ann, fmt="",
+            annot_kws={"size": 6}, ax=ax[0][0], cbar=True, square=True, center=0)
+sns.heatmap(shap_opt_rho, cmap="RdBu_r", annot=shap_opt_ann, fmt="",
+            annot_kws={"size": 6}, ax=ax[0][1], cbar=True, square=True, center=0)
+sns.heatmap(gini_comp_rho, cmap="RdBu_r", annot=gini_comp_ann, fmt="",
+            annot_kws={"size": 6}, ax=ax[1][0], cbar=True, square=True, center=0)
+sns.heatmap(shap_comp_rho, cmap="RdBu_r", annot=shap_comp_ann, fmt="",
+            annot_kws={"size": 6}, ax=ax[1][1], cbar=True, square=True, center=0)
 ax[0][0].set_title("Gini, Variant comparison, Optimized Models")
 ax[0][1].set_title("SHAP, Variant comparison, Optimized Models")
-ax[1][0].set_title("Gini, Variant comparison, Baseline Models")
-ax[1][1].set_title("SHAP, Variant comparison, Baseline Models")
+ax[1][0].set_title("Gini, Variant comparison, Complete Models")
+ax[1][1].set_title("SHAP, Variant comparison, Complete Models")
 cbar = ax[0][0].collections[0].colorbar
 cbar.set_label("rho")
 cbar = ax[0][1].collections[0].colorbar
@@ -319,5 +103,5 @@ cbar = ax[1][1].collections[0].colorbar
 cbar.set_label("rho")
 plt.tight_layout()
 plt.savefig(
-    "Scripts/Data_Vis/Section_4/Figure_3c_rf_rank_per_variant_comparison_spearman_CORRECTED.pdf")
+    "Scripts/Data_Vis/Section_3/Figure_3a_S4c-e_rf_rank_per_variant_comparison_spearman.pdf")
 plt.close()
