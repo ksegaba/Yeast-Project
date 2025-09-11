@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 ################################################################################
-### TABLE S4
+# TABLE S4
 ################################################################################
 
 import os
@@ -14,37 +14,41 @@ from tqdm import tqdm
 from scipy.stats import ks_2samp
 from functools import partial
 
-os.chdir("/mnt/home/seguraab/Shiu_Lab/Project")
+os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
 # Isolate growth condition labels; will be used throughout the script
-mapping = {"YPACETATE":"YP Acetate 2%", "YPD14":"YPD 14ºC", "YPD40":"YPD 40ºC",
-		   "YPD42":"YPD 42ºC", "YPD6AU":"YPD 6-Azauracile 600 µg/ml",
-		   "YPDANISO10":"YPD Anisomycin 10 µg/ml", "YPDANISO20":"YPD Anisomycin 20 µg/ml",
-		   "YPDANISO50":"YPD Anisomycin 50 µg/ml", "YPDBENOMYL200":"YPD Benomyl 200 µg/ml",
-		   "YPDBENOMYL500":"YPD Benomyl 500 µg/ml", "YPDCAFEIN40":"YPD Caffeine 40 mM",
-		   "YPDCAFEIN50":"YPD Caffeine 50 mM", "YPDCHX05":"YPD Cycloheximide 0.5 µg/ml",
-		   "YPDCHX1":"YPD Cycloheximide 1 µg/ml", "YPDCUSO410MM":"YPD CuSO4 10 mM",
-		   "YPDDMSO":"YPD DMSO 6%", "YPDETOH":"YPD Ethanol 15%",
-		   "YPDFLUCONAZOLE":"YPD Fluconazole 20 µg/ml", "YPDFORMAMIDE4":"YPD Formamide 4%",
-		   "YPDFORMAMIDE5":"YPD Formamide 5%", "YPDHU":"YPD Hydroxyurea 30 mg/ml",
-		   "YPDKCL2M":"YPD KCL 2 M", "YPDLICL250MM":"YPD LiCl 250 mM",
-		   "YPDMV":"YPD Methylviologen 20 mM", "YPDNACL15M":"YPD NaCl 1.5 M",
-		   "YPDNACL1M":"YPD NaCl 1 M", "YPDNYSTATIN":"YPD Nystatin 10 µg/ml",
-		   "YPDSDS":"YPD SDS 0.2%", "YPDSODIUMMETAARSENITE":"YPD Sodium metaarsenite 2.5 mM",
-		   "YPETHANOL":"YP Ethanol 2%", "YPGALACTOSE":"YP Galactose 2%",
-		   "YPRIBOSE":"YP Ribose 2%", "YPGLYCEROL":"YP Glycerol 2%",
-		   "YPXYLOSE":"YP Xylose 2%", "YPSORBITOL":"YP Sorbitol 2%"}
+mapping = {"YPACETATE": "YP Acetate 2%", "YPD14": "YPD 14ºC", "YPD40": "YPD 40ºC",
+           "YPD42": "YPD 42ºC", "YPD6AU": "YPD 6-Azauracile 600 µg/ml",
+           "YPDANISO10": "YPD Anisomycin 10 µg/ml", "YPDANISO20": "YPD Anisomycin 20 µg/ml",
+           "YPDANISO50": "YPD Anisomycin 50 µg/ml", "YPDBENOMYL200": "YPD Benomyl 200 µg/ml",
+           "YPDBENOMYL500": "YPD Benomyl 500 µg/ml", "YPDCAFEIN40": "YPD Caffeine 40 mM",
+           "YPDCAFEIN50": "YPD Caffeine 50 mM", "YPDCHX05": "YPD Cycloheximide 0.5 µg/ml",
+           "YPDCHX1": "YPD Cycloheximide 1 µg/ml", "YPDCUSO410MM": "YPD CuSO4 10 mM",
+           "YPDDMSO": "YPD DMSO 6%", "YPDETOH": "YPD Ethanol 15%",
+           "YPDFLUCONAZOLE": "YPD Fluconazole 20 µg/ml", "YPDFORMAMIDE4": "YPD Formamide 4%",
+           "YPDFORMAMIDE5": "YPD Formamide 5%", "YPDHU": "YPD Hydroxyurea 30 mg/ml",
+           "YPDKCL2M": "YPD KCL 2 M", "YPDLICL250MM": "YPD LiCl 250 mM",
+           "YPDMV": "YPD Methylviologen 20 mM", "YPDNACL15M": "YPD NaCl 1.5 M",
+           "YPDNACL1M": "YPD NaCl 1 M", "YPDNYSTATIN": "YPD Nystatin 10 µg/ml",
+           "YPDSDS": "YPD SDS 0.2%", "YPDSODIUMMETAARSENITE": "YPD Sodium metaarsenite 2.5 mM",
+           "YPETHANOL": "YP Ethanol 2%", "YPGALACTOSE": "YP Galactose 2%",
+           "YPRIBOSE": "YP Ribose 2%", "YPGLYCEROL": "YP Glycerol 2%",
+           "YPXYLOSE": "YP Xylose 2%", "YPSORBITOL": "YP Sorbitol 2%"}
 
-## SPEARMAN'S RHO CORRELATIONS BETWEEN IMPORTANCE MEASURES
-res = [["Model Type", "Data Type", "Env", "rho", "pval"]]
+# SPEARMAN'S RHO CORRELATIONS BETWEEN IMPORTANCE MEASURES
+res = [["Model Type", "Data Type", "Env", "rho", "pval", "NumShared"]]
 for data_type in ["snp", "pav", "cnv"]:
     # Feature selection models
-    gini = dt.fread(f"Scripts/Data_Vis/Section_4/RF_FS_imp_{data_type}.tsv").to_pandas()
-    shap = dt.fread(f"Scripts/Data_Vis/Section_4/RF_FS_shap_{data_type}.tsv").to_pandas()
+    gini = dt.fread(
+        f"Scripts/Data_Vis/Section_4/RF_FS_imp_{data_type}.tsv").to_pandas()
+    shap = dt.fread(
+        f"Scripts/Data_Vis/Section_4/RF_FS_shap_{data_type}.tsv").to_pandas()
     #
     # Baseline models
-    gini_base = dt.fread(f"Scripts/Data_Vis/Section_4/RF_baseline_imp_{data_type}.tsv").to_pandas()
-    shap_base = dt.fread(f"Scripts/Data_Vis/Section_4/RF_baseline_shap_{data_type}.tsv").to_pandas()
+    gini_base = dt.fread(
+        f"Scripts/Data_Vis/Section_4/RF_baseline_imp_{data_type}.tsv").to_pandas()
+    shap_base = dt.fread(
+        f"Scripts/Data_Vis/Section_4/RF_baseline_shap_{data_type}.tsv").to_pandas()
     if data_type == "snp":
         gini.set_index("snp", inplace=True)
         shap.set_index("snp", inplace=True)
@@ -56,84 +60,152 @@ for data_type in ["snp", "pav", "cnv"]:
         gini_base.set_index("orf", inplace=True)
         shap_base.set_index("orf", inplace=True)
     #
-    ## Convert data to rank percentiles
-    gini_env_rank_out = pd.DataFrame() # just FS features #+ remaining baseline features
+    # Convert data to rank percentiles
+    # just FS features #+ remaining baseline features
+    gini_env_rank_out = pd.DataFrame()
     shap_env_rank_out = pd.DataFrame()
     # gini_rank_out = pd.DataFrame() # just FS features
     # shap_rank_out = pd.DataFrame()
-    gini_base_rank_out = pd.DataFrame() # just baseline features
+    gini_base_rank_out = pd.DataFrame()  # just baseline features
     shap_base_rank_out = pd.DataFrame()
     for env in mapping.keys():
-        #### First rank the feature selection features
-        # Concatenate the remaining baseline model features to the end of 
-        # the feature selection models (for proper ranking of FS features, so that none are lost)
-        gini_env = gini.loc[:,env]
-        shap_env = shap.loc[:,env]
-        gini_env.dropna(inplace=True) # remove the extra features from the feature selection dataset
+        # First rank the feature selection features
+        gini_env = gini.loc[:, env]
+        shap_env = shap.loc[:, env]
+        # remove the extra features from the feature selection dataset
+        gini_env.dropna(inplace=True)
         shap_env.dropna(inplace=True)
-        fs_gini_feat = gini_env[gini_env != 0].index # save the feature names for later
+        # save the feature names for later
+        fs_gini_feat = gini_env[gini_env != 0].index
         fs_shap_feat = shap_env[shap_env != 0].index
-        # gini_env = pd.concat([gini_env, 
+        # Concatenate the remaining baseline model features to the end of
+        # the feature selection models (for proper ranking of FS features, so that none are lost)
+        # gini_env = pd.concat([gini_env,
         #     gini_base.loc[~gini_base.index.isin(gini_env.index),env]], axis=0) # add the remaining features from baseline models
         # shap_env = pd.concat([shap_env,
         #     shap_base.loc[~shap_base.index.isin(shap_env.index),env]], axis=0)
-        gini_env = gini_env[gini_env != 0] # Drop features with zero importance
+        # Drop features with zero importance
+        gini_env = gini_env[gini_env != 0]
         shap_env = shap_env[shap_env != 0]
         #
         # Calculate the rank percentiles
         gini_env.sort_values(ascending=False, inplace=True)
-        gini_env_rank = gini_env.rank(axis=0, method="average", numeric_only=True, pct=True) # ranks as percentiles (1= most important)
-        shap_env_rank = shap_env.abs().sort_values(ascending=False) # sort values by absolute shap value
-        shap_env_rank = shap_env_rank.rank(axis=0, method="average", numeric_only=True, pct=True) # based on absolute shap value
-        gini_env_rank_out = pd.concat([gini_env_rank_out, gini_env_rank], axis=1, ignore_index=False)
-        shap_env_rank_out = pd.concat([shap_env_rank_out, shap_env_rank], axis=1, ignore_index=False)
+        # ranks as percentiles (1= most important)
+        gini_env_rank = gini_env.rank(
+            axis=0, method="average", numeric_only=True, pct=True)
+        shap_env_rank = shap_env.abs().sort_values(
+            ascending=False)  # sort values by absolute shap value
+        # based on absolute average shap value
+        shap_env_rank = shap_env_rank.rank(
+            axis=0, method="average", numeric_only=True, pct=True)
+        gini_env_rank_out = pd.concat(
+            [gini_env_rank_out, gini_env_rank], axis=1, ignore_index=False)
+        shap_env_rank_out = pd.concat(
+            [shap_env_rank_out, shap_env_rank], axis=1, ignore_index=False)
         # drop the baseline features (keep only the feature selection features)
         # gini_env_rank = gini_env_rank[fs_gini_feat]
         # shap_env_rank = shap_env_rank[fs_shap_feat]
         # gini_rank_out = pd.concat([gini_rank_out, gini_env_rank], axis=1, ignore_index=False)
         # shap_rank_out = pd.concat([shap_rank_out, shap_env_rank], axis=1, ignore_index=False)
-        #### Now rank the baseline features
-        gini_base_env = gini_base.loc[:,env].dropna()
-        shap_base_env = shap_base.loc[:,env].dropna()
+        # Now rank the baseline features
+        gini_base_env = gini_base.loc[:, env].dropna()
+        shap_base_env = shap_base.loc[:, env].dropna()
         gini_base_env = gini_base_env[gini_base_env != 0]
         shap_base_env = shap_base_env[shap_base_env != 0]
         gini_base_env.sort_values(ascending=False, inplace=True)
         shap_base_env.sort_values(ascending=False, inplace=True)
-        gini_base_env_rank = gini_base_env.rank(axis=0, method="average", numeric_only=True, pct=True)
-        shap_base_env_rank = shap_base_env.abs().rank(axis=0, method="average", numeric_only=True, pct=True)
-        gini_base_rank_out = pd.concat([gini_base_rank_out, gini_base_env_rank], axis=1, ignore_index=False)
-        shap_base_rank_out = pd.concat([shap_base_rank_out, shap_base_env_rank], axis=1, ignore_index=False)
-    gini_env_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_imp_{data_type}_rank_per.tsv", sep="\t")
-    shap_env_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_shap_{data_type}_rank_per.tsv", sep="\t")
-    # gini_env_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_plus_baseline_imp_{data_type}_rank_per.tsv", sep="\t")
-    # shap_env_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_plus_baseline_shap_{data_type}_rank_per.tsv", sep="\t")
-    # gini_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_imp_{data_type}_rank_per.tsv", sep="\t")
-    # shap_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_shap_{data_type}_rank_per.tsv", sep="\t")
-    gini_base_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_baseline_imp_{data_type}_rank_per.tsv", sep="\t")
-    shap_base_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_baseline_shap_{data_type}_rank_per.tsv", sep="\t")
+        gini_base_env_rank = gini_base_env.rank(
+            axis=0, method="average", numeric_only=True, pct=True)
+        shap_base_env_rank = shap_base_env.abs().rank(
+            axis=0, method="average", numeric_only=True, pct=True)
+        gini_base_rank_out = pd.concat(
+            [gini_base_rank_out, gini_base_env_rank], axis=1, ignore_index=False)
+        shap_base_rank_out = pd.concat(
+            [shap_base_rank_out, shap_base_env_rank], axis=1, ignore_index=False)
+    # gini_env_rank_out.to_csv(
+    #     f"Scripts/Data_Vis/Section_4/RF_FS_imp_{data_type}_rank_per.tsv", sep="\t")
+    # shap_env_rank_out.to_csv(
+    #     f"Scripts/Data_Vis/Section_4/RF_FS_shap_{data_type}_rank_per.tsv", sep="\t")
+    # # gini_env_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_plus_baseline_imp_{data_type}_rank_per.tsv", sep="\t")
+    # # shap_env_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_plus_baseline_shap_{data_type}_rank_per.tsv", sep="\t")
+    # # gini_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_imp_{data_type}_rank_per.tsv", sep="\t")
+    # # shap_rank_out.to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_shap_{data_type}_rank_per.tsv", sep="\t")
+    # gini_base_rank_out.to_csv(
+    #     f"Scripts/Data_Vis/Section_4/RF_baseline_imp_{data_type}_rank_per.tsv", sep="\t")
+    # shap_base_rank_out.to_csv(
+    #     f"Scripts/Data_Vis/Section_4/RF_baseline_shap_{data_type}_rank_per.tsv", sep="\t")
     #
-    ## Calculate spearman's rho
+    # Calculate spearman's rho
     for env in mapping.keys():
         # First, for the baseline features
-        df = pd.concat([gini_base_rank_out.loc[:,env], shap_base_rank_out.loc[:,env]], ignore_index=False, axis=1).dropna()
-        rho = df.corr(method=lambda x, y: spearmanr(x, y, alternative="two-sided").statistic)
-        pval = df.corr(method=lambda x, y: spearmanr(x, y, alternative="two-sided").pvalue)
-        res.append(["baseline", data_type, env, rho.iloc[0,1], pval.iloc[0,1]])
+        df = pd.concat([gini_base_rank_out.loc[:, env],
+                       shap_base_rank_out.loc[:, env]], ignore_index=False, axis=1).dropna()
+        rho = df.corr(method=lambda x, y: spearmanr(
+            x, y, alternative="two-sided").statistic)
+        pval = df.corr(method=lambda x, y: spearmanr(
+            x, y, alternative="two-sided").pvalue)
+        res.append(["baseline", data_type, env,
+                   rho.iloc[0, 1], pval.iloc[0, 1], len(df)])
         # Second, for the feature selection features
         # df = pd.concat([gini_rank_out.loc[:,env], shap_rank_out.loc[:,env]], ignore_index=False, axis=1).dropna()
-        df = pd.concat([gini_env_rank_out.loc[:,env], shap_env_rank_out.loc[:,env]], ignore_index=False, axis=1).dropna()
-        rho = df.corr(method=lambda x, y: spearmanr(x, y, alternative="two-sided").statistic)
-        pval = df.corr(method=lambda x, y: spearmanr(x, y, alternative="two-sided").pvalue)
-        res.append(["FS", data_type, env, rho.iloc[0,1], pval.iloc[0,1]])
+        df = pd.concat([gini_env_rank_out.loc[:, env],
+                       shap_env_rank_out.loc[:, env]], ignore_index=False, axis=1).dropna()
+        rho = df.corr(method=lambda x, y: spearmanr(
+            x, y, alternative="two-sided").statistic)
+        pval = df.corr(method=lambda x, y: spearmanr(
+            x, y, alternative="two-sided").pvalue)
+        res.append(["FS", data_type, env, rho.iloc[0, 1],
+                   pval.iloc[0, 1], len(df)])
 
 res = pd.DataFrame(res)
-res.columns = res.iloc[0,:]
-res = res.iloc[1:,:]
+res.columns = res.iloc[0, :]
+res = res.iloc[1:, :]
 res.sort_values(by='rho', ascending=False, inplace=True)
-res.to_csv("Scripts/Data_Vis/Section_4/Table_S4_gini_vs_shap_rank_per_corr.tsv", sep="\t", index=False)
+res.to_csv("Scripts/Data_Vis/Section_4/Table_S4_gini_vs_shap_rank_per_corr.tsv",
+           sep="\t", index=False)
+
+# Is model performance correlated with the correlation between Gini and SHAP values?
+rho = pd.read_csv(
+    '/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/Section_4/Table_S4_gini_vs_shap_rank_per_corr.tsv', sep='\t')
+snp = pd.read_csv(
+    '/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/Section_2/RESULTS_RF_SNPs_FS.txt', sep='\t', index_col='Y')
+pav = pd.read_csv(
+    '/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/Section_2/RESULTS_RF_PAVs_FS.txt', sep='\t', index_col='Y')
+cnv = pd.read_csv(
+    '/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/Section_2/RESULTS_RF_CNVs_FS.txt', sep='\t', index_col='Y')
+
+r2_v_rho_snp = rho[(rho['Model Type'] == 'FS') & (rho['Data Type'] == 'snp')].\
+    merge(snp['r2_test'], right_index=True, left_on="Env")
+# np.float64(-0.032360053556767396)
+r2_v_rho_snp[['rho', 'r2_test']].corr().iloc[0, 1]
+
+r2_v_rho_pav = rho[(rho['Model Type'] == 'FS') & (rho['Data Type'] == 'pav')].\
+    merge(pav['r2_test'], right_index=True, left_on="Env")
+# np.float64(0.3300096647369571)
+r2_v_rho_pav[['rho', 'r2_test']].corr().iloc[0, 1]
+
+r2_v_rho_cnv = rho[(rho['Model Type'] == 'FS') & (rho['Data Type'] == 'cnv')].\
+    merge(cnv['r2_test'], right_index=True, left_on="Env")
+# np.float64(0.287642642641329)
+r2_v_rho_cnv[['rho', 'r2_test']].corr().iloc[0, 1]
+
+r2_v_rho_snp = rho[(rho['Model Type'] == 'baseline') & (rho['Data Type'] == 'snp')].\
+    merge(snp['r2_test'], right_index=True, left_on="Env")
+# np.float64(-0.370472133387726)
+r2_v_rho_snp[['rho', 'r2_test']].corr().iloc[0, 1]
+
+r2_v_rho_pav = rho[(rho['Model Type'] == 'baseline') & (rho['Data Type'] == 'pav')].\
+    merge(pav['r2_test'], right_index=True, left_on="Env")
+# np.float64(0.2079527477389604)
+r2_v_rho_pav[['rho', 'r2_test']].corr().iloc[0, 1]
+
+r2_v_rho_cnv = rho[(rho['Model Type'] == 'baseline') & (rho['Data Type'] == 'cnv')].\
+    merge(cnv['r2_test'], right_index=True, left_on="Env")
+# np.float64(0.3529860550102224)
+r2_v_rho_cnv[['rho', 'r2_test']].corr().iloc[0, 1]
 
 
-## Hypothesis test to prove ranking distributions are not random
+# Hypothesis test to prove ranking distributions are not random
 # Use 0_Manuscript_Tables_slurm.sb to run the code below
 # SH said this is not necessary, we only do this when we have a point estimate and are comparing it to a distribution of means
 '''
