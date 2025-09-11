@@ -1,19 +1,24 @@
 ################################################################################
-# TABLE S
+# This script generates the following:
+# 1. Supplementary Data File 8: SNP to gene mapping with benchmark gene annotations
+# 2. Supplementary Data File 9: ORF to gene mapping with benchmark gene annotations
+# 3. Table S12: Enrichment of benchmark genes at different rank percentiles
 ################################################################################
 
-from scipy.stats import false_discovery_control
-from scipy.stats import fisher_exact
 import os
 import datatable as dt
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.stats import false_discovery_control
+from scipy.stats import fisher_exact
 
 os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
-# ENRICHMENT OF BENCHMARK STRESS-RESPONSE GENES IN RF FS MODELS
+################################################################################
+# 1 & 2. Generate the feature to gene maps with benchmark gene annotations
+################################################################################
 # Target phenotype and mutant information annotations
 phenotypes = ["resistance to chemicals: decreased ", "viability: decreased ",
               "resistance to chemicals: decreased", "metal resistance: decreased",
@@ -22,7 +27,7 @@ phenotypes = ["resistance to chemicals: decreased ", "viability: decreased ",
 mutants = ["null Allele", "reduction of function",
            "reduction of function Allele"]
 
-# Genes lists from SGD
+# Genes lists downloaded from SGD; Filter by mutant type and phenotypes of interest
 benomyl_sgd = pd.read_csv(
     "Data/SGD_Experiment_Genes/benomyl_phenotype_annotations.txt", skiprows=8, sep="\t")
 benomyl_sgd[["Mutant Type", "Mutant Description"]
@@ -60,8 +65,8 @@ sma_genes = sodmetars_sgd.loc[(sodmetars_sgd.Phenotype.isin(phenotypes)) &
 sma_genes.to_csv(
     "Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes.txt", sep="\t", index=False)
 
-# Enrichment of literature genes within the feature selection models' features
-# Remove literature genes that are not found within our datasets
+# Generate the feature to gene maps with benchmark gene annotation columns
+# 1 means the gene is a benchmark gene; 0 means it is not
 map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED.tsv",
                        sep="\t", header=None, names=["snp", "chr", "pos", "gene"])
 map_orfs = pd.read_csv(
@@ -78,6 +83,7 @@ sma_genes = pd.read_csv(
 curated = pd.read_csv(
     "Data/SGD_Experiment_Genes/manually_curated_genes.txt", sep="\t")
 
+# remove literature genes that are not found within our datasets
 ben_snp = ben_genes.loc[ben_genes["Gene Systematic Name"].isin(
     map_snps.gene), "Gene Systematic Name"].unique()
 caf_snp = caf_genes.loc[caf_genes["Gene Systematic Name"].isin(
@@ -87,6 +93,7 @@ cu_snp = cu_genes.loc[cu_genes["Gene Systematic Name"].isin(
 sma_snp = sma_genes.loc[sma_genes["Gene Systematic Name"].isin(
     map_snps.gene), "Gene Systematic Name"].unique()
 curated_snp = curated.loc[curated["gene"].isin(map_snps.gene), "gene"].unique()
+
 pd.Series(ben_snp).to_csv(
     "Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes_snps.txt", sep="\t", index=False)
 pd.Series(caf_snp).to_csv(
@@ -141,6 +148,9 @@ map_snps.to_csv(
 map_orfs.to_csv(
     "Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed_expanded_benchmark.tsv", sep="\t", index=False)
 
+################################################################################
+# Enrichment of literature genes within the feature selection models' features
+################################################################################
 # Feature to gene maps with benchmark gene information (from 0_Figure_4_important_genes.py)
 map_snps = pd.read_csv(
     "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED_expanded_benchmark.tsv", sep="\t")
@@ -166,8 +176,6 @@ target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
 lit_gene_envs = ["benomyl", "caffeine",
                  "copper(II) sulfate", "sodium meta-arsenite", "manually curated"]
 
-# Create contingency table
-
 
 def enrichment_direction(k, n, C, G):
     """determine direction of enrichment
@@ -184,28 +192,24 @@ def enrichment_direction(k, n, C, G):
 for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
     enrich_res = []  # collect results from enrichment test
     for data_type in ["snp", "pav", "cnv"]:
-        for imp_type in ["imp", "shap"]:
+        for imp_type in ["gini", "shap"]:
             print(percentile, data_type, imp_type)
             # Read and prepare dataset
             df_fs = dt.fread(
-                f"Scripts/Data_Vis/Section_4/RF_FS_{imp_type}_{data_type}.tsv").to_pandas()
+                f"Scripts/Data_Vis/Section_3/RF_optimized_{imp_type}_{data_type}.tsv").to_pandas()
             df_base = dt.fread(
-                f"Scripts/Data_Vis/Section_4/RF_baseline_{imp_type}_{data_type}.tsv").to_pandas()
+                f"Scripts/Data_Vis/Section_3/RF_complete_{imp_type}_{data_type}.tsv").to_pandas()
+            # remove the extra row w/missing snp or orf name (orf shap files have it)
+            print(
+                f"df_fs shape: {df_fs.shape}; df_base shape: {df_base.shape}")
             if data_type != "snp":
                 df_fs = df_fs.loc[df_fs.orf != '', :]
                 df_base = df_base.loc[df_base.orf != '', :]
             if data_type == "snp":
                 df_fs = df_fs.loc[df_fs.snp != '', :]
                 df_base = df_base.loc[df_base.snp != '', :]
-            #
-            # take the absolute value of the shap values (not actually needed since the df_fs and df_base values are already average absolute SHAP values)
-            if imp_type == "shap":
-                if data_type == "snp":
-                    df_fs.iloc[:, 3:] = df_fs.select_dtypes("float").abs()
-                    df_base.iloc[:, 3:] = df_base.select_dtypes("float").abs()
-                else:
-                    df_fs.iloc[:, 2:] = df_fs.select_dtypes("float").abs()
-                    df_base.iloc[:, 2:] = df_base.select_dtypes("float").abs()
+            print(
+                f"df_fs shape: {df_fs.shape}; df_base shape: {df_base.shape}")
             #
             # Count the number of literature genes identified by each model
             # env_df_out = []  # collect rank percentiles per environment
@@ -230,7 +234,7 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
                                               "intergenic", :]
                     env_df_base = env_df_base.loc[env_df_base.index !=
                                                   "intergenic", :]
-                    # drop variants that map to multiple genes                   < should I also drop these for ORF models?
+                    # drop variants that map to multiple genes
                     env_df_fs = env_df_fs.loc[~env_df_fs.index.str.contains(
                         ","), :]  # ex: gene1, gene2
                     env_df_base = env_df_base.loc[~env_df_base.index.str.contains(
@@ -255,17 +259,8 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
                 env_df_base_sub["rank"] = env_df_base_sub["rank"] + \
                     env_df_fs["rank"].max()
                 #
+                # Combine the optimized and complete RF model rankings
                 env_df = pd.concat([env_df_fs, env_df_base_sub], axis=0)
-                #
-                # # Rank the genes by feature importance
-                # env_df["rank_per"] = env_df.rank(
-                #     method="average", numeric_only=True, pct=True)
-                # env_df.sort_values(
-                #     by="rank_per", ascending=False, inplace=True)
-                # env_df_out.append(env_df.rename(
-                #     columns={"rank_per": f"{env}_rank_per"}))
-                #
-            # pd.concat(env_df_out, ignore_index=False, axis=1).to_csv(f"Scripts/Data_Vis/Section_4/RF_FS_{imp_type}_{data_type}_adjusted_rank_per_CORRECTED.tsv", sep="\t") # run lines 119-160 to get these files
                 #
                 env_df_genes = env_df.index.unique()
                 env_df_genes_with_annotations = env_df.copy(deep=True)
@@ -280,7 +275,7 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
                         env_df_genes_with_annotations[[
                             "gene", env, "rank", "Benomyl", "Caffeine", "CuSO4", "Sodium_meta-arsenite"]].\
                             fillna(0).to_excel(
-                                f"Scripts/Data_Vis/Section_5/Enrichment_of_literature_genes_data_{data_type}_{imp_type}_{env}.xlsx")
+                                f"Scripts/Data_Vis/Section_3/Enrichment_of_literature_genes_data_{data_type}_{imp_type}_{env}.xlsx")
                     else:
                         map_orfs_sub = map_orfs[[
                             "gene", "Benomyl", "Caffeine", "CuSO4", "Sodium_meta-arsenite"]].\
@@ -291,7 +286,7 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
                         env_df_genes_with_annotations[[
                             "gene", env, "rank", "Benomyl", "Caffeine", "CuSO4", "Sodium_meta-arsenite"]].\
                             fillna(0).to_excel(
-                                f"Scripts/Data_Vis/Section_5/Enrichment_of_literature_genes_data_{data_type}_{imp_type}_{env}.xlsx")
+                                f"Scripts/Data_Vis/Section_3/Enrichment_of_literature_genes_data_{data_type}_{imp_type}_{env}.xlsx")
                 #
                 # Perform enrichment analysis at different ranking percentiles
                 # Variable 1: How many genes are ranked in the top #%?
@@ -344,20 +339,14 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
                     # Save results
                     enrich_res.append(["RF_single-env_baseline", data_type, imp_type, env, percentile, percentile_rank_val, lit_gene_envs[i], a,
                                        b, c, d, odds, pval, np.log2(odds), np.log10(pval), direction])
-                    # if direction == "+" and pval < 0.05:
-                    #     # save literature features ranked above threshold
-                    #     env_df_top.loc[env_df_top.index.isin(var), :].to_csv(
-                    #         f"Scripts/Data_Vis/Section_5/Enrichment_of_literature_genes_in_{data_type}_{imp_type}_{env}_{i}_above_{int(percentile*100)}%_RF.csv",
-                    #         sep="\t", index=True, header=True)
     #
     enrich_res = pd.DataFrame(enrich_res)
     enrich_res.columns = ["Model Type", "DataType", "ImpType", "Env",
                           "percentile", "percentile_rank_value", "LitGeneList",
-                          # "Known in top", "Not known in top", "Known not in top", "Not known not in top", "Odds Ratio",
-                          f"Is benchmark & above {int(percentile*100)}%",
-                          f"Is benchmark & not above {int(percentile*100)}%",
-                          f"Not benchmark & above {int(percentile*100)}%",
-                          f"Not benchmark & not above {int(percentile*100)}%", "Odds Ratio",
+                          f"Is benchmark & in top {1-int(percentile*100)}%",
+                          f"Is benchmark & not in top {1-int(percentile*100)}%",
+                          f"Not benchmark & in top {1-int(percentile*100)}%",
+                          f"Not benchmark & not in top {1-int(percentile*100)}%", "Odds Ratio",
                           "p-value", "log2(odds ratio)", "log10(p-value)", "direction"]
     enrich_res_sub = enrich_res.loc[enrich_res["p-value"] != 1.0, :]
     q_values = false_discovery_control(
@@ -366,10 +355,10 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
     enrich_res_sub["log10(q-values)"] = enrich_res_sub.apply(lambda x: np.log10(
         x["q-values"]) if x.direction == "-" else -np.log10(x["q-values"]), axis=1)
     enrich_res_sub.sort_values(by="q-values", ascending=True).to_csv(
-        f"Scripts/Data_Vis/Section_5/Enrichment_of_literature_genes_in_above_{int(percentile*100)}%_RF_CORRECTED.csv", index=False)
+        f"Scripts/Data_Vis/Section_3/Table_S12_Enrichment_of_literature_genes_above_{int(percentile*100)}%_RF.csv", index=False)
     #
     # Visualize the significant enrichment values
-    significant = enrich_res_sub.loc[enrich_res_sub["q-values"] <= 0.05, [
+    significant = enrich_res_sub.loc[enrich_res_sub["q-values"] < 0.05, [
         "DataType", "ImpType", "Env", "LitGeneList", "log2(odds ratio)"]]
     if significant.shape[0] > 0:
         for i_type in significant.ImpType.unique():
@@ -388,19 +377,6 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
                             center=0, mask=significant_sub2.isna())
                 plt.tight_layout()
                 plt.savefig(
-                    f"Scripts/Data_Vis/Section_5/Enrichment_of_literature_genes_in_above_{int(percentile*100)}_RF_{dat_type}_{i_type}_CORRECTED.pdf")
+                    f"Scripts/Data_Vis/Section_3/Enrichment_of_literature_genes_in_above_{int(percentile*100)}_RF_{dat_type}_{i_type}.pdf")
                 plt.close()
             del significant_sub2, significant_sub
-
-
-# Cross-environment enrichment: Benomyl genes enriched in YPDCAFEIN50 (90th SHAP-based rank percentile, SNPs)
-enriched = pd.read_csv(
-    'Scripts/Data_Vis/Section_5/Enrichment_of_literature_genes_in_snp_shap_YPDCAFEIN50_0_above_90%_RF.csv', sep='\t', index_col=0)
-ben_snp = pd.read_csv(
-    'Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes_snps.txt', header=0)
-caf_snp = pd.read_csv(
-    'Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes_snps.txt', header=0)
-
-# Shared benomyl and caffeine benchmark genes represented in the SNP features
-common_ben_caf = pd.merge(ben_snp, caf_snp, on='0', how='inner')
-enriched.loc[enriched.index.isin(common_ben_caf['0']), :].shape  # 24 genes
