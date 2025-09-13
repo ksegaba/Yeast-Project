@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''This script does the following:
-1. Create the feature lists for training the three types of models:
+1. Create the feature lists for training the three types of models (Supplemental data file 11):
     a. Only benchmark genes (from the baseline models)
     b. Only important non-benchmark genes (from the optimized models)
     c. Benchmark genes + important non-benchmark genes (combined feature sets)
