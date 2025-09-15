@@ -2,398 +2,115 @@
 """
 Figure 5: SHAP values of top genes/benchmark genes VS genetic similarity to
 S288C or W303 (SACE_GAV).
+
+This script performs the following tasks:
+1. Generate genetic distance matrices from SNP (0,1,2 encoding) and PAV data
+   (Supplementary data files 12 & 13)
+2. K-means clustering of the genetic distance matrices (Figs. 4D, S5A)
+3. Compare the fitness distributions and shap values between the cluster
+   containing the lab strains and the most distinct cluster to it. (Figs. 4E,
+   S5B; Table S14)
+4. Determine how many of the optimized ORFs are absent in S288C or how many
+   important SNP features are intergenic
 """
 
-import os, glob, re, swifter, tqdm, threading
+import os
+import re
 import pandas as pd
 import numpy as np
 import datatable as dt
 import matplotlib.pyplot as plt
 import seaborn as sns
 import multiprocessing as mp
-import cupy as cp
 import statsmodels.api as sm
+from scipy.spatial.distance import pdist, squareform, euclidean
+from glob import glob
 from functools import partial
-from scipy.spatial.distance import pdist, squareform
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
-from scipy.spatial.distance import euclidean
 from scipy.stats import mannwhitneyu
 
 os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
-# Read in the benchmark gene and gene map data
-ben_orf = pd.read_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes_orfs.txt")
-ben_snp = pd.read_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes_snps.txt")
-caf_orf = pd.read_csv("Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes_orfs.txt")
-caf_snp = pd.read_csv("Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes_snps.txt")
-cu_orf = pd.read_csv("Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes_orfs.txt")
-cu_snp = pd.read_csv("Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes_snps.txt")
-sma_orf = pd.read_csv("Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes_orfs.txt")
-sma_snp = pd.read_csv("Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes_snps.txt")
-
-map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED.tsv",
-                       sep="\t", header=None, names=["snp", "chr", "pos", "gene"])
-map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t")
-map_orfs.loc[map_orfs.organism=="Saccharomyces cerevisiae", "organism"] = "Saccharomyces cerevisiae S288C"
-
-""" Code to generate the genetic distance matrices from SNP and PAV data
+################################################################################
+# 1. Generate the genetic distance matrices from SNP and PAV data
+################################################################################
 # Read in the SNP, PAV, and test set data
 test = pd.read_csv("Data/Peter_2018/Test.txt", header=None)
-geno = dt.fread("Data/Peter_2018/geno.csv").to_pandas()
+geno = dt.fread("Data/Peter_2018/0_raw_data/geno_012.csv").to_pandas()
 geno.set_index("ID", inplace=True)
 
-# Add S288C SNP genotypes as a row of -1s (homozygous for the reference allele)
+# Add S288C SNP genotypes as a row of 0s (homozygous for the reference allele)
 geno = geno.T
-geno["S288C"] = -1
+geno["S288C"] = 0
 geno = geno.T
-# geno.to_csv("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno_with_S288C.csv")
-geno = dt.fread("/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/geno_with_S288C.csv").to_pandas()
-geno.set_index("ID", inplace=True)
+# geno.to_csv("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/geno_012_with_S288C.csv")
+# geno = dt.fread("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/geno_with_S288C.csv").to_pandas()
+# geno.set_index("ID", inplace=True)
 
 # Calculate the SNP-based euclidean distance and the SNP-based jaccard distance
-geno_train = geno.loc[~geno.index.isin(test[0]),:] # remove the test set before calculating genetic distances
-eu_dist_snp = pdist(geno_train.values, metric="euclidean")
-eu_dist_snp = pd.DataFrame(squareform(eu_dist_snp), columns=geno_train.index, index=geno_train.index)
-ja_dist_snp = pdist(geno_train.values, metric="jaccard") # proportion of dissimilarity
-ja_dist_snp = pd.DataFrame(squareform(ja_dist_snp), columns=geno_train.index, index=geno_train.index)
-# eu_dist_snp.to_csv("Scripts/Data_Vis/Section_5/genetic_distance_snp_euclidean_to_S288C.csv")
-# ja_dist_snp.to_csv("Scripts/Data_Vis/Section_5/genetic_distance_snp_jaccard_to_S288C.csv")
-eu_dist_snp = pd.read_csv("Scripts/Data_Vis/Section_5/genetic_distance_snp_euclidean_to_S288C.csv", index_col=0)
-ja_dist_snp = pd.read_csv("Scripts/Data_Vis/Section_5/genetic_distance_snp_jaccard_to_S288C.csv", index_col=0)
+# remove the test set before calculating genetic distances
+geno_train = geno.loc[~geno.index.isin(test[0]), :]
+eu_dist_snp = pdist(geno_train.astype(int).values, metric="euclidean")
+eu_dist_snp = pd.DataFrame(squareform(eu_dist_snp),
+                           columns=geno_train.index, index=geno_train.index)
+# eu_dist_snp.to_csv("Scripts/Data_Vis/Section_4/genetic_distance_snp012_euclidean_to_S288C.csv")
+eu_dist_snp = pd.read_csv(
+    "Scripts/Data_Vis/Section_4/genetic_distance_snp012_euclidean_to_S288C.csv", index_col=0)
 
-# Determine which ORFs are present in the reference genome
-os.system("grep '>' Data/S288C_reference_genome_R64-3-1_20210421/orf_coding_all_R64-3-1_20210421.fasta | wc -l") # 6716 reference ORFs
-# os.system("grep '>' Data/S288C_reference_genome_R64-3-1_20210421/orf_coding_all_R64-3-1_20210421.fasta | \
-#           cut -d ' ' -f1 | cut -d '>' -f2 > \
-#           Data/S288C_reference_genome_R64-3-1_20210421/orf_coding_all_R64-3-1_20210421_IDs_only.txt") # extract reference ORF IDs
-ref_orf_ids = pd.read_csv("Data/S288C_reference_genome_R64-3-1_20210421/orf_coding_all_R64-3-1_20210421_IDs_only.txt", header=None)
-
-pav = dt.fread("Data/Peter_2018/ORFs_pres_abs.csv", max_nrows=1, header=False) # Peter et al., 2018 ORFs
-pav = pav[:,1:].to_pandas().T # exclude 'ID' column
-pav[1] = pav.replace("X[0-9]+\.", "", regex=True) # remove the ORF ID prefix
-pav[1] = pav[1].str.split("_", expand=True)[0] # get the genes, non-reference ORFs have identifiers that do not match the systematic gene names
-pav[1] = pav[1].str.replace(".", "-")
-
-# in_ref_orfs = np.intersect1d(pav[1], ref_orf_ids[0]) # based on pattern matching the ORF IDs in S288C reference genome
-# len(in_ref_orfs) # 6059, I'm not sure if I can trust this, since the BLAST resulted in less ORFs, plus some ORFs mapped to a different gene than what is in the ORF identifier
-
-pav["orf"] = pav.apply(lambda x: re.sub("^X", "", x[0]), axis=1) # fix orf IDs
+# Read in ORF presence/absence matrix
+pav = dt.fread("Data/Peter_2018/ORFs_pres_abs.csv", max_nrows=1,
+               header=False)  # Peter et al., 2018 ORFs
+pav = pav[:, 1:].to_pandas().T  # exclude 'ID' column
+pav["orf"] = pav.apply(lambda x: re.sub("^X", "", x[0]), axis=1)  # fix orf IDs
 pav["orf"] = pav.apply(lambda x: re.sub("\.", "-", x["orf"]), axis=1)
-pav = pav.merge(map_orfs[map_orfs.organism=="Saccharomyces cerevisiae S288C"],
-          left_on="orf", right_on="orf", how="left") # ORF to gene map is based on BLAST results
-pav["in_ref_blast"] = pav.apply(lambda x: 1 if not pd.isna(x["gene"]) else 0, axis=1)
-in_ref_orfs = pav.loc[pav["in_ref_blast"]==1, "gene"].to_list()
+map_orfs = pd.read_csv(
+    "Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t")
+pav = pav.merge(map_orfs[map_orfs.organism == "Saccharomyces cerevisiae S288C"],
+                left_on="orf", right_on="orf", how="left")  # ORF to gene map is based on BLAST results
+pav["in_ref_blast"] = pav.apply(
+    lambda x: 1 if not pd.isna(x["gene"]) else 0, axis=1)
+in_ref_orfs = pav.loc[pav["in_ref_blast"] == 1, "gene"].to_list()
+len(in_ref_orfs)  # 5517
+len(np.intersect1d(in_ref_orfs, pav.gene.to_list()))  # 5490
 
-# sanity check
-# >>> pav["organism"].unique()
-# array([nan, 'Saccharomyces cerevisiae S288C'], dtype=object)
-# >>> pav.apply(lambda x: 1 if not pd.isna(x["gene"]) else 0, axis=1).value_counts()
-# 1    5561
-# 0    2147
-# Name: count, dtype: int64
-# >>> pav.apply(lambda x: 1 if x["organism"]=='Saccharomyces cerevisiae S288C' else 0, axis=1).value_counts()
-# 1    5561
-# 0    2147
-# Name: count, dtype: int64
-
-len(np.intersect1d(in_ref_orfs, pav.gene.to_list())) # 5533 I WILL USE THE BLAST RESULTS TO CALCULATE THE GENETIC DISTANCES FOR PAV
-
-## Calculate the PAV-based euclidean distance and the PAV-based jaccard distance
-pav_df = dt.fread("Data/Peter_2018/ORFs_pres_abs.csv").to_pandas() # read in PAV genotype data
+# Calculate the PAV-based euclidean distance and the PAV-based jaccard distance
+# read in PAV genotype data
+pav_df = dt.fread("Data/Peter_2018/ORFs_pres_abs.csv").to_pandas()
 pav_df.set_index("ID", inplace=True)
-pav_df = pav_df.T.merge(pav.set_index(0)["in_ref_blast"], left_index=True, right_index=True) # add the S288C PAV genotypes
-pav_df.rename(columns={"in_ref_blast": "in_S288C"}, inplace=True)
+pav_df = pav_df.T.merge(pav.set_index(
+    0)["in_ref_blast"], left_index=True, right_index=True)  # add the S288C PAV genotypes
+pav_df.rename(columns={"in_ref_blast": "S288C"}, inplace=True)
 pav_df.to_csv("Data/Peter_2018/ORFs_pres_abs_with_S288C.csv")
 
-pav_train = pav_df.loc[:,~pav_df.columns.isin(test[0])] # remove the test set before calculating genetic distances
+# remove the test set before calculating genetic distances
+pav_train = pav_df.loc[:, ~pav_df.columns.isin(test[0])]
 pav_train = pav_train.astype(int)
 eu_dist_pav = pdist(pav_train.T.values, metric="euclidean")
-eu_dist_pav = pd.DataFrame(squareform(eu_dist_pav), columns=pav_train.columns, index=pav_train.columns)
-ja_dist_pav = pdist(pav_train.T.values, metric="jaccard") # proportion of dissimilarity
-ja_dist_pav = pd.DataFrame(squareform(ja_dist_pav), columns=pav_train.columns, index=pav_train.columns)
-# eu_dist_pav.to_csv("Scripts/Data_Vis/Section_5/genetic_distance_pav_euclidean_to_S288C.csv")
-# ja_dist_pav.to_csv("Scripts/Data_Vis/Section_5/genetic_distance_pav_jaccard_to_S288C.csv")
-"""
-
-# Read in the distance matrices
-eu_dist_snp = pd.read_csv("Scripts/Data_Vis/Section_5/genetic_distance_snp_euclidean_to_S288C.csv", index_col=0)
-ja_dist_snp = pd.read_csv("Scripts/Data_Vis/Section_5/genetic_distance_snp_jaccard_to_S288C.csv", index_col=0)
-eu_dist_pav = pd.read_csv("Scripts/Data_Vis/Section_5/genetic_distance_pav_euclidean_to_S288C.csv", index_col=0)
-ja_dist_pav = pd.read_csv("Scripts/Data_Vis/Section_5/genetic_distance_pav_jaccard_to_S288C.csv", index_col=0)
-
-# Ensure isolates are all in the same order
-ja_dist_snp = ja_dist_snp.loc[eu_dist_snp.index, eu_dist_snp.columns]
-eu_dist_pav.rename(columns={"in_S288C": "S288C"}, index={"in_S288C": "S288C"}, inplace=True)
-eu_dist_pav = eu_dist_pav.loc[eu_dist_snp.index, eu_dist_snp.columns]
-ja_dist_pav.rename(columns={"in_S288C": "S288C"}, index={"in_S288C": "S288C"}, inplace=True)
-ja_dist_pav = ja_dist_pav.loc[eu_dist_snp.index, eu_dist_snp.columns]
-
-#### Plot the benchmark gene shap values and distance value for each isolate ###
-target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
-            "YPDSODIUMMETAARSENITE"]
-d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP"
-
-def plot_benchmark_shap_vs_distance_scatter(df, x, y, model, save="", **kwargs):
-    """ Create a scatter plot. This function is called within lin_reg_stats()
-    to plot shap values vs distance values.
-    """
-    plt.figure(figsize=(10, 4))
-    sns.scatterplot(data=df, x=x, y=y, **kwargs)
-    
-    # draw the regression line
-    print(model.params)
-    coef = model.params
-    print(np.array(df[x]))
-    plt.plot(df[x], coef[0]*np.array(df[x]), color="red")
-    
-    plt.savefig(save, bbox_inches="tight", dpi=300)
-    plt.close()
-    
-    return None
-
-
-def lin_reg_stats(shap_df, dist_df, target_col, save, **kwargs):
-    """ Ordinary Least Squares Regression
-    Returns:
-        model.params: coefficients
-        model.rsquared: R-squared value
-        model.pvalues: p-values for each coefficient
-    """
-    
-    # flatten the shap value matrix and map to distance values
-    if target_col=="S288C":
-        y = np.array(shap_df.iloc[:,1:].astype("float").loc[:,dist_df.index[:625]]).flatten()
-        x = np.tile(dist_df["S288C"][:625].to_numpy(), len(shap_df))
-    
-    if target_col=="W303":
-        cols = dist_df.drop(["SACE_GAV", "S288C"], axis=1).columns
-        y = np.array(shap_df.drop("SACE_GAV", axis=1).\
-            iloc[:,1:].astype("float").loc[:,cols]).flatten()
-        x = np.tile(dist_df["SACE_GAV"][cols].to_numpy(), len(shap_df))
-        
-    print(y.shape, x.shape)
-    
-    # fit the linear model
-    model = sm.OLS(endog=y, exog=x).fit()
-    print(model.summary())
-    summary = model.summary2()
-    summary_table = summary.tables[1].to_dict()
-    summary_table["R2"] = {"x1": model.rsquared}
-    
-    # plot the regression
-    df = pd.DataFrame([x,y], index=["distance", "shap"]).T
-    plot_benchmark_shap_vs_distance_scatter(df, "distance", "shap", model, save, **kwargs)
-    
-    return summary_table
-
-
-lin_res_ja = {} # collect the linear regression results when jaccard distance is considered for S288C
-lin_res_eu = {} # when euclidean distance is considered for S288C
-lin_res_ja_w303 = {}
-lin_res_eu_w303 = {}
-for env in target_envs:
-    print(env)
-    # read in the shap values
-    snp_shap_all = dt.fread(f"{d}/SNP/baseline/SHAP_values_sorted_{env}_snp_rf_baseline_training.txt").to_pandas()
-    pav_shap_all = dt.fread(f"{d}/PAV/baseline/SHAP_values_sorted_{env}_pav_rf_baseline_training.txt").to_pandas()
-    pav_shap_all.columns = pav_shap_all.apply(lambda x: re.sub("^X", "", x.name), axis=0) # fix orf IDs
-    pav_shap_all.columns = pav_shap_all.apply(lambda x: re.sub("\.", "-", x.name), axis=0)
-    
-    # map genes to shap data
-    snp_shap_all = snp_shap_all.T.reset_index()
-    pav_shap_all = pav_shap_all.T.reset_index()
-    snp_shap_all.columns = snp_shap_all.iloc[0,:] # set column names
-    snp_shap_all = snp_shap_all.iloc[1:,:] # remove first row
-    pav_shap_all.columns = pav_shap_all.iloc[0,:]
-    pav_shap_all = pav_shap_all.iloc[1:,:]
-    snp_shap_all["ID"] = snp_shap_all["ID"].map(map_snps.set_index("snp")["gene"]) # map features to genes
-    pav_shap_all["ID"] = pav_shap_all["ID"].map(map_orfs.set_index("orf")["gene"])
-    
-    # Ensure isolate columns are the same order as the distance matrices
-    snp_shap_all = snp_shap_all.loc[:,["ID"] + eu_dist_snp.columns.tolist()[:-1]]
-    pav_shap_all = pav_shap_all.loc[:,["ID"] + eu_dist_pav.columns.tolist()[:-1]]
-    
-    if env == "YPDBENOMYL500":
-        # subset the benchmark genes from the shap data
-        ben_snp_sub = snp_shap_all.loc[snp_shap_all["ID"].isin(ben_snp["0"]),:]
-        ben_snp_sub.iloc[:,1:] = ben_snp_sub.iloc[:,1:].abs() # take the absolute value of the shap values, only magnitude represents importance
-        ben_snp_sub_max = ben_snp_sub.groupby("ID").max().reset_index() # set the max shap value per gene
-        
-        ben_pav_sub = pav_shap_all.loc[pav_shap_all["ID"].isin(ben_orf["0"]),:]
-        ben_pav_sub.iloc[:,1:] = ben_pav_sub.iloc[:,1:].abs()
-        ben_pav_sub_max = ben_pav_sub.groupby("ID").max().reset_index()
-        
-        # calculate linear regression statistics for each benchmark gene
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_benomyl_snp_shap_vs_jaccard_distance_to_S288C_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_benomyl_pav_shap_vs_jaccard_distance_to_S288C_v2.pdf"
-        lin_res_ja[env] = {"snp": lin_reg_stats(ben_snp_sub_max, ja_dist_snp, "S288C", save_snp),
-                       "pav": lin_reg_stats(ben_pav_sub_max, ja_dist_pav, "S288C", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_benomyl_snp_shap_vs_euclidean_distance_to_S288C_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_benomyl_pav_shap_vs_euclidean_distance_to_S288C_v2.pdf"
-        lin_res_eu[env] = {"snp": lin_reg_stats(ben_snp_sub_max, eu_dist_snp, "S288C", save_snp),
-                       "pav": lin_reg_stats(ben_pav_sub_max, eu_dist_pav, "S288C", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_benomyl_snp_shap_vs_jaccard_distance_to_W303_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_benomyl_pav_shap_vs_jaccard_distance_to_W303_v2.pdf"
-        lin_res_ja_w303[env] = {"snp": lin_reg_stats(ben_snp_sub_max, ja_dist_snp, "W303", save_snp),
-                       "pav": lin_reg_stats(ben_pav_sub_max, ja_dist_pav, "W303", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_benomyl_snp_shap_vs_euclidean_distance_to_W303_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_benomyl_pav_shap_vs_euclidean_distance_to_W303_v2.pdf"
-        lin_res_eu_w303[env] = {"snp": lin_reg_stats(ben_snp_sub_max, eu_dist_snp, "W303", save_snp),
-                       "pav": lin_reg_stats(ben_pav_sub_max, eu_dist_pav, "W303", save_pav)}
-        
-    if (env == "YPDCAFEIN40") or (env == "YPDCAFEIN50"):
-        caf_snp_sub = snp_shap_all.loc[snp_shap_all["ID"].isin(caf_snp["0"]),:]
-        caf_snp_sub.iloc[:,1:] = caf_snp_sub.iloc[:,1:].abs() # take the absolute value of the shap values, only magnitude represents importance
-        caf_snp_sub_max = caf_snp_sub.copy(deep=True).groupby("ID").max().reset_index() # set the max shap value per gene
-        
-        caf_pav_sub = pav_shap_all.loc[pav_shap_all["ID"].isin(caf_orf["0"]),:]
-        caf_pav_sub.iloc[:,1:] = caf_pav_sub.iloc[:,1:].abs()
-        caf_pav_sub_max = caf_pav_sub.copy(deep=True).groupby("ID").max().reset_index()
-        
-        # calculate linear regression statistics for each benchmark gene
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_caffeine_snp_shap_vs_jaccard_distance_to_S288C_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_caffeine_pav_shap_vs_jaccard_distance_to_S288C_v2.pdf"
-        lin_res_ja[env] = {"snp": lin_reg_stats(caf_snp_sub_max, ja_dist_snp, "S288C", save_snp),
-                       "pav": lin_reg_stats(caf_pav_sub_max, ja_dist_pav, "S288C", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_caffeine_snp_shap_vs_euclidean_distance_to_S288C_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_caffeine_pav_shap_vs_euclidean_distance_to_S288C_v2.pdf"
-        lin_res_eu[env] = {"snp": lin_reg_stats(caf_snp_sub_max, eu_dist_snp, "S288C", save_snp),
-                       "pav": lin_reg_stats(caf_pav_sub_max, eu_dist_pav, "S288C", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_caffeine_snp_shap_vs_jaccard_distance_to_W303_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_caffeine_pav_shap_vs_jaccard_distance_to_W303_v2.pdf"
-        lin_res_ja_w303[env] = {"snp": lin_reg_stats(caf_snp_sub_max, ja_dist_snp, "W303", save_snp),
-                       "pav": lin_reg_stats(caf_pav_sub_max, ja_dist_pav, "W303", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_caffeine_snp_shap_vs_euclidean_distance_to_W303_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_caffeine_pav_shap_vs_euclidean_distance_to_W303_v2.pdf"
-        lin_res_eu_w303[env] = {"snp": lin_reg_stats(caf_snp_sub_max, eu_dist_snp, "W303", save_snp),
-                       "pav": lin_reg_stats(caf_pav_sub_max, eu_dist_pav, "W303", save_pav)}
-        
-    if env == "YPDCUSO410MM":
-        cu_snp_sub = snp_shap_all.loc[snp_shap_all["ID"].isin(cu_snp["0"]),:]
-        cu_snp_sub.iloc[:,1:] = cu_snp_sub.iloc[:,1:].abs() # take the absolute value of the shap values, only magnitude represents importance
-        cu_snp_sub_max = cu_snp_sub.groupby("ID").max().reset_index() # set the max shap value per gene
-        
-        cu_pav_sub = pav_shap_all.loc[pav_shap_all["ID"].isin(cu_orf["0"]),:]
-        cu_pav_sub.iloc[:,1:] = cu_pav_sub.iloc[:,1:].abs()
-        cu_pav_sub_max = cu_pav_sub.groupby("ID").max().reset_index()
-        
-        # calculate linear regression statistics for each benchmark gene
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_cuso4_snp_shap_vs_jaccard_distance_to_S288C_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_cuso4_pav_shap_vs_jaccard_distance_to_S288C_v2.pdf"
-        lin_res_ja[env] = {"snp": lin_reg_stats(cu_snp_sub_max, ja_dist_snp, "S288C", save_snp),
-                       "pav": lin_reg_stats(cu_pav_sub_max, ja_dist_pav, "S288C", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_cuso4_snp_shap_vs_euclidean_distance_to_S288C_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_cuso4_pav_shap_vs_euclidean_distance_to_S288C_v2.pdf"
-        lin_res_eu[env] = {"snp": lin_reg_stats(cu_snp_sub_max, eu_dist_snp, "S288C", save_snp),
-                       "pav": lin_reg_stats(cu_pav_sub_max, eu_dist_pav, "S288C", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_cuso4_snp_shap_vs_jaccard_distance_to_W303_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_cuso4_pav_shap_vs_jaccard_distance_to_W303_v2.pdf"
-        lin_res_ja_w303[env] = {"snp": lin_reg_stats(cu_snp_sub_max, ja_dist_snp, "W303", save_snp),
-                       "pav": lin_reg_stats(cu_pav_sub_max, ja_dist_pav, "W303", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_cuso4_snp_shap_vs_euclidean_distance_to_W303_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_cuso4_pav_shap_vs_euclidean_distance_to_W303_v2.pdf"
-        lin_res_eu_w303[env] = {"snp": lin_reg_stats(cu_snp_sub_max, eu_dist_snp, "W303", save_snp),
-                       "pav": lin_reg_stats(cu_pav_sub_max, eu_dist_pav, "W303", save_pav)}
-        
-    if env == "YPDSODIUMMETAARSENITE":
-        sma_snp_sub = snp_shap_all.loc[snp_shap_all["ID"].isin(sma_snp["0"]),:]
-        sma_snp_sub.iloc[:,1:] = sma_snp_sub.iloc[:,1:].abs() # take the absolute value of the shap values, only magnitude represents importance
-        sma_snp_sub_max = sma_snp_sub.groupby("ID").max().reset_index() # set the max shap value per gene
-        
-        sma_pav_sub = pav_shap_all.loc[pav_shap_all["ID"].isin(sma_orf["0"]),:]
-        sma_pav_sub.iloc[:,1:] = sma_pav_sub.iloc[:,1:].abs()
-        sma_pav_sub_max = sma_pav_sub.groupby("ID").max().reset_index()
-        
-        # calculate linear regression statistics for each benchmark gene
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_sodium_meta-arsenite_snp_shap_vs_jaccard_distance_to_S288C_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_sodium_meta-arsenite_pav_shap_vs_jaccard_distance_to_S288C_v2.pdf"
-        lin_res_ja[env] = {"snp": lin_reg_stats(sma_snp_sub_max, ja_dist_snp, "S288C", save_snp),
-                       "pav": lin_reg_stats(sma_pav_sub_max, ja_dist_pav, "S288C", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_sodium_meta-arsenite_snp_shap_vs_euclidean_distance_to_S288C_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_sodium_meta-arsenite_pav_shap_vs_euclidean_distance_to_S288C_v2.pdf"
-        lin_res_eu[env] = {"snp": lin_reg_stats(sma_snp_sub_max, eu_dist_snp, "S288C", save_snp),
-                       "pav": lin_reg_stats(sma_pav_sub_max, eu_dist_pav, "S288C", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_sodium_meta-arsenite_snp_shap_vs_jaccard_distance_to_W303_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_sodium_meta-arsenite_pav_shap_vs_jaccard_distance_to_W303_v2.pdf"
-        lin_res_ja_w303[env] = {"snp": lin_reg_stats(sma_snp_sub_max, ja_dist_snp, "W303", save_snp),
-                       "pav": lin_reg_stats(sma_pav_sub_max, ja_dist_pav, "W303", save_pav)}
-        
-        save_snp = f"Scripts/Data_Vis/Section_5/{env}_sodium_meta-arsenite_snp_shap_vs_euclidean_distance_to_W303_v2.pdf"
-        save_pav = f"Scripts/Data_Vis/Section_5/{env}_sodium_meta-arsenite_pav_shap_vs_euclidean_distance_to_W303_v2.pdf"
-        lin_res_eu_w303[env] = {"snp": lin_reg_stats(sma_snp_sub_max, eu_dist_snp, "W303", save_snp),
-                       "pav": lin_reg_stats(sma_pav_sub_max, eu_dist_pav, "W303", save_pav)}
-
-
-# reshape lin_reg_res to have the environment as a column and statistics as rows
-df = pd.json_normalize(lin_res_ja, sep="_")
-df = df.transpose()
-df.index = pd.MultiIndex.from_tuples(df.index.str.split("_").map(tuple))
-df.index.names = ["Env", "DataType", "Statistics", "Vals"]
-df = df.pivot_table(index=["DataType", "Statistics"], columns="Env", values=0)
-df.to_csv("Scripts/Data_Vis/Section_5/Table_S_benchmark_gene_shap_vs_jaccard_distance_to_S288C_lm_stats_v2.csv")
-
-df = pd.json_normalize(lin_res_eu, sep="_")
-df = df.transpose()
-df.index = pd.MultiIndex.from_tuples(df.index.str.split("_").map(tuple))
-df.index.names = ["Env", "DataType", "Statistics", "Vals"]
-df = df.pivot_table(index=["DataType", "Statistics"], columns="Env", values=0)
-df.to_csv("Scripts/Data_Vis/Section_5/Table_S_benchmark_gene_shap_vs_euclidean_distance_to_S288C_lm_stats_v2.csv")
-
-df = pd.json_normalize(lin_res_ja_w303, sep="_")
-df = df.transpose()
-df.index = pd.MultiIndex.from_tuples(df.index.str.split("_").map(tuple))
-df.index.names = ["Env", "DataType", "Statistics", "Vals"]
-df = df.pivot_table(index=["DataType", "Statistics"], columns="Env", values=0)
-df.to_csv("Scripts/Data_Vis/Section_5/Table_S_benchmark_gene_shap_vs_jaccard_distance_to_W303_lm_stats_v2.csv")
-
-df = pd.json_normalize(lin_res_eu_w303, sep="_")
-df = df.transpose()
-df.index = pd.MultiIndex.from_tuples(df.index.str.split("_").map(tuple))
-df.index.names = ["Env", "DataType", "Statistics", "Vals"]
-df = df.pivot_table(index=["DataType", "Statistics"], columns="Env", values=0)
-df.to_csv("Scripts/Data_Vis/Section_5/Table_S_benchmark_gene_shap_vs_euclidean_distance_to_W303_lm_stats_v2.csv")
+eu_dist_pav = pd.DataFrame(squareform(eu_dist_pav),
+                           columns=pav_train.columns, index=pav_train.columns)
+# eu_dist_pav.to_csv("Scripts/Data_Vis/Section_4/genetic_distance_pav_euclidean_to_S288C.csv")
 
 ################################################################################
-"""Compare the fitness distributions and shap values between the cluster
-containing the lab strains and the most distinct cluster to it."""
-
+# 2. K-means clustering of genetic distance matrices
+################################################################################
 # Genetic distance matrices
-eu_dist_snp = pd.read_csv("Scripts/Data_Vis/Section_5/genetic_distance_snp_euclidean_to_S288C.csv",
+eu_dist_snp = pd.read_csv("Scripts/Data_Vis/Section_4/genetic_distance_snp012_euclidean_to_S288C.csv",
                           index_col=0)
-eu_dist_pav = pd.read_csv("Scripts/Data_Vis/Section_5/genetic_distance_pav_euclidean_to_S288C.csv",
+eu_dist_pav = pd.read_csv("Scripts/Data_Vis/Section_4/genetic_distance_pav_euclidean_to_S288C.csv",
                           index_col=0)
-test = pd.read_csv("Data/Peter_2018/Test.txt", header=None) # to get training instances
 
-# Clade & fitness information
-clades = pd.read_excel("Data/Peter_2018/0_raw_data/Peter_2018_Supplementary_Tables.xls",
-                       sheet_name="Table S1", skiprows=3, nrows=1011) # isolate clades
-pheno = pd.read_csv("Data/Peter_2018/pheno.csv", index_col=0) # isolate fitness
+# to get training instances
+test = pd.read_csv("Data/Peter_2018/Test.txt", header=None)
 
-# Map clades to isolates and create a colormap
-clades = clades[["Standardized name", "Clades"]] # subset relevant columns
-clades = clades.loc[clades["Standardized name"].isin(pheno.index)] # diploid isolates
-clades.set_index("Standardized name", inplace=True)
-clades.loc[clades.Clades.isna(),"Clades"] = "Unknown" # replace NaN with Unknown
-clades.loc["S288C"] = "Reference" # insert a row for "S288C"
-clades.loc[["S288C", "SACE_GAV"], "Clades"]
-# S288C                 Reference
-# SACE_GAV    M3. Mosaic region 3
+# Fitness data
+pheno = pd.read_csv("Data/Peter_2018/pheno.csv", index_col=0)
 
-############### K-means clustering of genetic distance matrices ################
-snp_train = eu_dist_snp.loc[~eu_dist_snp.index.isin(test[0]), ~eu_dist_snp.index.isin(test[0])]
-pav_train = eu_dist_pav.loc[~eu_dist_pav.index.isin(test[0]), ~eu_dist_pav.index.isin(test[0])]
+###############  ################
+snp_train = eu_dist_snp.loc[~eu_dist_snp.index.isin(
+    test[0]), ~eu_dist_snp.index.isin(test[0])]
+pav_train = eu_dist_pav.loc[~eu_dist_pav.index.isin(
+    test[0]), ~eu_dist_pav.index.isin(test[0])]
 
 inertia_snp = []
 inertia_pav = []
@@ -414,7 +131,7 @@ ax[1].set_title("Elbow Plot for Kmeans clustering of PAV genetic distance")
 ax[1].set_xlabel("Number of clusters (k)")
 ax[1].set_ylabel("Inertia")
 plt.tight_layout()
-plt.savefig("Scripts/Data_Vis/Section_5/Kmeans_snp_or_pav_genetic_distance_elbow_plot.pdf",
+plt.savefig("Scripts/Data_Vis/Section_4/Kmeans_snp_or_pav_genetic_distance_elbow_plot_v3.pdf",
             bbox_inches="tight", dpi=300)
 plt.close()
 
@@ -426,45 +143,48 @@ kmeans_pav = KMeans(n_clusters=4, random_state=42).fit(pav_train)
 pca = PCA(n_components=2)
 pca_snp = pca.fit(snp_train)
 pca_snp_df = pca_snp.transform(snp_train)
-vexp_pca_snp = pca_snp.explained_variance_ratio_ # variance explained by each component
+# variance explained by each component
+vexp_pca_snp = pca_snp.explained_variance_ratio_
 
 pca_p = PCA(n_components=2)
 pca_pav = pca_p.fit(pav_train)
 pca_pav_df = pca_p.transform(pav_train)
 vexp_pca_pav = pca_pav.explained_variance_ratio_
 
-fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-
 # SNP plot
-axes[0].scatter(pca_snp_df[:, 0], pca_snp_df[:, 1], c=kmeans_snp.labels_, cmap='tab10', s=60)
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+scatter1 = axes[0].scatter(pca_snp_df[:, 0], pca_snp_df[:, 1], c=kmeans_snp.labels_,
+                           label=kmeans_snp.labels_, cmap='tab10', s=60, alpha=0.7)
 axes[0].set_title('K-means Clusters (SNP Features)')
 axes[0].set_xlabel(f'PC1 ({vexp_pca_snp[0]:.2%} variance explained)')
 axes[0].set_ylabel(f'PC2 ({vexp_pca_snp[1]:.2%} variance explained)')
-axes[0].annotate("S288C", (pca_snp_df[snp_train.index.get_loc("S288C"), 0],
-                           pca_snp_df[snp_train.index.get_loc("S288C"), 1]),
-                 color='red', ha='left', fontsize=10, fontweight='bold')
-axes[0].annotate("W303", (pca_snp_df[snp_train.index.get_loc("SACE_GAV"), 0],
-                           pca_snp_df[snp_train.index.get_loc("SACE_GAV"), 1]),
-                 color='red', ha='left', fontsize=10, fontweight='bold')
+axes[0].scatter(pca_snp_df[snp_train.index.get_loc("S288C"), 0],
+                pca_snp_df[snp_train.index.get_loc("S288C"), 1],
+                color='red', s=100, edgecolor='black', label='S288C')
+legend1 = axes[0].legend(*scatter1.legend_elements(),
+                         loc="upper right", title="Clusters", fontsize=6)
+axes[0].add_artist(legend1)
 
 # PAV plot
+scatter2 = axes[1].scatter(pca_pav_df[:, 0], pca_pav_df[:, 1], c=kmeans_pav.labels_,
+                           label=kmeans_pav.labels_, cmap='tab10', s=60, alpha=0.7)
 axes[1].set_title('K-means Clusters (PAV Features)')
 axes[1].set_xlabel(f'PC1 ({vexp_pca_pav[0]:.2%} variance explained)')
 axes[1].set_ylabel(f'PC2 ({vexp_pca_pav[1]:.2%} variance explained)')
-axes[1].annotate("S288C", (pca_pav_df[pav_train.index.get_loc("in_S288C"), 0],
-                           pca_pav_df[pav_train.index.get_loc("in_S288C"), 1]),
-                 color='black', ha='left', fontsize=10, fontweight='bold')
-axes[1].scatter(pca_pav_df[:, 0], pca_pav_df[:, 1], c=kmeans_pav.labels_, cmap='tab10', s=60)
-axes[1].annotate("W303", (pca_pav_df[pav_train.index.get_loc("SACE_GAV"), 0],
-                           pca_pav_df[pav_train.index.get_loc("SACE_GAV"), 1]),
-                 color='red', ha='left', fontsize=10, fontweight='bold')
-
+axes[1].scatter(pca_pav_df[pav_train.index.get_loc("in_S288C"), 0],
+                pca_pav_df[pav_train.index.get_loc("in_S288C"), 1],
+                color='red', s=100, edgecolor='black', label='S288C')
+legend2 = axes[1].legend(*scatter2.legend_elements(),
+                         loc="upper right", title="Clusters", fontsize=6)
+axes[1].add_artist(legend2)
 plt.tight_layout()
-plt.savefig("Scripts/Data_Vis/Section_5/PCA_snp_or_pav_genetic_distance_CORRECTED.pdf", bbox_inches="tight", dpi=300)
+plt.savefig("Scripts/Data_Vis/Section_4/Figure_4b_S5_PCA_snp_or_pav_genetic_distance.pdf",
+            bbox_inches="tight", dpi=300)
 plt.close()
 
-# Calculate distance between the cluster centers
+
 def cluster_distance(centroids):
+    # Calculate distance between the cluster centers
     distances = np.zeros((len(centroids), len(centroids)))
     for i in range(len(centroids)):
         for j in range(i + 1, len(centroids)):
@@ -473,44 +193,61 @@ def cluster_distance(centroids):
     return pd.DataFrame(distances)
 
 
-centroids_snp = kmeans_snp.cluster_centers_ # Cluster centers
+centroids_snp = kmeans_snp.cluster_centers_  # Cluster centers
 centroids_pav = kmeans_pav.cluster_centers_
 dist_snp = cluster_distance(centroids_snp)
 dist_pav = cluster_distance(centroids_pav)
 
 # Identify the clusters most distinct to the cluster in which S288C and W303 are in
-cluster_assignments_snp = pd.DataFrame(kmeans_snp.labels_, index=snp_train.index,
-                                       columns=["Cluster"]) # S288C is in cluster 1
-cluster_assignments_pav = pd.DataFrame(kmeans_pav.labels_, index=pav_train.index,
-                                       columns=["Cluster"]) # S288C is in cluster 2
-cluster_assignments_snp.loc["SACE_GAV",:] # W303 is in cluster 5
-cluster_assignments_pav.loc["SACE_GAV",:] # W303 is in cluster 0
-s288c_distinct_clusters_snp = [1, dist_snp.loc[1,:].idxmax()]
-s288c_distinct_clusters_pav = [2, dist_pav.loc[2,:].idxmax()]
-w303_distinct_clusters_snp = [5, dist_snp.loc[5,:].idxmax()]
-w303_distinct_clusters_pav = [0, dist_pav.loc[0,:].idxmax()]
+cluster_assignments_snp = pd.DataFrame(kmeans_snp.labels_, index=kmeans_snp.feature_names_in_,
+                                       columns=["Cluster"])  # S288C is in cluster 4
+cluster_assignments_pav = pd.DataFrame(kmeans_pav.labels_, index=kmeans_pav.feature_names_in_,
+                                       columns=["Cluster"])  # S288C is in cluster 3
 
-######### Calculate the mann-whitney u test statistic of shap values between clusters
-pheno = pd.read_csv("Data/Peter_2018/pheno.csv", index_col=0) # fitness data
+# Re-assign cluster numbers so that S288C is in cluster 0
+cluster_assignments_snp["New_Cluster"] = cluster_assignments_snp["Cluster"].replace(
+    {0: 2, 1: 3, 2: 4, 3: 5, 4: 0, 5: 1})
+cluster_assignments_pav["New_Cluster"] = cluster_assignments_pav["Cluster"].replace(
+    {0: 1, 1: 2, 2: 3, 3: 0})
 
-# Benchmark genes validated in S288C or W303
-ben_meta = pd.read_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes.txt", sep="\t")
-caf_meta = dt.fread("Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes.txt", sep="\t").to_pandas()
-cu_meta = pd.read_csv("Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes.txt", sep="\t")
-sma_meta = pd.read_csv("Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes.txt", sep="\t")
+# cluster 5 (originally 3) is the most distinct to the S288C cluster 0 (originally cluster 4)
+[4, dist_snp.loc[4, :].idxmax()]
+s288c_distinct_cluster_snp = 5
+# cluster 3 (originally 2) is the most distinct to the S288C cluster 0 (originally cluster 3)
+[3, dist_pav.loc[3, :].idxmax()]
+s288c_distinct_cluster_pav = 3
 
-ben_s288c = ben_meta.loc[ben_meta["Strain Background"] == "S288C", "Gene Systematic Name"].unique()
-ben_w303 = ben_meta.loc[ben_meta["Strain Background"] == "W303", "Gene Systematic Name"].unique()
-caf_s288c = caf_meta.loc[caf_meta["Strain Background"] == "S288C", "Gene Systematic Name"].unique()
-caf_w303 = caf_meta.loc[caf_meta["Strain Background"] == "W303", "Gene Systematic Name"].unique()
-cu_s288c = cu_meta.loc[cu_meta["Strain Background"] == "S288C", "Gene Systematic Name"].unique()
-cu_w303 = cu_meta.loc[cu_meta["Strain Background"] == "W303", "Gene Systematic Name"].unique()
-sma_s288c = sma_meta.loc[sma_meta["Strain Background"] == "S288C", "Gene Systematic Name"].unique()
-sma_w303 = sma_meta.loc[sma_meta["Strain Background"] == "W303", "Gene Systematic Name"].unique()
+################################################################################
+# 3. Compare the fitness distributions and shap values between the cluster
+#    containing the lab strains and the most distinct cluster to it. (Figs. 4E,
+#    S5B; Table S14)
+################################################################################
+# Benchmark genes validated in S288C
+ben_meta = pd.read_csv(
+    "Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes.txt", sep="\t")
+caf_meta = dt.fread(
+    "Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes.txt", sep="\t").to_pandas()
+cu_meta = pd.read_csv(
+    "Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes.txt", sep="\t")
+sma_meta = pd.read_csv(
+    "Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes.txt", sep="\t")
+
+ben_s288c = ben_meta.loc[ben_meta["Strain Background"]
+                         == "S288C", "Gene Systematic Name"].unique()
+caf_s288c = caf_meta.loc[caf_meta["Strain Background"]
+                         == "S288C", "Gene Systematic Name"].unique()
+cu_s288c = cu_meta.loc[cu_meta["Strain Background"]
+                       == "S288C", "Gene Systematic Name"].unique()
+sma_s288c = sma_meta.loc[sma_meta["Strain Background"]
+                         == "S288C", "Gene Systematic Name"].unique()
 
 # Benchmark genes present in SNP and ORF data
-map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED_expanded_benchmark.tsv", sep="\t")
-map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed_expanded_benchmark.tsv", sep="\t")
+map_snps = pd.read_csv(
+    "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED_expanded_benchmark.tsv", sep="\t")
+map_orfs = pd.read_csv(
+    "Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed_expanded_benchmark.tsv", sep="\t")
+map_snps.set_index("snp", inplace=True)
+map_orfs.set_index("orf", inplace=True)
 
 ben_snp = map_snps.loc[map_snps["Benomyl"] == 1, "gene"].unique()
 ben_orf = map_orfs.loc[map_orfs["Benomyl"] == 1, "gene"].unique()
@@ -521,426 +258,292 @@ cu_orf = map_orfs.loc[map_orfs["CuSO4"] == 1, "gene"].unique()
 sma_snp = map_snps.loc[map_snps["Sodium_meta-arsenite"] == 1, "gene"].unique()
 sma_orf = map_orfs.loc[map_orfs["Sodium_meta-arsenite"] == 1, "gene"].unique()
 
-def compared_rand_clusters(k, env, rand_res, snp_shap_bench_s288c, snp_shap_bench_w303,
-    snp_s288c_rclust1, snp_s288c_rclust2, snp_w303_rclust1, snp_w303_rclust2,
-    pav_shap_bench_s288c, pav_shap_bench_w303, pav_s288c_rclust1,
-    pav_s288c_rclust2, pav_w303_rclust1, pav_w303_rclust2):
-    
-    # Compare the shap values between two clusters with random sets of individuals
-    snp_s288c_clust1 = snp_shap_bench_s288c.loc[snp_s288c_rclust1[k]].astype("float").to_numpy().flatten()
-    snp_s288c_clust2 = snp_shap_bench_s288c.loc[snp_s288c_rclust2[k]].astype("float").to_numpy().flatten()
-    pav_s288c_clust1 = pav_shap_bench_s288c.loc[pav_s288c_rclust1[k]].astype("float").to_numpy().flatten()
-    pav_s288c_clust2 = pav_shap_bench_s288c.loc[pav_s288c_rclust2[k]].astype("float").to_numpy().flatten()
-    if env != "YPDCUSO410MM":
-        snp_w303_clust1 = snp_shap_bench_w303.loc[snp_w303_rclust1[k]].astype("float").to_numpy().flatten()
-        snp_w303_clust2 = snp_shap_bench_w303.loc[snp_w303_rclust2[k]].astype("float").to_numpy().flatten()
-        pav_w303_clust1 = pav_shap_bench_w303.loc[pav_w303_rclust1[k]].astype("float").to_numpy().flatten()
-        pav_w303_clust2 = pav_shap_bench_w303.loc[pav_w303_rclust2[k]].astype("float").to_numpy().flatten()
-        s2, p2 = mannwhitneyu(snp_w303_clust1, snp_w303_clust2, alternative="greater")
-        s4, p4 = mannwhitneyu(pav_w303_clust1, pav_w303_clust2, alternative="greater")
-        del snp_w303_clust1, snp_w303_clust2, pav_w303_clust1, pav_w303_clust2
-    else:
-        s2 = np.nan ; p2 = np.nan
-        s4 = np.nan ; p4 = np.nan
-        
-    s1, p1 = mannwhitneyu(snp_s288c_clust1, snp_s288c_clust2, alternative="greater")
-    s3, p3 = mannwhitneyu(pav_s288c_clust1, pav_s288c_clust2, alternative="greater")
-    
-    rand_res[k] = [["snp", "s288c", "greater", s1, p1],
-                    ["snp", "w303", "greater", s2, p2],
-                    ["pav", "s288c", "greater", s3, p3],
-                    ["pav", "w303", "greater", s4, p4]]
-    
-    del snp_s288c_clust1, snp_s288c_clust2
-    del pav_s288c_clust1, pav_s288c_clust2
-    del s1, p1, s2, p2, s3, p3, s4, p4
-    
-    return rand_res[k]
+
+def fix_orf_ids(df):
+    """ Fix the ORF IDs in the dataframe by removing the prefix 'X' and
+    replacing '.' with '-' """
+    df.columns = df.apply(lambda x: re.sub(
+        "^X", "", x.name), axis=0)  # fix orf IDs
+    df.columns = df.apply(lambda x: re.sub("\.", "-", x.name), axis=0)
+    return df
 
 
-# A wrapper function to handle multiprocessing and collect results
-def multiprocessing_wrapper(k, env, rand_res, snp_shap_bench_s288c,
-    snp_shap_bench_w303, snp_s288c_rclust1, snp_s288c_rclust2, snp_w303_rclust1,
-    snp_w303_rclust2, pav_shap_bench_s288c, pav_shap_bench_w303,
-    pav_s288c_rclust1, pav_s288c_rclust2, pav_w303_rclust1, pav_w303_rclust2):
-    result = compared_rand_clusters(k, env, rand_res, snp_shap_bench_s288c, snp_shap_bench_w303,
-        snp_s288c_rclust1, snp_s288c_rclust2, snp_w303_rclust1,
-        snp_w303_rclust2, pav_shap_bench_s288c, pav_shap_bench_w303,
-        pav_s288c_rclust1, pav_s288c_rclust2, pav_w303_rclust1, pav_w303_rclust2)
-    rand_res[k] = result
+snp_clust_map = {0: 2, 1: 3, 2: 4, 3: 5, 4: 0, 5: 1}  # {original: new}
+pav_clust_map = {0: 1, 1: 2, 2: 3, 3: 0}
+invert_snp_clust_map = {v: k for k, v in snp_clust_map.items()}
+invert_pav_clust_map = {v: k for k, v in pav_clust_map.items()}
 
-
-def comp_clust_main(env, randomized=True):
-    '''Compare the shap values between the two clusters containing the lab
-    strains and the most distinct cluster to it using Mann-Whitney U (alternative
-    hypothesis is "greater").
-    
-    If randomized=True, will generate 500 random cluster pairs to calculate
-    statistical significance.
-    
-    If randomized=False, will calculate statistical significance for the two
-    actual clusters (cluster 1 containing the lab strains; the other cluster
-    being the most distinct to cluster 1).'''
-    
-    # read in shap values
-    snp_shap = dt.fread(f"{d}/SNP/baseline/SHAP_values_sorted_{env}_snp_rf_baseline_training.txt").to_pandas()
-    pav_shap = dt.fread(f"{d}/PAV/baseline/SHAP_values_sorted_{env}_pav_rf_baseline_training.txt").to_pandas()
-    snp_shap.set_index("ID", inplace=True)
-    pav_shap.set_index("ID", inplace=True)
-    
-    # map features to genes
-    print("Mapping features to genes...")
-    snp_shap.loc["Gene"] = snp_shap.T.index.map(map_snps.set_index("snp")["gene"]) # map features to genes
-    pav_shap.columns = pav_shap.columns.map(lambda x: re.sub("^X", "", x))
-    pav_shap.columns = pav_shap.columns.map(lambda x: re.sub("\.", "-", x))
-    pav_shap.loc["Gene"] = pav_shap.T.index.map(map_orfs.set_index("orf")["gene"])
-    
-    # ensure isolate columns are the same order as the distance matrices
-    snp_shap = snp_shap.loc[eu_dist_snp.columns.tolist()[:-1] + ["Gene"],:]
-    pav_shap = pav_shap.loc[eu_dist_pav.columns.tolist()[:-1] + ["Gene"],:]
-    
-    # subset the benchmark genes
-    print("Subsetting benchmark genes...")
-    if env == "YPDBENOMYL500":
-        snp_shap_bench = snp_shap.loc[:, snp_shap.loc["Gene"].isin(ben_snp)] # all benchmark genes validated in benomyl
-        pav_shap_bench = pav_shap.loc[:, pav_shap.loc["Gene"].isin(ben_orf)]
-        snp_shap_bench_s288c = snp_shap_bench.loc[:, snp_shap_bench.loc["Gene"].isin(ben_s288c)] # only benchmark genes validated in s288c and benomyl
-        snp_shap_bench_w303 = snp_shap_bench.loc[:, snp_shap_bench.loc["Gene"].isin(ben_w303)] # only benchmark genes validated in w303 and benomyl
-        pav_shap_bench_s288c = pav_shap_bench.loc[:, pav_shap_bench.loc["Gene"].isin(ben_s288c)]
-        pav_shap_bench_w303 = pav_shap_bench.loc[:, pav_shap_bench.loc["Gene"].isin(ben_w303)]
-        
-    if (env == "YPDCAFEIN40") or (env == "YPDCAFEIN50"):
-        snp_shap_bench = snp_shap.loc[:, snp_shap.loc["Gene"].isin(caf_snp)]
-        pav_shap_bench = pav_shap.loc[:, pav_shap.loc["Gene"].isin(caf_orf)]
-        snp_shap_bench_s288c = snp_shap_bench.loc[:, snp_shap_bench.loc["Gene"].isin(caf_s288c)]
-        snp_shap_bench_w303 = snp_shap_bench.loc[:, snp_shap_bench.loc["Gene"].isin(caf_w303)]
-        pav_shap_bench_s288c = pav_shap_bench.loc[:, pav_shap_bench.loc["Gene"].isin(caf_s288c)]
-        pav_shap_bench_w303 = pav_shap_bench.loc[:, pav_shap_bench.loc["Gene"].isin(caf_w303)]
-        
-    if env == "YPDCUSO410MM":
-        snp_shap_bench = snp_shap.loc[:, snp_shap.loc["Gene"].isin(cu_snp)]
-        pav_shap_bench = pav_shap.loc[:, pav_shap.loc["Gene"].isin(cu_orf)]
-        snp_shap_bench_s288c = snp_shap_bench.loc[:, snp_shap_bench.loc["Gene"].isin(cu_s288c)]
-        pav_shap_bench_s288c = pav_shap_bench.loc[:, pav_shap_bench.loc["Gene"].isin(cu_s288c)]
-        # I did not include w303 bc there is only one benchmark gene validated in w303 for CuSO4
-        snp_shap_bench_w303 = pd.Series()
-        pav_shap_bench_w303 = pd.Series()
-        
-    if env == "YPDSODIUMMETAARSENITE":
-        snp_shap_bench = snp_shap.loc[:, snp_shap.loc["Gene"].isin(sma_snp)]
-        pav_shap_bench = pav_shap.loc[:, pav_shap.loc["Gene"].isin(sma_orf)]
-        snp_shap_bench_s288c = snp_shap_bench.loc[:, snp_shap_bench.loc["Gene"].isin(sma_s288c)]
-        snp_shap_bench_w303 = snp_shap_bench.loc[:, snp_shap_bench.loc["Gene"].isin(sma_w303)]
-        pav_shap_bench_s288c = pav_shap_bench.loc[:, pav_shap_bench.loc["Gene"].isin(sma_s288c)]
-        pav_shap_bench_w303 = pav_shap_bench.loc[:, pav_shap_bench.loc["Gene"].isin(sma_w303)]
-    
-    # subset the individuals in the two clusters
-    snp_shap_bench.loc[:,"Cluster"] = cluster_assignments_snp.loc[snp_shap_bench.index[:-1], "Cluster"]
-    pav_shap_bench.loc[:,"Cluster"] = cluster_assignments_pav.loc[pav_shap_bench.index[:-1], "Cluster"]
-    snp_s288c_clust1 = snp_shap_bench_s288c.loc[snp_shap_bench.Cluster == s288c_distinct_clusters_snp[0],:]
-    snp_s288c_clust2 = snp_shap_bench_s288c.loc[snp_shap_bench.Cluster == s288c_distinct_clusters_snp[1],:]
-    pav_s288c_clust1 = pav_shap_bench_s288c.loc[pav_shap_bench.Cluster == s288c_distinct_clusters_pav[0],:]
-    pav_s288c_clust2 = pav_shap_bench_s288c.loc[pav_shap_bench.Cluster == s288c_distinct_clusters_pav[1],:]
-    
-    if env != "YPDCUSO410MM": # only 1 CuSO4 gene was verified in W303, can't calculate stats on this
-        snp_w303_clust1 = snp_shap_bench_w303.loc[snp_shap_bench.Cluster == w303_distinct_clusters_snp[0],:]
-        snp_w303_clust2 = snp_shap_bench_w303.loc[snp_shap_bench.Cluster == w303_distinct_clusters_snp[1],:]
-        pav_w303_clust1 = pav_shap_bench_w303.loc[pav_shap_bench.Cluster == w303_distinct_clusters_pav[0],:]
-        pav_w303_clust2 = pav_shap_bench_w303.loc[pav_shap_bench.Cluster == w303_distinct_clusters_pav[1],:]
-    else: # necessary since it's needed in the partial function
-        snp_w303_clust1 = pd.Series()
-        snp_w303_clust2 = pd.Series()
-        pav_w303_clust1 = pd.Series()
-        pav_w303_clust2 = pd.Series()
-    
-    if randomized == True:
-        # randomly subset individuals to create two clusters
-        print("Creating random clusters to test S288C or W303 benchmark genes...")
-        snp_s288c_indices = [np.random.choice(snp_shap_bench_s288c.index[:-1], len(snp_s288c_clust1), replace=False) for _ in range(5000)]
-        snp_s288c_indices2 = [np.random.choice(snp_shap_bench_s288c.index[:-1], len(snp_s288c_clust2), replace=False) for _ in range(5000)]
-        pav_s288c_indices = [np.random.choice(pav_shap_bench_s288c.index[:-1], len(pav_s288c_clust1), replace=False) for _ in range(5000)]
-        pav_s288c_indices2 = [np.random.choice(pav_shap_bench_s288c.index[:-1], len(pav_s288c_clust2), replace=False) for _ in range(5000)]
-        snp_s288c_rclust1 = {k: snp_s288c_indices[k] for k in range(5000)}
-        snp_s288c_rclust2 = {k: snp_s288c_indices2[k] for k in range(5000)}
-        pav_s288c_rclust1 = {k: pav_s288c_indices[k] for k in range(5000)}
-        pav_s288c_rclust2 = {k: pav_s288c_indices2[k] for k in range(5000)}
-        
-        if env != "YPDCUSO410MM":
-            snp_w303_indices = [np.random.choice(snp_shap_bench_w303.index[:-1], len(snp_w303_clust1), replace=False) for _ in range(5000)]
-            snp_w303_indices2 = [np.random.choice(snp_shap_bench_w303.index[:-1], len(snp_w303_clust2), replace=False) for _ in range(5000)]
-            pav_w303_indices = [np.random.choice(pav_shap_bench_w303.index[:-1], len(pav_w303_clust1), replace=False) for _ in range(5000)]
-            pav_w303_indices2 = [np.random.choice(pav_shap_bench_w303.index[:-1], len(pav_w303_clust2), replace=False) for _ in range(5000)]
-            snp_w303_rclust1 = {k: snp_w303_indices[k] for k in range(5000)}
-            snp_w303_rclust2 = {k: snp_w303_indices2[k] for k in range(5000)}
-            pav_w303_rclust1 = {k: pav_w303_indices[k] for k in range(5000)}
-            pav_w303_rclust2 = {k: pav_w303_indices2[k] for k in range(5000)}
-        else: # necessary since it's passed to the partial function
-            snp_w303_rclust1 = {k: pd.Series() for k in range(5000)}
-            snp_w303_rclust2 = {k: pd.Series() for k in range(5000)}
-            pav_w303_rclust1 = {k: pd.Series() for k in range(5000)}
-            pav_w303_rclust2 = {k: pd.Series() for k in range(5000)}
-        
-        # Create a Manager dictionary to store the results
-        k_values = list(range(5000))
-        with mp.Manager() as manager:
-            rand_res = manager.dict()  # shared dictionary
-            
-            # Create a partial function to pass rand_res
-            func = partial(multiprocessing_wrapper, env=env, rand_res=rand_res,
-                        snp_shap_bench_s288c=snp_shap_bench_s288c,
-                        snp_shap_bench_w303=snp_shap_bench_w303,
-                        snp_s288c_rclust1=snp_s288c_rclust1,
-                        snp_s288c_rclust2=snp_s288c_rclust2,
-                        snp_w303_rclust1=snp_w303_rclust1,
-                        snp_w303_rclust2=snp_w303_rclust2,
-                        pav_shap_bench_s288c=pav_shap_bench_s288c,
-                        pav_shap_bench_w303=pav_shap_bench_w303,
-                        pav_s288c_rclust1=pav_s288c_rclust1,
-                        pav_s288c_rclust2=pav_s288c_rclust2,
-                        pav_w303_rclust1=pav_w303_rclust1,
-                        pav_w303_rclust2=pav_w303_rclust2)
-            
-            # Initialize a multiprocessing pool
-            with mp.Pool(processes=mp.cpu_count()) as pool:
-                # Map the k values to the function
-                pool.map(func, k_values)
-            
-            # Convert the manager dictionary to a regular dictionary
-            results = dict(rand_res)  # Extract the data while the manager is active
-        
-        return results
-    
-    if randomized == False:
-        mwu_res = {"S288C": {"greater":{"shap":{}, "fitness":{}},
-                     "two-sided":{"shap":{}, "fitness":{}}},
-           "W303": {"greater":{"shap":{}, "fitness":{}},
-                    "two-sided":{"shap":{}, "fitness":{}}}}
-        boxplot_data = {"S288C": {"shap":{}, "fitness":{}},
-                "W303": {"shap":{}, "fitness":{}}}
-        
-        # calculate the mann-whitney u test statistic on shap values of clusters
-        print("Calculating Mann-Whitney U test statistic for S288C benchmark genes...")
-        boxplot_data["S288C"]["shap"] = {"snp": {"clust1": snp_s288c_clust1,
-                                                    "clust2": snp_s288c_clust2}}
-        s, p = mannwhitneyu(np.array(snp_s288c_clust1).astype("float").flatten(),
-                    np.array(snp_s288c_clust2).astype("float").flatten(),
-                    alternative="greater")
-        mwu_res["S288C"]["greater"]["shap"] = {"snp": {"statistic": s, "p-value": p}} # Ha: greater
-        
-        s, p = mannwhitneyu(np.array(snp_s288c_clust1).astype("float").flatten(),
-                    np.array(snp_s288c_clust2).astype("float").flatten(),
-                    alternative="two-sided")
-        mwu_res["S288C"]["two-sided"]["shap"] = {"snp": {"statistic": s, "p-value": p}} # Ha: not equal
-        
-        boxplot_data["S288C"]["shap"]["pav"] = {"clust1": pav_s288c_clust1,
-                                                    "clust2": pav_s288c_clust2}
-        s, p = mannwhitneyu(np.array(pav_s288c_clust1).astype("float").flatten(),
-                    np.array(pav_s288c_clust2).astype("float").flatten(),
-                    alternative="greater")
-        mwu_res["S288C"]["greater"]["shap"]["pav"] = {"statistic": s, "p-value": p} # Ha: greater
-        
-        s, p = mannwhitneyu(np.array(pav_s288c_clust1).astype("float").flatten(),
-                    np.array(pav_s288c_clust2).astype("float").flatten(),
-                    alternative="two-sided")
-        mwu_res["S288C"]["two-sided"]["shap"]["pav"] = {"statistic": s, "p-value": p} # Ha: not equal
-        
-        if env != "YPDCUSO410MM":
-            print("Calculating Mann-Whitney U test statistic for W303 benchmark genes...")
-            boxplot_data["W303"]["shap"] = {"snp": {"clust1": snp_w303_clust1,
-                                                        "clust2": snp_w303_clust2}}
-            s, p = mannwhitneyu(np.array(snp_w303_clust1).astype("float").flatten(),
-                        np.array(snp_w303_clust2).astype("float").flatten(),
-                        alternative="greater")
-            mwu_res["W303"]["greater"]["shap"] = {"snp": {"statistic": s, "p-value": p}}
-            
-            s, p = mannwhitneyu(np.array(snp_w303_clust1).astype("float").flatten(),
-                        np.array(snp_w303_clust2).astype("float").flatten(),
-                        alternative="two-sided")
-            mwu_res["W303"]["two-sided"]["shap"] = {"snp": {"statistic": s, "p-value": p}}
-            
-            boxplot_data["W303"]["shap"]["pav"] = {"clust1": pav_w303_clust1,
-                                                        "clust2": pav_w303_clust2}
-            s, p = mannwhitneyu(np.array(pav_w303_clust1).astype("float").flatten(),
-                        np.array(pav_w303_clust2).astype("float").flatten(),
-                        alternative="greater")
-            mwu_res["W303"]["greater"]["shap"]["pav"] = {"statistic": s, "p-value": p}
-            
-            s, p = mannwhitneyu(np.array(pav_w303_clust1).astype("float").flatten(),
-                        np.array(pav_w303_clust2).astype("float").flatten(),
-                        alternative="two-sided")
-            mwu_res["W303"]["two-sided"]["shap"]["pav"] = {"statistic": s, "p-value": p}
-        
-        # calculate the mann-whitney u test statistic on fitness values of clusters
-        print("Calculating Mann-Whitney U test statistic for fitness of S288C clusters...")
-        boxplot_data["S288C"]["fitness"] = {"snp": {"clust1": pheno.loc[snp_s288c_clust1.index, env],
-                                                "clust2": pheno.loc[snp_s288c_clust2.index, env]}}
-        s, p = mannwhitneyu(pheno.loc[snp_s288c_clust1.index, env],
-                        pheno.loc[snp_s288c_clust2.index, env], alternative="greater")
-        mwu_res["S288C"]["greater"]["fitness"] = {"snp": {"statistic": s, "p-value": p}}
-        
-        s, p = mannwhitneyu(pheno.loc[snp_s288c_clust1.index, env],
-                        pheno.loc[snp_s288c_clust2.index, env], alternative="two-sided")
-        mwu_res["S288C"]["two-sided"]["fitness"] = {"snp": {"statistic": s, "p-value": p}}
-        
-        boxplot_data["S288C"]["fitness"]["pav"] = {"clust1": pheno.loc[pav_s288c_clust1.index, env],
-                                                    "clust2": pheno.loc[pav_s288c_clust2.index, env]}
-        s, p = mannwhitneyu(pheno.loc[pav_s288c_clust1.index, env],
-                        pheno.loc[pav_s288c_clust2.index, env], alternative="greater")
-        mwu_res["S288C"]["greater"]["fitness"]["pav"] = {"statistic": s, "p-value": p}
-        
-        s, p = mannwhitneyu(pheno.loc[pav_s288c_clust1.index, env],
-                        pheno.loc[pav_s288c_clust2.index, env], alternative="two-sided")
-        mwu_res["S288C"]["two-sided"]["fitness"]["pav"] = {"statistic": s, "p-value": p}
-        
-        if env != "YPDCUSO410MM":
-            print("Calculating Mann-Whitney U test statistic for fitness of W303 clusters...")
-            boxplot_data["W303"]["fitness"] = {"snp": {"clust1": pheno.loc[snp_w303_clust1.index, env],
-                                                    "clust2": pheno.loc[snp_w303_clust2.index, env]}}
-            s, p = mannwhitneyu(pheno.loc[snp_w303_clust1.index, env],
-                        pheno.loc[snp_w303_clust2.index, env], alternative="greater")
-            mwu_res["W303"]["greater"]["fitness"] = {"snp": {"statistic": s, "p-value": p}}
-            
-            s, p = mannwhitneyu(pheno.loc[snp_w303_clust1.index, env],
-                        pheno.loc[snp_w303_clust2.index, env], alternative="two-sided")
-            mwu_res["W303"]["two-sided"]["fitness"] = {"snp": {"statistic": s, "p-value": p}}
-            
-            boxplot_data["W303"]["fitness"]["pav"] = {"clust1": pheno.loc[pav_w303_clust1.index, env],
-                                                        "clust2": pheno.loc[pav_w303_clust2.index, env]}
-            s, p = mannwhitneyu(pheno.loc[pav_w303_clust1.index, env],
-                        pheno.loc[pav_w303_clust2.index, env], alternative="greater")
-            mwu_res["W303"]["greater"]["fitness"]["pav"] = {"statistic": s, "p-value": p}
-            
-            s, p = mannwhitneyu(pheno.loc[pav_w303_clust1.index, env],
-                        pheno.loc[pav_w303_clust2.index, env], alternative="two-sided")
-            mwu_res["W303"]["two-sided"]["fitness"]["pav"] = {"statistic": s, "p-value": p}
-        
-        del snp_shap, pav_shap, snp_shap_bench, pav_shap_bench
-        del snp_shap_bench_s288c, pav_shap_bench_s288c
-        del snp_s288c_clust1, snp_s288c_clust2, pav_s288c_clust1, pav_s288c_clust2
-        
-        # if env != "YPDCUSO410MM":
-        del snp_w303_clust1, snp_w303_clust2, pav_w303_clust1, pav_w303_clust2
-        del snp_shap_bench_w303, pav_shap_bench_w303
-        
-        return mwu_res, boxplot_data
-
-
-target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
-               "YPDSODIUMMETAARSENITE"]
 d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP"
+mwu_res = {"snp": {}, "pav": {}}
+benchmark_genes = ["benomyl", "caffeine",
+                   "cuso4", "sodium_meta-arsenite", "caffeine"]
+for i, bench_list in enumerate([ben_s288c, caf_s288c, cu_s288c, sma_s288c, caf_s288c]):
+    for mtype in ["fs", "baseline"]:  # optimized & complete RF models
+        print(len(bench_list))
+        if i == 0:
+            env = "YPDBENOMYL500"
+        elif i == 1:
+            env = "YPDCAFEIN40"
+        elif i == 2:
+            env = "YPDCUSO410MM"
+        elif i == 3:
+            env = "YPDSODIUMMETAARSENITE"
+        elif i == 4:
+            env = "YPDCAFEIN50"
+        #
+        # SNPs, read in the feature name map
+        snp_feat_map_shap = dt.fread(glob(
+            f"{d}/SNP/{mtype}/SHAP_values_sorted_average_{env}_snp_rf_{mtype}_*_with_actual_feature_names_*")[0]).to_pandas()
+        # set column names
+        snp_feat_map_shap.columns = snp_feat_map_shap.iloc[0, :]
+        snp_feat_map_shap = snp_feat_map_shap.iloc[1:, :]  # remove first row
+        snp_feat_map_shap.set_index(snp_feat_map_shap.columns[1], inplace=True)
+        snp_feat_map_shap = snp_feat_map_shap.drop(
+            columns=0).to_dict()
+        # read in shap values from the optimized RF models
+        snp_shap = dt.fread(glob(
+            f"{d}/SNP/{mtype}/SHAP_values_sorted_{env}_snp_rf_{mtype}_*")[0]).to_pandas()
+        snp_shap.set_index("ID", inplace=True)
+        snp_shap.columns = snp_shap.columns.map(
+            snp_feat_map_shap["actual_feature"])
+        #
+        # drop the feature with zero shap values across all isolates
+        print('snp_shap before dropping zero columns', snp_shap.shape)
+        snp_shap = snp_shap.loc[:, ~snp_shap.eq(0).all(axis=0)]
+        print('snp_shap after dropping zero columns', snp_shap.shape)
+        #
+        # subset the benchmark genes validated in s288c for an environment
+        # note: all snps per gene are considered
+        print('Number of S288C benchmark genes in list:', len(bench_list))
+        s288c_snp_shap = snp_shap.loc[
+            :, snp_shap.columns.isin(map_snps.loc[map_snps.gene.isin(bench_list)].index)].abs()  # absolute shap values
+        print('Number of S288C benchmark genes in SNP shap features:', len(
+            s288c_snp_shap.columns.map(map_snps.gene).unique()))
+        #
+        if s288c_snp_shap.shape[1] != 0:
+            # plot the distributions of the benchmark gene shap values in a violin plot
+            s288c_snp_shap.insert(
+                0, 'Cluster', cluster_assignments_snp.loc[s288c_snp_shap.index, "New_Cluster"])
+            s288c_snp_shap_box = s288c_snp_shap.melt(
+                id_vars=["Cluster"], var_name="ID", value_name="SHAP")
+            # x1000 and log the values for better visualization
+            s288c_snp_shap_box["SHAP_log"] = np.log10(
+                s288c_snp_shap_box["SHAP"] * 1000)
+            sns.violinplot(data=s288c_snp_shap_box, x="Cluster",
+                           y="SHAP_log", hue="Cluster", cut=0, palette='tab10')
+            plt.title(f"{env} SNP Benchmark Gene SHAP Values")
+            plt.ylabel("log10(SHAP Value x 1000)")
+            plt.xlabel("Cluster")
+            plt.savefig(
+                f"Scripts/Data_Vis/Section_4/Figure_4e_{env}_snp_rf_{mtype}_bench_gene_shap_violin.pdf")
+            plt.close()
+            #
+            # subset the cluster 0 shap values (S288C is in cluster '0')
+            clust0_snp_shap = s288c_snp_shap.loc[
+                s288c_snp_shap.Cluster == 0].drop(columns=["Cluster"])
+            print('clust0_snp_shap', clust0_snp_shap.shape)
+            # calculate the median shap value per gene per isolate
+            clust0_snp_shap_med = clust0_snp_shap.T.groupby(
+                map_snps.loc[clust0_snp_shap.columns].gene).median()
+            print('clust0_snp_shap_med', clust0_snp_shap_med.shape)
+            for clust in [1, 2, 3, 4, 5]:
+                print(f"Comparing cluster 0 to cluster {clust} for {env} SNPs")
+                # subset the clust shap values
+                clust_snp_shap = s288c_snp_shap.loc[
+                    s288c_snp_shap.Cluster == clust].drop(columns=["Cluster"])
+                print(f'clust{clust}_snp_shap', clust_snp_shap.shape)
+                # calculate the median shap value per gene per isolate
+                clust_snp_shap_med = clust_snp_shap.T.groupby(
+                    map_snps.loc[clust0_snp_shap.columns].gene).median()
+                print(f'clust{clust}_snp_shap_med', clust_snp_shap_med.shape)
+                # Are clust0 shap values significantly greater than the other cluster's shap?
+                try:
+                    x = clust0_snp_shap_med.values.flatten()
+                    y = clust_snp_shap_med.values.flatten()
+                    u, pval = mannwhitneyu(x, y, alternative="greater")
+                    mwu_res["snp"][f"{env}.bench_{mtype}_med_shap_per_gene.s288c_clust0_vs_clust{clust}"] = \
+                        [u, pval, clust0_snp_shap_med.shape[0], dist_snp.loc[4, invert_snp_clust_map[clust]]] +\
+                        clust0_snp_shap_med.median().describe().tolist() +\
+                        clust_snp_shap_med.median().describe().tolist()
+                    # count, mean, std, min, 25%, 50%, 75%, max
+                except ValueError:
+                    # there were no benchmark genes in the optimized RF model features
+                    mwu_res["snp"][f"{env}.bench_{mtype}_med_shap_per_gene.s288c_clust0_vs_clust{clust}"] = \
+                        [np.nan, np.nan, 0, dist_snp.loc[4, invert_snp_clust_map[clust]]] +\
+                        clust0_pav_shap_med.median().describe().tolist() +\
+                        clust_pav_shap_med.median().describe()
+        #
+        # PAVs
+        # read in shap values from the optimized RF models
+        pav_shap = dt.fread(glob(
+            f"{d}/PAV/{mtype}/SHAP_values_sorted_{env}_pav_rf_{mtype}_*")[0]).to_pandas()
+        pav_shap.set_index("ID", inplace=True)
+        pav_shap = fix_orf_ids(pav_shap)
+        #
+        # drop the feature with zero shap values across all isolates
+        print('pav_shap before dropping zero columns', pav_shap.shape)
+        pav_shap = pav_shap.loc[:, ~pav_shap.eq(0).all(axis=0)]
+        print('pav_shap after dropping zero columns', pav_shap.shape)
+        #
+        # subset the benchmark genes validated in s288c for an environment
+        # note: all orfs per gene are considered
+        s288c_pav_shap = pav_shap.loc[
+            :, pav_shap.columns.isin(map_orfs.loc[map_orfs.gene.isin(bench_list)].index)].abs()
+        print('Number of S288C benchmark genes in PAV shap features:', len(
+            s288c_pav_shap.columns.map(map_orfs.gene).unique()))
+        #
+        if s288c_pav_shap.shape[1] != 0:
+            # plot the distributions of the benchmark gene shap values in a boxplot
+            s288c_pav_shap.insert(
+                0, 'Cluster', cluster_assignments_pav.loc[s288c_pav_shap.index, "New_Cluster"])
+            s288c_pav_shap_box = s288c_pav_shap.melt(
+                id_vars=["Cluster"], var_name="ID", value_name="SHAP")
+            s288c_pav_shap_box["SHAP_log"] = np.log10(
+                s288c_pav_shap_box["SHAP"] * 1000)
+            sns.violinplot(data=s288c_pav_shap_box, x="Cluster",
+                           y="SHAP_log", hue="Cluster", cut=0, palette='tab10')
+            plt.title(f"{env} PAV Benchmark Gene SHAP Values")
+            plt.ylabel("log10(SHAP Value x 1000)")
+            plt.xlabel("Cluster")
+            plt.savefig(
+                f"Scripts/Data_Vis/Section_4/Figure_4e_{env}_pav_rf_{mtype}_bench_gene_shap_violin.pdf")
+            plt.close()
+            # subset the cluster 0 shap values (S288C is in cluster '0')
+            clust0_pav_shap = s288c_pav_shap.loc[
+                s288c_pav_shap.Cluster == 0].drop(columns=["Cluster"])
+            # calculate the median shap value per gene per isolate
+            clust0_pav_shap_med = clust0_pav_shap.T.groupby(
+                map_orfs.loc[clust0_pav_shap.columns].gene).median()
+            #
+            for clust in [1, 2, 3]:
+                print(
+                    f"Comparing cluster 0 to cluster {clust} for {env} PAVs")
+                # subset the cluster 2 shap values
+                clust_pav_shap = s288c_pav_shap.loc[
+                    s288c_pav_shap.Cluster == clust].drop(columns=["Cluster"])
+                print(f'clust{clust}_pav_shap', clust_pav_shap.shape)
+                # calculate the median shap value per gene per isolate
+                clust_pav_shap_med = clust_pav_shap.T.groupby(
+                    map_orfs.loc[clust_pav_shap.columns].gene).median()
+                print(f'clust{clust}_pav_shap_med', clust_pav_shap_med.shape)
+                #
+                # Are clust0 shap values significantly greater than the other cluster's shap?
+                try:
+                    x = clust0_pav_shap_med.values.flatten()
+                    y = clust_pav_shap_med.values.flatten()
+                    u, pval = mannwhitneyu(x, y, alternative="greater")
+                    mwu_res["pav"][f"{env}.bench_{mtype}_med_shap_per_gene.s288c_clust0_vs_clust{clust}"] =\
+                        [u, pval, clust0_pav_shap_med.shape[0], dist_pav.loc[3, invert_pav_clust_map[clust]]] +\
+                        clust0_pav_shap_med.median().describe().tolist() +\
+                        clust_pav_shap_med.median().describe().tolist()
+                except ValueError:
+                    mwu_res["pav"][f"{env}.bench_{mtype}_med_shap_per_gene.s288c_clust0_vs_clust{clust}"] =\
+                        [np.nan, np.nan, 0, dist_pav.loc[3, invert_pav_clust_map[clust]]] +\
+                        clust0_pav_shap_med.median().describe().tolist() +\
+                        clust_pav_shap_med.median().describe().tolist()
+        #
+        del snp_shap, s288c_snp_shap, clust0_snp_shap, clust0_snp_shap_med
+        del clust_snp_shap, clust_snp_shap_med
+        del pav_shap, s288c_pav_shap
+        try:
+            del clust0_pav_shap, clust0_pav_shap_med, clust_pav_shap, clust_pav_shap_med
+        except NameError:
+            continue
+    del bench_list
 
-mwu_res = {}
-boxplot_data = {}
-for env in target_envs:
-    rand_res = comp_clust_main(env, randomized=True)
-    mwu_res[env], boxplot_data[env] = comp_clust_main(env, randomized=False)
-    
-    rand_res_df = pd.DataFrame.from_dict(rand_res, orient='index')
-    rand_res_df = rand_res_df.applymap(lambda x: pd.Series(x)).stack().apply(pd.Series)
-    rand_res_df.columns = ["Data", "Strain", "Alternative", "Statistic", "P-value"]
-    rand_res_df.to_csv(f"Scripts/Data_Vis/Section_5/Kmeans_snp_or_pav_genetic_distance_randomized_mwu_results_{env}.csv")
 
+mwu_res_df = pd.json_normalize(mwu_res, sep='.').T
+mwu_res_df.index = pd.MultiIndex.from_tuples(
+    mwu_res_df.index.str.split(".").map(tuple))
+mwu_res_df.index.names = ["Variant Type", "Environment", "Description",
+                          "Comparison"]
+mwu_res_df = mwu_res_df.apply(lambda x: pd.Series(x[0]), axis=1)
+mwu_res_df.columns = ["U", "pval", "num_benchmark_features",
+                      "distance_between_clusters", "s288c_clust_shap_count",
+                      "s288c_clust_shap_mean", "s288c_clust_shap_std",
+                      "s288c_clust_shap_min", "s288c_clust_shap_25%",
+                      "s288c_clust_shap_50%", "s288c_clust_shap_75%",
+                      "s288c_clust_shap_max", "other_clust_shap_count",
+                      "other_clust_shap_mean", "other_clust_shap_std",
+                      "other_clust_shap_min", "other_clust_shap_25%",
+                      "other_clust_shap_50%", "other_clust_shap_75%",
+                      "other_clust_shap_max"]
 
-mwu_res = pd.DataFrame.from_dict({(i, j, k, h, l): mwu_res[i][j][k][h][l]
-                        for i in mwu_res.keys()
-                        for j in mwu_res[i].keys()
-                        for k in mwu_res[i][j].keys()
-                        for h in mwu_res[i][j][k].keys()
-                        for l in mwu_res[i][j][k][h].keys()}, orient='index')
+mwu_res_df["difference_median_shap_btwn_clusters"] = mwu_res_df["s288c_clust_shap_50%"] - \
+    mwu_res_df["other_clust_shap_50%"]
+mwu_res_df.reset_index().to_excel(
+    "Scripts/Data_Vis/Section_4/Table_S14_bench_gene_shap_btwn_clusters_mwu_stats.xlsx",
+    index=False)
 
-mwu_res.sort_values(by="p-value", inplace=True)
-mwu_res.loc[mwu_res.index.get_level_values(1)=='greater',:]
-mwu_res.index.names = ["Strain", "Alternative", "Factor", "Environment",  "Data"]
-mwu_res.to_csv("Scripts/Data_Vis/Section_5/Kmeans_snp_or_pav_genetic_distance_mwu_results.csv")
-
-
-#### Determine how many of the optimized features are unknown ORFs or intergenic SNPs.
+################################################################################
+# 4. Determine how many of the optimized features are ORFs absent in S288C or
+#    intergenic SNPs.
+################################################################################
 # Feature to gene maps
 map_snps = map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED.tsv",
-                       sep="\t", header=None, names=["snp", "chr", "pos", "gene"], index_col=0)
-map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv",
-                       sep="\t",index_col=0)
+                                  sep="\t", header=None, names=["snp", "chr", "pos", "gene"], index_col=0)
+map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene_CORRECTED.tsv",
+                       sep="\t", index_col=0)
 
 # Optimized feature sets for all single environment models
-snp_fs = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_imp_snp_rank_per.tsv", sep="\t", index_col=0)
-pav_fs = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_imp_pav_rank_per.tsv", sep="\t", index_col=0)
-cnv_fs = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_imp_cnv_rank_per.tsv", sep="\t", index_col=0)
+snp = pd.read_csv(
+    "Scripts/Data_Vis/Section_3/RF_optimized_gini_snp.tsv", sep="\t", index_col=0)
+pav = pd.read_csv(
+    "Scripts/Data_Vis/Section_3/RF_optimized_gini_pav.tsv", sep="\t", index_col=0)
+cnv = pd.read_csv(
+    "Scripts/Data_Vis/Section_3/RF_optimized_gini_cnv.tsv", sep="\t", index_col=0)
+
+# presence/absence of ORFs in S288C based on BLAST results
+pav_info = pd.read_csv(
+    "Data/Peter_2018/ORFs_pres_abs_with_S288C.csv", index_col=0)
+pav_info = fix_orf_ids(pav_info.T).T
 
 # For each env, count how many of the optimized features are intergenic/unknown ORFs
 res = {}
-for env in snp_fs.columns[1:]:
-    env_snp_fs = snp_fs[[env]].dropna()
-    env_pav_fs = pav_fs[[env]].dropna()
-    env_cnv_fs = cnv_fs[[env]].dropna()
-    
-    res[env] = {"SNP": [sum(map_snps.loc[env_snp_fs.index, "gene"] == "intergenic"), # number of intergenic snps
-                    len(env_snp_fs)], # total number of snps
-                "PAV": [sum(pd.merge(map_orfs["gene"], env_pav_fs, how="right", # number of unknown orfs
-                    left_index=True, right_index=True).gene.isna()), 
-                    len(env_pav_fs)], # total number of orfs
-                "CNV": [sum(pd.merge(map_orfs["gene"], env_cnv_fs, how="right", # number of unknown orfs
-                    left_index=True, right_index=True).gene.isna()),
-                    len(env_cnv_fs)]} # total number of orfs
+for env in snp.columns[2:]:
+    env_snp = snp[[env]].dropna()
+    env_pav = pav[[env]].dropna()
+    env_cnv = cnv[[env]].dropna()
+    res[env] = {"SNP": [sum(map_snps.loc[env_snp.index, "gene"] == "intergenic"),  # number of intergenic snps
+                        len(env_snp)],  # total number of snps
+                "PAV": [sum(pd.merge(pav_info["S288C"], env_pav, how="right",
+                                     left_index=True, right_index=True).S288C == 0),  # number of unknown orfs
+                        len(env_pav)],  # total number of orfs
+                "CNV": [sum(pd.merge(pav_info["S288C"], env_cnv, how="right",  # number of unknown orfs
+                                     left_index=True, right_index=True).S288C == 0),
+                        len(env_cnv)]}  # total number of orfs
+    del env_snp, env_pav, env_cnv
+
 
 res = pd.concat(
-    {env: pd.DataFrame(data, index=["Unknown", "Total"]).T for env, data in res.items()}, 
+    {env: pd.DataFrame(
+        data, index=["absent or intergenic", "Total"]).T for env, data in res.items()},
     axis=1
 )
-res.to_csv("Scripts/Data_Vis/Section_5/Number_unknown_or_intergenic_features_RF_FS_models.csv")
+res.stack().T.to_csv(
+    "Scripts/Data_Vis/Section_4/Number_unknown_or_intergenic_features_optimized_RF_models.csv")
 
-res = pd.read_csv("Scripts/Data_Vis/Section_5/Number_unknown_or_intergenic_features_RF_FS_models.csv", index_col=0, header=[0,1])
+
+# For the 5 target environments, what percentage of the optimized features are
+# intergenic/ORFs absent in S288C (based on the BLAST analysis)?
+res = res.stack().T
 target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
                "YPDSODIUMMETAARSENITE"]
-
-res_targ = res.loc[:,res.columns.get_level_values(0).isin(target_envs)]
+res_targ = res.loc[target_envs, :]
 res_targ_percent = []
 for env in target_envs:
-    res_targ_percent.append(res_targ[(env, "Unknown")] / res_targ[(env, "Total")])
+    for data_type in ["SNP", "PAV", "CNV"]:
+        df = res_targ.loc[env, data_type]
+        res_targ_percent.append(
+            [data_type, env, df["absent or intergenic"] / df["Total"]])
 
-pd.concat(res_targ_percent, axis=1).T.describe()
-#             SNP       PAV       CNV
-# count  5.000000  5.000000  5.000000
-# mean   0.367927  0.639062  0.550000
-# std    0.016731  0.045353  0.177259
-# min    0.353000  0.570312  0.250000
-# 25%    0.355469  0.632812  0.546875
-# 50%    0.366000  0.632812  0.593750
-# 75%    0.370167  0.671875  0.671875
-# max    0.395000  0.687500  0.687500
-
-
-#### How many of the unknown ORFs are missing in S288C and W303 (SACE_GAV)?
-pav = pd.read_csv("Data/Peter_2018/ORFs_pres_abs_with_S288C.csv", index_col=0)
-pav.index = pav.index.str.replace("^X", "", regex=True)
-pav.index = pav.index.str.replace("\.", "-", regex=True)
-
-pav.in_S288C.value_counts() # overall, including all 7708 ORFs; 5561 in S288C
-pav.SACE_GAV.value_counts() # overall, 6043 in W303
-
-# Optimized feature sets for all single environment PAV models
-pav_fs = pd.read_csv("Scripts/Data_Vis/Section_4/RF_FS_imp_pav_rank_per.tsv", sep="\t", index_col=0)
-
-res = []
-for env in pav_fs.columns:
-    env_pav_fs = pav_fs[[env]].dropna()
-    env_counts = pav.loc[env_pav_fs.index, "in_S288C"].value_counts()
-    env_counts.name = env
-    res.append(env_counts)
-
-target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
-               "YPDSODIUMMETAARSENITE"]
-res_target = pd.concat(res, axis=1)[target_envs]
-np.mean(res_target.T[0] / (res_target.T[0] + res_target.T[1])) # 0.6765625 (67.7% ORFs missing in S288C on average among the target env RF FS PAV features
-np.std(res_target.T[0] / (res_target.T[0] + res_target.T[1])) # 0.04324485157218139 (4.3%)
-
-res_w303 = []
-for env in pav_fs.columns:
-    env_pav_fs = pav_fs[[env]].dropna()
-    env_counts = pav.loc[env_pav_fs.index, "SACE_GAV"].value_counts()
-    env_counts.name = env
-    res_w303.append(env_counts)
-
-res_w303_target = pd.concat(res_w303, axis=1)[target_envs]
-np.mean(res_w303_target.T[False] / (res_w303_target.T[True] + res_w303_target.T[False])) # 0.534375 (53.4 %) missing in W303 on average
-np.std(res_w303_target.T[False] / (res_w303_target.T[False] + res_w303_target.T[True])) # 0.07680128579652817 (7.7 %)
-
+pd.DataFrame(res_targ_percent).groupby(0).describe().T
+#               CNV       PAV       SNP
+#   count  5.000000  5.000000  5.000000
+#   mean   0.564063  0.676562  0.387569
+#   std    0.184415  0.048349  0.026600
+#   min    0.250000  0.601562  0.345000
+#   25%    0.562500  0.656250  0.381167
+#   50%    0.617188  0.695312  0.395333
+#   75%    0.687500  0.710938  0.402344
+#   max    0.703125  0.718750  0.414000
