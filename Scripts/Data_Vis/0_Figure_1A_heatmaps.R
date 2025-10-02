@@ -7,7 +7,7 @@ suppressPackageStartupMessages(library(ComplexHeatmap))
 suppressPackageStartupMessages(library(circlize))
 suppressPackageStartupMessages(library(RColorBrewer))
 
-setwd("/mnt/home/seguraab/Shiu_Lab/Project")
+setwd("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
 # Isolate growth condition labels
 cond <- c("YPACETATE", "YPD14", "YPD40", "YPD42", "YPD6AU", "YPDANISO10", 
@@ -39,13 +39,13 @@ pheno <- left_join(conds, pheno, by=c("cond"="variable")) # add condition labels
 
 ################################## FIGURE 1A ##################################
 # Heatmap of pCorEnvs
-rdbu_r <- rev(brewer.pal(n=11, "RdBu")) # reversed color palette
-col_fun = colorRamp2(seq(-1,1,.2), rdbu_r) #same as cm
+rdbu_r <- rev(brewer.pal(n=9, "RdBu")) # reversed color palette
+col_fun = colorRamp2(seq(-1,1,.25), rdbu_r) #same as cm
 #cm = ColorMapping(name="PCC", colors=rdbu_r, levels=seq(-1,1,.2)) # color mapping
-pdf("Scripts/Data_Vis/Section_1/pheno_corr_envs_v3.pdf", height=9, width=9)
+pdf("Scripts/Data_Vis/Section_1/pheno_corr_envs_v4.pdf", height=9, width=9)
 hm3 <- ComplexHeatmap::Heatmap(as.matrix(pCorEnvs),
         col=col_fun, show_row_dend=F, show_column_dend=F,
-        heatmap_legend_param=list(title="PCC", at=seq(-1,1,.2), color_bar="continuous"))
+        heatmap_legend_param=list(title="PCC", at=seq(-1,1,.25), color_bar="continuous"))
 draw(hm3)
 dev.off()
 
@@ -65,13 +65,13 @@ for (grp in 1:19){
         if (length(envs) > 1) print(paste(grp, ";", min(pCorEnvs[envs, envs]))) # minimum PCC
 }
 # [1] "2 ; 0.975362803318604"
-# [1] "3 ; 0.51824630209932"
+# [1] "3 ; 0.518246302099321"
 # [1] "4 ; 0.58645803304682"
 # [1] "7 ; 0.784820502498895"
 # [1] "8 ; 0.485669214866689"
 # [1] "9 ; 0.58347711984573"
-# [1] "17 ; 0.730897529069502"
-# [1] "18 ; 0.752072512382596"
+# [1] "17 ; 0.730897529069503"
+# [1] "18 ; 0.752072512382595"
 
 # Binned pCorEnv heatmap
 pCorEnvs_binned <- apply(pCorEnvs, 2, cut, seq(-1,1,.2)) # bins on each column
@@ -85,22 +85,51 @@ rownames(pCorEnvs_binned_av2) <- pCorEnvs_binned_av2$Var1 # set rownames
 pCorEnvs_binned_av2 <- pCorEnvs_binned_av2[-1] # drop Var1
 
 # draw heatmap
-#col_fun = colorRamp2(seq(-1,1,.2), rdbu_r) #same as cm
+rdbu_r <- rev(brewer.pal(n=11, "RdBu")) # reversed color palette
+col_fun = colorRamp2(seq(-1,1,.2), rdbu_r) #same as cm
 pdf("Scripts/Data_Vis/pheno_corr_envs_binned.pdf", height=9, width=9)
-hm3 <- ComplexHeatmap::Heatmap(as.matrix(pCorEnvs_binned_av2), 
-        col=color_mapping_legend(cm@colors),
-        heatmap_legend_param=list(title="PCC", at=seq(-1,1,.2), 
+hm3 <- ComplexHeatmap::Heatmap(as.matrix(pCorEnvs_binned_av2),
+        col=col_fun, heatmap_legend_param=list(title="PCC", at=seq(-1,1,.2),
                 color_bar="discrete"))
 draw(hm3)
 dev.off()
 # the binned and original heatmaps look the same
 
-# log of PCC values
-pCorEnvs_log <- log(pCorEnvs)
-pdf("Scripts/Data_Vis/pheno_corr_envs_log.pdf", height=9, width=9)
-hm3 <- ComplexHeatmap::Heatmap(as.matrix(pCorEnvs_log),
-        heatmap_legend_param=list(title="log(PCC)", color_bar="discrete"))
-draw(hm3)
+######## Relate environment clusters to the narrow-sense heritabilities ########
+str(hm3)
+data <- hm3@matrix
+env_order <- c("YPDCHX05", "YPDCHX1", "YPDANISO50", "YPDANISO10", "YPDANISO20",
+             "YPDDMSO", "YPDMV", "YPDSDS", "YPD40", "YPD42", "YPDKCL2M",
+             "YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL200", "YPDBENOMYL500",
+             "YPDETOH", "YPDNYSTATIN", "YPACETATE", "YPXYLOSE", "YPRIBOSE",
+             "YPSORBITOL", "YPGLYCEROL", "YPETHANOL", "YPGALACTOSE",
+             "YPDLICL250MM", "YPDNACL15M", "YPDNACL1M", "YPDFORMAMIDE4",
+             "YPDFORMAMIDE5", "YPDHU", "YPD14", "YPDFLUCONAZOLE",
+             "YPDSODIUMMETAARSENITE", "YPD6AU", "YPDCUSO410MM")
+clustered_data <- data[env_order, env_order]
+
+h2 <- read.csv("Data/Peter_2018/Heritability_h2_H2_sommer_CORRECTED.csv", row.names=1) # heritability data
+rownames(h2) <- h2$Condition
+h2 <- h2[, c("h2", "h2_SE")]
+h2 <- h2[env_order, ] # reorder to match heatmap
+
+# plot the heritabilities according to the env order of Figure 1A
+rdylbu <- rev(brewer.pal(n=11, "RdYlBu")) # color palette
+col_fun = colorRamp2(seq(0,1,.1), rdylbu)
+h2_matrix <- as.matrix(h2$h2)
+rownames(h2_matrix) <- rownames(h2)
+pdf("Scripts/Data_Vis/Section_1/heritiabilities_ordered_by_Fig1A.pdf")
+ht_h2 <- Heatmap(h2_matrix, name = "h²",
+  col = col_fun,
+  cluster_rows = FALSE,
+  cluster_columns = FALSE,
+  show_column_names = FALSE,
+  heatmap_legend_param = list(title = "Heritability"),
+  column_title = NULL,
+  row_names_gp = gpar(fontsize = 8)
+)
+
+draw(ht_h2)
 dev.off()
 
 ########################## ADDITIONAL VISUALIZATIONS ##########################
