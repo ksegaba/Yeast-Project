@@ -12,6 +12,8 @@ dir=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
 
 cd /mnt/home/seguraab/Shiu_Lab/Project/Data/BLAST_nr_db/
 
+# diamond version 0.9.35
+
 echo "Create nr database"
 ${path}/diamond makedb --in nr.faa -d nr_db -p 28 --taxonmap
 
