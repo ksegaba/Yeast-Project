@@ -731,8 +731,8 @@ len(get_unique_gp(ts17_no_pav, "Gene1", "Gene2").intersection(
     costanzo_ben_strict_gp))  # 1
 len(get_unique_gp(ts17_no_pav, "Gene1", "Gene2").intersection(
     costanzo_ctrl_strict_gp))  # 59
-len(get_unique_gp(ts17_no_pav, "Gene1", "Gene2").intersection(biogrid_gp)).
-intersection(costanzo_ctrl_strict_gp).intersection(
+len(get_unique_gp(ts17_no_pav, "Gene1", "Gene2").intersection(
+    biogrid_gp)).intersection(costanzo_ctrl_strict_gp).intersection(
     costanzo_ben_strict_gp)  # 6358
 
 
