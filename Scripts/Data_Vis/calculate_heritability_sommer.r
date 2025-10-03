@@ -1,4 +1,5 @@
-# Description: Estimate the narrow- and broad-sense heritability of diploid S. cerevisiae isolates using biallelic SNPs data (Peter 2018)
+# Description: Estimate the narrow-sense heritability of diploid S. cerevisiae
+# isolates using biallelic SNPs data
 
 ### 0. Install necessary packages
 #install.packages('sommer') # v.4.3.0 (in R v4.0.3)
@@ -26,29 +27,13 @@ for (i in 1:length(traits)){
   colnames(p) <- c("trt", "ID", "IDD", "IDE")
   head(p)
   
-  ### 4. Estimate the genomic heritability (narrow and broad)
-  # ans.ADE <- mmer(fixed=trt~1, random=~vs(ID,Gu=A) + vs(IDD,Gu=D), rcov=~units, data=p, verbose = FALSE)
+  ### 4. Estimate the narrow-sense heritability
   ans.ADE <- mmer(trt~1, random=~vs(ID,Gu=A) + vs(IDD,Gu=D), rcov=~units, data=p, verbose = FALSE)
   summary(ans.ADE)$varcomp
   h2 <- vpredict(ans.ADE, h2 ~ (V1) / (V1+V3))
   results$h2[i] <- h2$Estimate[1] # narrow sense heritability
   results$h2_SE[i] <- h2$SE[1]
-  # H2 <- vpredict(ans.ADE, h2 ~ (V1+V2)/(V1+V2+V3)) # broad sense heritability (w/dominance, no epistasis)
-  # results$H2_AD[i] <- H2$Estimate[1]
-  # results$H2_AD_SE[i] <- H2$SE[1]
-
-  #ans.ADE2 <- mmer(trt~1, random=~vs(ID,Gu=A) + vs(IDD,Gu=D) + vs(IDE,Gu=E), rcov=~units, data=p, verbose = FALSE)
-  #summary(ans.ADE2)
-  #H2_ADE <- vpredict(ans.ADE2, h2 ~ (V1+V2+V3) / (V1+V2+V3+V4))
-  #results$H2_ADE[i] <- H2_ADE$Estimate[1] # broad sense heritability (w/epistasis)
-  #results$H2_ADE_SE[i] <- H2_ADE$SE[1]
 }
 
 ### 5. Write to file
 write.csv(results, "/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/Heritability_h2_H2_sommer_CORRECTED.csv")
-
-### References
-#G C (2016). Genome assisted prediction of quantitative traits using the R package sommer. PLoS ONE, 11, 1-15.
-#Peter, J., De Chiara, M., Friedrich, A., Yue, J. X., Pflieger, D., Bergström, A., ... & Schacherer, J. (2018). Genome evolution across 1,011 Saccharomyces cerevisiae isolates. Nature, 556(7701), 339-344.
-
-
