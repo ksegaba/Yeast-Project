@@ -3,7 +3,6 @@
 
 import os
 import re
-import tqdm
 import pickle
 import swifter
 import glob
@@ -13,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import statsmodels.formula.api as smf
+from tqdm import tqdm
 from sklearn.metrics import r2_score
 from scipy import stats
 from scipy.stats import pearsonr
@@ -39,7 +39,7 @@ mapping = {"YPACETATE":"YP Acetate 2%", "YPD14":"YPD 14ºC", "YPD40":"YPD 40ºC"
 		   "YPRIBOSE":"YP Ribose 2%", "YPGLYCEROL":"YP Glycerol 2%",
 		   "YPXYLOSE":"YP Xylose 2%", "YPSORBITOL":"YP Sorbitol 2%"}
 
-################################################################################ #********* done 3/19/2024 for RF PAV and CNV; need RF PC and SNP; need to re-do FS for all alg
+################################################################################
 ### TABLE S1
 ################################################################################
 ## RANDOM FOREST (RF) PREDICTION PERFORMANCES (BASELINE USING ALL FEATURES)
@@ -49,7 +49,7 @@ rf_pc = pd.read_csv(path, sep="\t")
 rf_pc.insert(0, "new_cond", rf_pc.replace({"Y": mapping})["Y"]) # add full condition names
 rf_pc = rf_pc.sort_values(by="r2_test", ascending=False)
 cond_order = rf_pc["new_cond"]
-rf_pc.to_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_PCs_sorted.txt", sep="\t", index=False) #********* done 3/19/2024
+rf_pc.to_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_PCs_sorted.txt", sep="\t", index=False)
 
 ## SNP Models
 path = "/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_RF_results"
@@ -57,7 +57,7 @@ rf_base = pd.read_csv(f"{path}/baseline/RESULTS_SNP_reg.txt", sep="\t")
 rf_base.insert(0, "new_cond", rf_base.replace({"Y": mapping})["Y"]) # add full condition names
 rf_base.set_index("new_cond", inplace=True)
 rf_base = rf_base.loc[cond_order] # sort by PC order
-rf_base.to_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_SNPs_baseline.txt", sep="\t") #********* do when sds and nystatin finish running
+rf_base.to_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_SNPs_baseline.txt", sep="\t")
 
 ## PAV Models
 path = "/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_RF_results"
@@ -66,14 +66,14 @@ rf_pav = rf_orf.loc[rf_orf.ID.str.contains("_pav_baseline")]
 rf_pav.insert(0, "new_cond", rf_pav.replace({"Y":mapping})["Y"])
 rf_pav.set_index("new_cond", inplace=True)
 rf_pav = rf_pav.loc[cond_order]
-rf_pav.to_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_PAVs_baseline.txt", sep="\t") #********* done 3/19/2024
+rf_pav.to_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_PAVs_baseline.txt", sep="\t")
 
 ## CNV Models
 rf_cnv = rf_orf[rf_orf.ID.str.contains("_cnv_baseline")]
 rf_cnv.insert(0, "new_cond", rf_cnv.replace({"Y":mapping})["Y"])
 rf_cnv.set_index("new_cond", inplace=True)
 rf_cnv = rf_cnv.loc[cond_order]
-rf_cnv.to_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_CNVs_baseline.txt", sep="\t") #********* done 3/19/2024
+rf_cnv.to_csv("Scripts/Data_Vis/Section_2/RESULTS_RF_CNVs_baseline.txt", sep="\t")
 
 ## Merge them into one table
 combined = pd.concat([rf_pc, rf_base.reset_index(), rf_pav.reset_index(), rf_cnv.reset_index()])
@@ -934,10 +934,7 @@ sma_genes.to_csv("Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotation
 # Remove literature genes that are not found within our datasets
 map_snps = pd.read_csv("Scripts/Data_Vis/biallelic_snps_diploid_and_S288C_genes.txt",
 					   header=None, names=["snp", "chr", "pos", "gene"])
-map_orfs = pd.read_csv("Data/Peter_2018/final_map_orf_to_gene.txt", sep="\t")
-map_orfs = map_orfs.loc[~map_orfs.gene.str.contains("//"),:] # drop orfs that mapped to multiple genes (16 orfs)
-# map_orfs.to_csv("~/Shiu_Lab/Project/Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt", sep="\t", index=False) ### I have to regenerate the snp map because I accidentally overwrote it :'(
-map_orfs.to_csv("~/Shiu_Lab/Project/Data/Peter_2018/final_map_orf_to_gene_16_removed.txt", sep="\t", index=False)
+map_orfs = pd.read_csv("~/Shiu_Lab/Project/Data/Peter_2018/final_map_orf_to_gene_16_removed.txt", sep="\t")
 
 ben_genes = pd.read_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes.txt", sep="\t")
 caf_genes = dt.fread("Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes.txt").to_pandas()
@@ -992,20 +989,47 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
 		for imp_type in ["imp", "shap"]:
 			print(percentile, data_type, imp_type)
 			# Read and prepare dataset
-			df_fs = dt.fread(f"Scripts/Data_Vis/Section_4/RF_FS_{imp_type}_{data_type}_rank_per.tsv").to_pandas()
-			df_base = dt.fread(f"Scripts/Data_Vis/Section_4/RF_baseline_{imp_type}_{data_type}_rank_per.tsv").to_pandas()
-			df = pd.concat([])
-			df = df.iloc[1:,]
+			df_fs = dt.fread(f"Scripts/Data_Vis/Section_4/RF_FS_{imp_type}_{data_type}.tsv").to_pandas()
+			df_base = dt.fread(f"Scripts/Data_Vis/Section_4/RF_baseline_{imp_type}_{data_type}.tsv").to_pandas()
+			if imp_type == "shap": # take the absolute value of the shap values
+				if data_type == "snp":
+					df_fs.iloc[:,3:] = df_fs.select_dtypes("float").abs()
+					df_base.iloc[:,3:] = df_base.select_dtypes("float").abs()
+				else:
+					df_fs.iloc[:,2:] = df_fs.select_dtypes("float").abs()
+					df_base.iloc[:,2:] = df_base.select_dtypes("float").abs()
 			#
-			# Count number of literature genes identified by each model
+			# Count the number of literature genes identified by each model
 			for env in target_envs:
-				env_df = df[["gene", env]].dropna()
-				env_df_rank = env_df.loc[env_df[env]!=0.0,:] # Exclude genes with 0 importance
-				env_df_rank["rank_per"] = env_df_rank.rank(method="average", numeric_only=True, pct=True)
-				env_df_rank.sort_values(by="rank_per", ascending=False, inplace=True)
-				env_df_genes = env_df_rank.gene.unique()
+				env_df_fs = df_fs[["gene", env]].dropna()
+				env_df_base = df_base[["gene", env]].dropna()
 				#
-				# Variable 1: How many genes are known stress-response genes?
+				# Get the feature with the maximum importance value per gene
+				env_df_fs = env_df_fs.groupby("gene").max()
+				env_df_base = env_df_base.groupby("gene").max()
+				if data_type == "snp":
+					env_df_fs = env_df_fs.loc[env_df_fs.index != "intergenic",:] # drop intergenic variants
+					env_df_base = env_df_base.loc[env_df_base.index != "intergenic",:]
+				#
+				# Add the baseline model genes to the optimized feature selection
+				# model genes in order to rank them properly
+				env_df = pd.concat([env_df_fs,
+					env_df_base.loc[~env_df_base.index.isin(env_df_fs.index),:]], axis=0)
+				env_df = env_df[env_df != 0.0] # drop genes with zero feature importance
+				env_df = env_df.dropna()
+				env_df["rank_per"] = env_df.rank(method="average", numeric_only=True, pct=True)
+				env_df.sort_values(by="rank_per", ascending=False, inplace=True)
+				env_df_genes = env_df.index.unique()
+				#
+				# Variable 1: How many genes are ranked in the top #%?
+				env_df_top = env_df.loc[env_df.rank_per >= percentile,:] # target gene list
+				#
+				# Variable 2: How many genes are NOT ranked in the top #%?
+				env_df_bg = env_df.loc[env_df.rank_per < percentile,:] # background gene list
+				len(env_df) == len(env_df_top) + len(env_df_bg) # sanity check
+				print(len(env_df_bg), len(env_df_top), len(env_df))
+				#
+				# Variable 3: How many genes are known stress-response genes?
 				if data_type=="snp":
 					num_ben = np.intersect1d(env_df_genes, ben_snp)
 					num_caf = np.intersect1d(env_df_genes, caf_snp)
@@ -1019,7 +1043,7 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
 					num_sma = np.intersect1d(env_df_genes, sma_orf)
 					num_man = np.intersect1d(env_df_genes, curated_orf)
 				#
-				# Variable 2: How many genes are NOT known stress-response genes?
+				# Variable 4: How many genes are NOT known stress-response genes?
 				if data_type=="snp":
 					num_not_ben = np.setdiff1d(env_df_genes, ben_snp, assume_unique=True)
 					num_not_caf = np.setdiff1d(env_df_genes, caf_snp, assume_unique=True)
@@ -1033,21 +1057,13 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
 					num_not_sma = np.setdiff1d(env_df_genes, sma_orf, assume_unique=True)
 					num_not_man = np.setdiff1d(env_df_genes, curated_orf, assume_unique=True)
 				#
-				# Variable 3: How many genes are ranked in the top 5%?
-				env_df_rank_top = env_df_rank.loc[env_df_rank.rank_per > percentile,:]
-				num_top = len(env_df_rank_top)
-				#
-				# Variable 4: How many genes are NOT ranked in the top 5%?
-				num_background = len(env_df_rank) - len(env_df_rank_top)
-				#
 				## Create contingency table
-				# for benomyl lit genes
 				for i,var in enumerate([num_ben, num_caf, num_cu, num_sma, num_man]):
-					a = len(env_df_rank_top.loc[env_df_rank_top.gene.isin(var),:]) # gene is a known literature gene AND is in top 5%
-					b = len(env_df_rank_top.loc[~env_df_rank_top.gene.isin(var),:]) # gene is not known AND is in top 5%
-					c = len(env_df_rank.loc[(env_df_rank.rank_per <= percentile) & (env_df_rank.gene.isin(var)),:]) # gene is known AND is not in top 5%
-					d = len(env_df_rank.loc[(env_df_rank.rank_per <= percentile) & (~env_df_rank.gene.isin(var)),:]) # gene is not known AND is not in top 5%
-					odds, pval = fisher_exact([[a,c],[b,d]]) # Run fisher's exact test
+					a = len(env_df_top.loc[env_df_top.index.isin(var),:]) # gene is a known literature gene AND is in top #%
+					b = len(env_df_bg.loc[env_df_bg.index.isin(var),:]) # gene is a known literature gene AND is not in top #%
+					c = len(env_df_top.loc[~env_df_top.index.isin(var),:]) # gene is not known AND is in top #%
+					d = len(env_df_bg.loc[~env_df_bg.index.isin(var),:]) # gene is not known AND is not in top #%
+					odds, pval = fisher_exact([[a,b],[c,d]]) # Run fisher's exact test
 					#
 					# Direction of enrichment
 					if enrichment_direction(k=a, n=a+b, C=a+c, G=a+b+c+d) >= 1:
@@ -1070,7 +1086,7 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
 	q_values = false_discovery_control(enrich_res_sub["p-value"], method="bh") # Adjust the p-values
 	enrich_res_sub["q-values"] = q_values
 	enrich_res_sub["log10(q-values)"] = enrich_res_sub.apply(lambda x: np.log10(x["q-values"]) if x.direction=="-" else -np.log10(x["q-values"]), axis=1)
-	enrich_res_sub.to_csv(f"Scripts/Data_Vis/Section_4/Enrichment_of_literature_genes_in_above_{int(percentile*100)}%_RF_baseline.csv", index=False)
+	enrich_res_sub.to_csv(f"Scripts/Data_Vis/Section_4/Enrichment_of_literature_genes_in_above_{int(percentile*100)}%_RF.csv", index=False)
 	#
 	# Visualize the significant enrichment values
 	significant = enrich_res_sub.loc[enrich_res_sub["q-values"] <= 0.05, ["DataType", "ImpType", "Env", "LitGeneList", "log2(odds ratio)"]]
@@ -1087,7 +1103,7 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
 				plt.figure(figsize=(7, 11))
 				sns.heatmap(data=significant_sub2, cmap="RdBu_r", center=0, mask=significant_sub2.isna())
 				plt.tight_layout()
-				plt.savefig(f"Scripts/Data_Vis/Section_4/Enrichment_of_literature_genes_in_above_{int(percentile*100)}_RF_{dat_type}_baseline_{i_type}.pdf")
+				plt.savefig(f"Scripts/Data_Vis/Section_4/Enrichment_of_literature_genes_in_above_{int(percentile*100)}_RF_{dat_type}_{i_type}.pdf")
 				plt.close()
 			del significant_sub2, significant_sub
 
@@ -1179,7 +1195,7 @@ pd.DataFrame(permut_res).to_csv("Scripts/Data_Vis/Table_S8_mean_lit_gene_rank_pe
 	sep="\t", header=False, index=False)
 
 
-################################################################################ #********* done 3/19/2024 for snp, pav, and cnv
+################################################################################ #********* done 11/2/2024 for snp, pav, and cnv
 ### TABLE S10
 ################################################################################
 """Generate the maximum gini importance feature subsets from SNP, PAV, CNV
@@ -1188,11 +1204,14 @@ only contains one feature per gene, for SHAP interaction score analysis"""
 
 target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
 			   "YPDSODIUMMETAARSENITE"]
-d = "/mnt/gs21/scratch/seguraab/yeast_project/SHAP_Interaction/RF"
+d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF"
 
 for data_type in ["snp", "pav", "cnv"]:
 	# Read and prepare dataset
-	df = dt.fread(f"Scripts/Data_Vis/Section_4/RF_baseline_imp_{data_type}.tsv").to_pandas()
+	if data_type == "snp":
+		df = dt.fread(f"Scripts/Data_Vis/Section_4/RF_baseline_imp_snp_24env.tsv").to_pandas()
+	else:
+		df = dt.fread(f"Scripts/Data_Vis/Section_4/RF_baseline_imp_{data_type}.tsv").to_pandas()
 	#
 	if data_type == "snp":
 		df.set_index(["snp", "gene"], inplace=True)
@@ -1223,7 +1242,7 @@ for data_type in ["snp", "pav", "cnv"]:
 			f"{d}/Features_max_gini_from_RF_baseline_imp_{data_type}_{env}.txt",
 			index=False, header=False)
 
-################################################################################
+################################################################################ #********* done 11/2/2024 for snp, pav, and cnv
 ### TABLE S11
 ################################################################################
 """After running features selection on the XGBoost models used for SHAP interaction
@@ -1236,15 +1255,14 @@ Second kind: top FS features plus all lit genes combined"""
 
 target_envs = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500", "YPDCUSO410MM",
 			   "YPDSODIUMMETAARSENITE"]
-d = "/mnt/gs21/scratch/seguraab/yeast_project/SHAP_Interaction/XGB/fs"
-res = pd.read_csv(f"{d}/RESULTS_xgboost.txt", sep="\t") # XGB FS performance results
+d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/XGB/fs"
+res = pd.read_csv(f"{d}/RESULTS_xgboost.tsv", sep="\t") # XGB FS performance results
 
 # Genes lists from SGD
 ben_genes = pd.read_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes.txt", sep="\t")
 caf_genes = dt.fread("Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes.txt").to_pandas()
 cu_genes = pd.read_csv("Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes.txt", sep="\t")
 sma_genes = pd.read_csv("Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes.txt", sep="\t")
-lit_envs = ["benomyl", "caffeine", "cuso4", "sma"]
 
 # SNP and ORF gene maps
 map_snps = pd.read_csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes.txt",
@@ -1279,244 +1297,311 @@ sma_orf = map_orfs.swifter.apply(lambda x: (x.orf,x.gene) if \
 	(x.gene in sma_genes["Gene Systematic Name"].values) else (None,None), axis=1)
 sma_orf = pd.DataFrame(sma_orf.swifter.apply(pd.Series)).dropna()
 
+# Literature gene lists already mapped to SNPs and ORFs
+ben_snp.to_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes_snps_map.txt", index=False, header=["snp", "gene"])
+ben_orf.to_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes_orfs_map.txt", index=False, header=["orf", "gene"])
+caf_snp.to_csv("Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes_snps_map.txt", index=False, header=["snp", "gene"])
+caf_orf.to_csv("Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes_orfs_map.txt", index=False, header=["orf", "gene"])
+cu_snp.to_csv("Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes_snps_map.txt", index=False, header=["snp", "gene"])
+cu_orf.to_csv("Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes_orfs_map.txt", index=False, header=["orf", "gene"])
+sma_snp.to_csv("Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes_snps_map.txt", index=False, header=["snp", "gene"])
+sma_orf.to_csv("Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes_orfs_map.txt", index=False, header=["orf", "gene"])
+
+ben_snp = pd.read_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes_snps_map.txt", sep=",")
+ben_orf = pd.read_csv("Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes_orfs_map.txt", sep=",")
+caf_snp = pd.read_csv("Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes_snps_map.txt", sep=",")
+caf_orf = pd.read_csv("Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes_orfs_map.txt", sep=",")
+cu_snp = pd.read_csv("Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes_snps_map.txt", sep=",")
+cu_orf = pd.read_csv("Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes_orfs_map.txt", sep=",")
+sma_snp = pd.read_csv("Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes_snps_map.txt", sep=",")
+sma_orf = pd.read_csv("Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes_orfs_map.txt", sep=",")
+
 # Now create the feature lists of top features + individual literature gene lists
-d2 = "/mnt/gs21/scratch/seguraab/yeast_project/SHAP_Interaction/XGB"
+d2 = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/XGB"
 models_to_run_a = open(f"{d}/fs_plus_lit_genes_models_to_run.txt", "a") # list of models to run
 models_to_run_b = open(f"{d}/fs_plus_unimportant_non_lit_genes_models_to_run.txt", "a")
 for data_type in ["snp", "pav", "cnv"]:
 	for env in target_envs:
-		for lit_env in lit_envs:
-			print(data_type, env, lit_env)
-			#
-			# Determine which model has the top score
-			res_env = res.loc[(res.Trait.str.contains(f"{env}") & \
-				res.Data.str.contains(f"{data_type}")),:]
-			top = res_env.loc[res_env["R2_val            "] == res_env["R2_val            "].max(),"FeatureNum            "].values[0]
-			#
-			# Read in the top model feature importances
-			mod = pickle.load(open(f"{d}/{data_type}_{env}_top_{top}_model_rep_0.pkl", "rb"))
-			imp = pd.read_csv(f"{d}/{data_type}_{env}_top_{top}_imp.csv", index_col=0)
-			imp.index = mod.feature_names_in_
-			imp["mean_imp"] = imp.mean(axis=1)
-			imp = imp.loc[imp.mean_imp != 0.0,:] # drop unimportant features
-			#
-			# Get literature genes that map to baseline model
-			imp_base = pd.read_csv(f"{d2}/{data_type}_{env}_imp.csv", index_col=0)
-			mod_base = pickle.load(open(f"{d2}/{data_type}_{env}_model_rep_0.pkl", "rb"))
-			imp_base.index = mod_base.feature_names_in_
-			imp_base["mean_imp"] = imp_base.mean(axis=1)
-			#
-			if data_type != "snp":
-				imp.index = imp.apply(lambda x: re.sub("^X", "", x.name), axis=1)
-				imp.index = imp.apply(lambda x: re.sub("\.", "-", x.name), axis=1)
-				imp_base.index = imp_base.apply(lambda x: re.sub("^X", "", x.name), axis=1)
-				imp_base.index = imp_base.apply(lambda x: re.sub("\.", "-", x.name), axis=1)
-			#
-			if lit_env == "benomyl":
-				if data_type=="snp":
-					# Determine literature and non-literature genes in the top features
-					T_l = imp.loc[imp.index.isin(ben_snp.iloc[:,0]),:] # snp features
-					T_l = T_l["mean_imp"].to_frame().merge(ben_snp, how="left", left_index=True, right_on=0)
-					T_l.columns = ["mean_imp", "snp", "gene"]
-					T_nl = imp.loc[~imp.index.isin(ben_snp.iloc[:,0]),:] # snp features
-					T_nl = T_nl["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					#
-					# Identify the unimportant model features found in ben_snp and combine with imp
-					B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(imp_base.index.isin(ben_snp.iloc[:,0])),:]
-					B_l = B_l["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					features_a = pd.concat([T_l, T_nl, B_l])
-					B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(~imp_base.index.isin(ben_snp.iloc[:,0])),:]
-					B_nl = B_nl["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					features_b = pd.concat([T_l, T_nl, B_nl])
-						
-				else:
-					# Determine literature and non-literature genes in the top features
-					T_l = imp.loc[imp.index.isin(ben_orf.iloc[:,0]),:] # orf features
-					T_l = T_l["mean_imp"].to_frame().merge(ben_orf, how="left", left_index=True, right_on=0)
-					T_l.columns = ["mean_imp", "orf", "gene"]
-					T_nl = imp.loc[~imp.index.isin(ben_orf.iloc[:,0]),:] # orf features
-					T_nl = T_nl["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					#
-					# Identify the unimportant model features found in ben_orf and combine with imp
-					B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(imp_base.index.isin(ben_orf.iloc[:,0])),:]
-					B_l = B_l["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					features_a = pd.concat([T_l, T_nl, B_l])
-					B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(~imp_base.index.isin(ben_orf.iloc[:,0])),:]
-					B_nl = B_nl["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					features_b = pd.concat([T_l, T_nl, B_nl])
-					#
-					# Replace missing gene values with the orf ID
-					features_a.gene = features_a.gene.fillna(features_a.orf)
-					features_b.gene = features_b.gene.fillna(features_b.orf)
+		if env in ["YPDCAFEIN40", "YPDCAFEIN50"]:
+			lit_env = "caffeine"
+		elif env == "YPDBENOMYL500":
+			lit_env = "benomyl"
+		elif env == "YPDCUSO410MM":
+			lit_env = "cuso4"
+		elif env == "YPDSODIUMMETAARSENITE":
+			lit_env = "sma"
+		print(data_type, env, lit_env)
+		
+		# Determine which model has the top score
+		res_env = res.loc[(res.Tag.str.contains(f"{env}") & \
+			res.Tag.str.contains(f"{data_type}")),:]
+		top = res_env.loc[res_env["R2_val"] == res_env["R2_val"].max(),"NumFeatures"].values[0]
+		
+		# Read in the top model feature importances
+		mod = pickle.load(open(f"{d}/{data_type}_{env}_top_{top}_model_rep_0.pkl", "rb"))
+		imp = pd.read_csv(f"{d}/{data_type}_{env}_top_{top}_imp.csv", index_col=0)
+		imp.index = mod.feature_names_in_
+		imp["mean_imp"] = imp.mean(axis=1)
+		imp = imp.loc[imp.mean_imp != 0.0,:] # drop unimportant features
+		
+		# Get literature genes that map to baseline model
+		imp_base = pd.read_csv(f"{d2}/{data_type}_{env}_imp.csv", index_col=0)
+		mod_base = pickle.load(open(f"{d2}/{data_type}_{env}_model_rep_0.pkl", "rb"))
+		imp_base.index = mod_base.feature_names_in_
+		imp_base["mean_imp"] = imp_base.mean(axis=1)
+		
+		if data_type != "snp":
+			imp.index = imp.apply(lambda x: re.sub("^X", "", x.name), axis=1)
+			imp.index = imp.apply(lambda x: re.sub("\.", "-", x.name), axis=1)
+			imp_base.index = imp_base.apply(lambda x: re.sub("^X", "", x.name), axis=1)
+			imp_base.index = imp_base.apply(lambda x: re.sub("\.", "-", x.name), axis=1)
+		
+		if lit_env == "benomyl":
+			if data_type=="snp":
+				# Determine literature and non-literature genes in the top features
+				T_l = imp.loc[imp.index.isin(ben_snp.iloc[:,0]),:] # snp features
+				T_l = T_l["mean_imp"].to_frame().merge(ben_snp, how="left", left_index=True, right_on=0) #0
+				T_l.columns = ["mean_imp", "snp", "gene"]
+				T_nl = imp.loc[~imp.index.isin(ben_snp.iloc[:,0]),:] # snp features  not in benomyl genes
+				T_nl = T_nl["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
+				
+				# Identify the unimportant model features found in ben_snp and combine with imp
+				B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(imp_base.index.isin(ben_snp.iloc[:,0])),:]
+				B_l = B_l["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
+				features_a = pd.concat([T_l, T_nl, B_l])
+				B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(~imp_base.index.isin(ben_snp.iloc[:,0])),:]
+				B_nl = B_nl["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
+				features_b = pd.concat([T_l, T_nl, B_nl])
+					
+			else:
+				# Determine literature and non-literature genes in the top features
+				T_l = imp.loc[imp.index.isin(ben_orf.iloc[:,0]),:] # orf features
+				T_l = T_l["mean_imp"].to_frame().merge(
+					ben_orf, how="left", left_index=True, right_on=0)
+				T_l.columns = ["mean_imp", "orf", "gene"]
+				T_nl = imp.loc[~imp.index.isin(ben_orf.iloc[:,0]),:] # orf features not in benomyl genes
+				T_nl = T_nl["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				
+				# Identify the unimportant model features found in ben_orf and combine with imp
+				B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(imp_base.index.isin(ben_orf.iloc[:,0])),:]
+				B_l = B_l["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				features_a = pd.concat([T_l, T_nl, B_l])
+				B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(~imp_base.index.isin(ben_orf.iloc[:,0])),:]
+				B_nl = B_nl["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				features_b = pd.concat([T_l, T_nl, B_nl])
 				#
-				# Ensure that the genes are unique
-				if (features_a.gene.nunique() == len(features_a)) & \
-					(features_b.gene.nunique() == len(features_b)):
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_benomyl_lit_genes_info", features_a, fmt="%s")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_benomyl_lit_genes", features_a.iloc[:,1], fmt="%s")
-					models_to_run_a.write(f"{d}/{data_type}_{env}_top_{top}_plus_benomyl_lit_genes\n")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_benomyl_genes_info", features_b, fmt="%s")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_benomyl_genes", features_b.iloc[:,1], fmt="%s")
-					models_to_run_b.write(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_benomyl_genes\n")
+				# Replace missing gene values with the orf ID
+				features_a.gene = features_a.gene.fillna(features_a.orf)
+				features_b.gene = features_b.gene.fillna(features_b.orf)
+				features_a.orf = "X" + features_a.orf.str.replace("-", ".")
+				features_b.orf = "X" + features_b.orf.str.replace("-", ".")
+			
+			# Ensure that the genes are unique
+			if (features_a.gene.nunique() == len(features_a)) & \
+				(features_b.gene.nunique() == len(features_b)):
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_benomyl_lit_genes_info", features_a, fmt="%s")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_benomyl_lit_genes", features_a.iloc[:,1], fmt="%s")
+				models_to_run_a.write(f"{d}/{data_type}_{env}_top_{top}_plus_benomyl_lit_genes\n")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_benomyl_genes_info", features_b, fmt="%s")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_benomyl_genes", features_b.iloc[:,1], fmt="%s")
+				models_to_run_b.write(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_benomyl_genes\n")
+			
+		elif lit_env == "caffeine":
+			if data_type=="snp":
+				# Determine literature and non-literature genes in the top features
+				T_l = imp.loc[imp.index.isin(caf_snp.iloc[:,0]),:] # snp features
+				T_l = T_l["mean_imp"].to_frame().merge(
+					caf_snp, how="left", left_index=True, right_on=0)
+				T_l.columns = ["mean_imp", "snp", "gene"]
+				T_nl = imp.loc[~imp.index.isin(caf_snp.iloc[:,0]),:] # snp features not in caf genes
+				T_nl = T_nl["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
+				
+				# Identify the unimportant model features found in caf_snp and combine with imp
+				B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(imp_base.index.isin(caf_snp.iloc[:,0])),:]
+				B_l = B_l["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
+				features_a = pd.concat([T_l, T_nl, B_l])
+				B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(~imp_base.index.isin(caf_snp.iloc[:,0])),:]
+				B_nl = B_nl["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
+				features_b = pd.concat([T_l, T_nl, B_nl])
+					
+			else:
+				# Determine literature and non-literature genes in the top features
+				T_l = imp.loc[imp.index.isin(caf_orf.iloc[:,0]),:] # orf features
+				T_l = T_l["mean_imp"].to_frame().merge(caf_orf, how="left", left_index=True, right_on=0)
+				T_l.columns = ["mean_imp", "orf", "gene"]
+				T_nl = imp.loc[~imp.index.isin(caf_orf.iloc[:,0]),:] # orf features  not in caf genes
+				T_nl = T_nl["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				
+				# Identify the unimportant model features found in caf_orf and combine with imp
+				B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(imp_base.index.isin(caf_orf.iloc[:,0])),:]
+				B_l = B_l["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				features_a = pd.concat([T_l, T_nl, B_l])
+				B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(~imp_base.index.isin(caf_orf.iloc[:,0])),:]
+				B_nl = B_nl["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				features_b = pd.concat([T_l, T_nl, B_nl])
 				#
-			elif lit_env == "caffeine":
-				if data_type=="snp":
-					# Determine literature and non-literature genes in the top features
-					T_l = imp.loc[imp.index.isin(caf_snp.iloc[:,0]),:] # snp features
-					T_l = T_l["mean_imp"].to_frame().merge(caf_snp, how="left", left_index=True, right_on=0)
-					T_l.columns = ["mean_imp", "snp", "gene"]
-					T_nl = imp.loc[~imp.index.isin(caf_snp.iloc[:,0]),:] # snp features
-					T_nl = T_nl["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					#
-					# Identify the unimportant model features found in caf_snp and combine with imp
-					B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(imp_base.index.isin(caf_snp.iloc[:,0])),:]
-					B_l = B_l["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					features_a = pd.concat([T_l, T_nl, B_l])
-					B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(~imp_base.index.isin(caf_snp.iloc[:,0])),:]
-					B_nl = B_nl["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					features_b = pd.concat([T_l, T_nl, B_nl])
-						
-				else:
-					# Determine literature and non-literature genes in the top features
-					T_l = imp.loc[imp.index.isin(caf_orf.iloc[:,0]),:] # orf features
-					T_l = T_l["mean_imp"].to_frame().merge(caf_orf, how="left", left_index=True, right_on=0)
-					T_l.columns = ["mean_imp", "orf", "gene"]
-					T_nl = imp.loc[~imp.index.isin(caf_orf.iloc[:,0]),:] # orf features
-					T_nl = T_nl["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					#
-					# Identify the unimportant model features found in caf_orf and combine with imp
-					B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(imp_base.index.isin(caf_orf.iloc[:,0])),:]
-					B_l = B_l["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					features_a = pd.concat([T_l, T_nl, B_l])
-					B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(~imp_base.index.isin(caf_orf.iloc[:,0])),:]
-					B_nl = B_nl["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					features_b = pd.concat([T_l, T_nl, B_nl])
-					#
-					# Replace missing gene values with the orf ID
-					features_a.gene = features_a.gene.fillna(features_a.orf)
-					features_b.gene = features_b.gene.fillna(features_b.orf)
+				# Replace missing gene values with the orf ID
+				features_a.gene = features_a.gene.fillna(features_a.orf)
+				features_b.gene = features_b.gene.fillna(features_b.orf)
+				features_a.orf = "X" + features_a.orf.str.replace("-", ".")
+				features_b.orf = "X" + features_b.orf.str.replace("-", ".")
+				
+			# Ensure that the genes are unique
+			if (features_a.gene.nunique() == len(features_a)) & \
+				(features_b.gene.nunique() == len(features_b)):
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_caffeine_lit_genes_info", features_a, fmt="%s")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_caffeine_lit_genes", features_a.iloc[:,1], fmt="%s")
+				models_to_run_a.write(f"{d}/{data_type}_{env}_top_{top}_plus_caffeine_lit_genes\n")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_caffeine_genes_info", features_b, fmt="%s")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_caffeine_genes", features_b.iloc[:,1], fmt="%s")
+				models_to_run_b.write(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_caffeine_genes\n")
+			
+		elif lit_env == "cuso4":
+			if data_type=="snp":
+				# Determine literature and non-literature genes in the top features
+				T_l = imp.loc[imp.index.isin(cu_snp.iloc[:,0]),:] # snp features
+				T_l = T_l["mean_imp"].to_frame().merge(
+					cu_snp, how="left", left_index=True, right_on=0)
+				T_l.columns = ["mean_imp", "snp", "gene"]
+				T_nl = imp.loc[~imp.index.isin(cu_snp.iloc[:,0]),:] # snp features not in cuso4 genes
+				T_nl = T_nl["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
+				
+				# Identify the unimportant model features found in cu_snp and combine with imp
+				B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(imp_base.index.isin(cu_snp.iloc[:,0])),:]
+				B_l = B_l["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
+				features_a = pd.concat([T_l, T_nl, B_l])
+				B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(~imp_base.index.isin(cu_snp.iloc[:,0])),:]
+				B_nl = B_nl["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
+				features_b = pd.concat([T_l, T_nl, B_nl])
+					
+			else:
+				# Determine literature and non-literature genes in the top features
+				T_l = imp.loc[imp.index.isin(cu_orf.iloc[:,0]),:] # orf features
+				T_l = T_l["mean_imp"].to_frame().merge(
+					cu_orf, how="left", left_index=True, right_on=0)
+				T_l.columns = ["mean_imp", "orf", "gene"]
+				T_nl = imp.loc[~imp.index.isin(cu_orf.iloc[:,0]),:] # orf features not in cuso4 genes
+				T_nl = T_nl["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				
+				# Identify the unimportant model features found in cu_orf and combine with imp
+				B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(imp_base.index.isin(cu_orf.iloc[:,0])),:]
+				B_l = B_l["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				features_a = pd.concat([T_l, T_nl, B_l])
+				B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(~imp_base.index.isin(cu_orf.iloc[:,0])),:]
+				B_nl = B_nl["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				features_b = pd.concat([T_l, T_nl, B_nl])
 				#
-				# Ensure that the genes are unique
-				if (features_a.gene.nunique() == len(features_a)) & \
-					(features_b.gene.nunique() == len(features_b)):
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_caffeine_lit_genes_info", features_a, fmt="%s")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_caffeine_lit_genes", features_a.iloc[:,1], fmt="%s")
-					models_to_run_a.write(f"{d}/{data_type}_{env}_top_{top}_plus_caffeine_lit_genes\n")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_caffeine_genes_info", features_b, fmt="%s")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_caffeine_genes", features_b.iloc[:,1], fmt="%s")
-					models_to_run_b.write(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_caffeine_genes\n")
+				# Replace missing gene values with the orf ID
+				features_a.gene = features_a.gene.fillna(features_a.orf)
+				features_b.gene = features_b.gene.fillna(features_b.orf)
+				features_a.orf = "X" + features_a.orf.str.replace("-", ".")
+				features_b.orf = "X" + features_b.orf.str.replace("-", ".")
+				
+			# Ensure that the genes are unique
+			if (features_a.gene.nunique() == len(features_a)) & \
+				(features_b.gene.nunique() == len(features_b)):
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_cuso4_lit_genes_info", features_a, fmt="%s")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_cuso4_lit_genes", features_a.iloc[:,1], fmt="%s")
+				models_to_run_a.write(f"{d}/{data_type}_{env}_top_{top}_plus_cuso4_lit_genes\n")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_cuso4_genes_info", features_b, fmt="%s")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_cuso4_genes", features_b.iloc[:,1], fmt="%s")
+				models_to_run_b.write(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_cuso4_genes\n")
+			
+		elif lit_env == "sma":
+			if data_type=="snp":
+				# Determine literature and non-literature genes in the top features
+				T_l = imp.loc[imp.index.isin(sma_snp.iloc[:,0]),:] # snp features in sma genes
+				T_l = T_l["mean_imp"].to_frame().merge(
+					sma_snp, how="left", left_index=True, right_on=0)
+				T_l.columns = ["mean_imp", "snp", "gene"]
+				T_nl = imp.loc[~imp.index.isin(sma_snp.iloc[:,0]),:] # snp features not in sma genes
+				T_nl = T_nl["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
+				
+				# Identify the unimportant model features found in sma_snp and combine with imp
+				B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(imp_base.index.isin(sma_snp.iloc[:,0])),:]
+				B_l = B_l["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp") # snp features not top and in sma genes
+				features_a = pd.concat([T_l, T_nl, B_l])
+				B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(~imp_base.index.isin(sma_snp.iloc[:,0])),:]
+				B_nl = B_nl["mean_imp"].to_frame().merge(
+					map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp") # snp features not top and not in sma genes
+				features_b = pd.concat([T_l, T_nl, B_nl])
+					
+			else:
+				# Determine literature and non-literature genes in the top features
+				T_l = imp.loc[imp.index.isin(sma_orf.iloc[:,0]),:] # orf features
+				T_l = T_l["mean_imp"].to_frame().merge(
+					sma_orf, how="left", left_index=True, right_on=0)
+				T_l.columns = ["mean_imp", "orf", "gene"]
+				T_nl = imp.loc[~imp.index.isin(sma_orf.iloc[:,0]),:] # orf features not in sma genes
+				T_nl = T_nl["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				
+				# Identify the unimportant model features found in sma_orf and combine with imp
+				B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(imp_base.index.isin(sma_orf.iloc[:,0])),:]
+				B_l = B_l["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				features_a = pd.concat([T_l, T_nl, B_l])
+				B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
+					(~imp_base.index.isin(sma_orf.iloc[:,0])),:]
+				B_nl = B_nl["mean_imp"].to_frame().merge(
+					map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
+				features_b = pd.concat([T_l, T_nl, B_nl])
 				#
-			elif lit_env == "cuso4":
-				if data_type=="snp":
-					# Determine literature and non-literature genes in the top features
-					T_l = imp.loc[imp.index.isin(cu_snp.iloc[:,0]),:] # snp features
-					T_l = T_l["mean_imp"].to_frame().merge(cu_snp, how="left", left_index=True, right_on=0)
-					T_l.columns = ["mean_imp", "snp", "gene"]
-					T_nl = imp.loc[~imp.index.isin(cu_snp.iloc[:,0]),:] # snp features
-					T_nl = T_nl["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					#
-					# Identify the unimportant model features found in cu_snp and combine with imp
-					B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(imp_base.index.isin(cu_snp.iloc[:,0])),:]
-					B_l = B_l["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					features_a = pd.concat([T_l, T_nl, B_l])
-					B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(~imp_base.index.isin(cu_snp.iloc[:,0])),:]
-					B_nl = B_nl["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					features_b = pd.concat([T_l, T_nl, B_nl])
-						
-				else:
-					# Determine literature and non-literature genes in the top features
-					T_l = imp.loc[imp.index.isin(cu_orf.iloc[:,0]),:] # orf features
-					T_l = T_l["mean_imp"].to_frame().merge(cu_orf, how="left", left_index=True, right_on=0)
-					T_l.columns = ["mean_imp", "orf", "gene"]
-					T_nl = imp.loc[~imp.index.isin(cu_orf.iloc[:,0]),:] # orf features
-					T_nl = T_nl["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					#
-					# Identify the unimportant model features found in cu_orf and combine with imp
-					B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(imp_base.index.isin(cu_orf.iloc[:,0])),:]
-					B_l = B_l["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					features_a = pd.concat([T_l, T_nl, B_l])
-					B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(~imp_base.index.isin(cu_orf.iloc[:,0])),:]
-					B_nl = B_nl["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					features_b = pd.concat([T_l, T_nl, B_nl])
-					#
-					# Replace missing gene values with the orf ID
-					features_a.gene = features_a.gene.fillna(features_a.orf)
-					features_b.gene = features_b.gene.fillna(features_b.orf)
-				#
-				# Ensure that the genes are unique
-				if (features_a.gene.nunique() == len(features_a)) & \
-					(features_b.gene.nunique() == len(features_b)):
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_cuso4_lit_genes_info", features_a, fmt="%s")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_cuso4_lit_genes", features_a.iloc[:,1], fmt="%s")
-					models_to_run_a.write(f"{d}/{data_type}_{env}_top_{top}_plus_cuso4_lit_genes\n")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_cuso4_genes_info", features_b, fmt="%s")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_cuso4_genes", features_b.iloc[:,1], fmt="%s")
-					models_to_run_b.write(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_cuso4_genes\n")
-				#
-			elif lit_env == "sma":
-				if data_type=="snp":
-					# Determine literature and non-literature genes in the top features
-					T_l = imp.loc[imp.index.isin(sma_snp.iloc[:,0]),:] # snp features
-					T_l = T_l["mean_imp"].to_frame().merge(sma_snp, how="left", left_index=True, right_on=0)
-					T_l.columns = ["mean_imp", "snp", "gene"]
-					T_nl = imp.loc[~imp.index.isin(sma_snp.iloc[:,0]),:] # snp features
-					T_nl = T_nl["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					#
-					# Identify the unimportant model features found in sma_snp and combine with imp
-					B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(imp_base.index.isin(sma_snp.iloc[:,0])),:]
-					B_l = B_l["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					features_a = pd.concat([T_l, T_nl, B_l])
-					B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(~imp_base.index.isin(sma_snp.iloc[:,0])),:]
-					B_nl = B_nl["mean_imp"].to_frame().merge(map_snps[["snp", "gene"]], how="left", left_index=True, right_on="snp")
-					features_b = pd.concat([T_l, T_nl, B_nl])
-						
-				else:
-					# Determine literature and non-literature genes in the top features
-					T_l = imp.loc[imp.index.isin(sma_orf.iloc[:,0]),:] # orf features
-					T_l = T_l["mean_imp"].to_frame().merge(sma_orf, how="left", left_index=True, right_on=0)
-					T_l.columns = ["mean_imp", "orf", "gene"]
-					T_nl = imp.loc[~imp.index.isin(sma_orf.iloc[:,0]),:] # orf features
-					T_nl = T_nl["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					#
-					# Identify the unimportant model features found in sma_orf and combine with imp
-					B_l = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(imp_base.index.isin(sma_orf.iloc[:,0])),:]
-					B_l = B_l["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					features_a = pd.concat([T_l, T_nl, B_l])
-					B_nl = imp_base.loc[(~imp_base.index.isin(imp.index)) & \
-						(~imp_base.index.isin(sma_orf.iloc[:,0])),:]
-					B_nl = B_nl["mean_imp"].to_frame().merge(map_orfs[["orf", "gene"]], how="left", left_index=True, right_on="orf")
-					features_b = pd.concat([T_l, T_nl, B_nl])
-					#
-					# Replace missing gene values with the orf ID
-					features_a.gene = features_a.gene.fillna(features_a.orf)
-					features_b.gene = features_b.gene.fillna(features_b.orf)
-				#
-				# Ensure that the genes are unique
-				if (features_a.gene.nunique() == len(features_a)) & \
-					(features_b.gene.nunique() == len(features_b)):
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_sodium_meta-arsenite_lit_genes_info", features_a, fmt="%s")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_sodium_meta-arsenite_lit_genes", features_a.iloc[:,1], fmt="%s")
-					models_to_run_a.write(f"{d}/{data_type}_{env}_top_{top}_plus_sodium_meta-arsenite_lit_genes\n")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_sodium_meta-arsenite_genes_info", features_b, fmt="%s")
-					np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_sodium_meta-arsenite_genes", features_b.iloc[:,1], fmt="%s")
-					models_to_run_b.write(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_sodium_meta-arsenite_genes\n")
-				#
-			del res_env, top, imp, imp_base, mod, mod_base
+				# Replace missing gene values with the orf ID
+				features_a.gene = features_a.gene.fillna(features_a.orf)
+				features_b.gene = features_b.gene.fillna(features_b.orf)
+				features_a.orf = "X" + features_a.orf.str.replace("-", ".")
+				features_b.orf = "X" + features_b.orf.str.replace("-", ".")
+			
+			# Ensure that the genes are unique
+			if (features_a.gene.nunique() == len(features_a)) & \
+				(features_b.gene.nunique() == len(features_b)):
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_sodium_meta-arsenite_lit_genes_info", features_a, fmt="%s")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_sodium_meta-arsenite_lit_genes", features_a.iloc[:,1], fmt="%s")
+				print('models_to_run_a')
+				print(f"{d}/{data_type}_{env}_top_{top}_plus_sodium_meta-arsenite_lit_genes\n")
+				models_to_run_a.write(f"{d}/{data_type}_{env}_top_{top}_plus_sodium_meta-arsenite_lit_genes\n")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_sodium_meta-arsenite_genes_info", features_b, fmt="%s")
+				np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_sodium_meta-arsenite_genes", features_b.iloc[:,1], fmt="%s")
+				print('models_to_run_b')
+				print(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_sodium_meta-arsenite_genes\n")
+				models_to_run_b.write(f"{d}/{data_type}_{env}_top_{top}_plus_unimportant_non_sodium_meta-arsenite_genes\n")
+			
+		del res_env, top, imp, imp_base, mod, mod_base
 
 models_to_run_a.close()
 models_to_run_b.close()
@@ -1529,17 +1614,20 @@ for data_type in ["snp", "pav", "cnv"]:
 		# Determine which model has the top score
 		res_env = res.loc[(res.Trait.str.contains(f"{env}") & \
 			res.Data.str.contains(f"{data_type}")),:]
-		top = res_env.loc[res_env["R2_val            "] == res_env["R2_val            "].max(),"FeatureNum            "].values[0]
+		top = res_env.loc[res_env["R2_val"] == res_env["R2_val"].max(),"FeatureNum"].values[0]
+		
 		# Get the mean feature importances
 		mod = pickle.load(open(f"{d}/{data_type}_{env}_top_{top}_model_rep_0.pkl", "rb"))
 		imp = pd.read_csv(f"{d}/{data_type}_{env}_top_{top}_imp.csv", index_col=0)
 		imp.index = mod.feature_names_in_
 		imp["mean_imp"] = imp.mean(axis=1)
 		imp = imp.loc[imp.mean_imp != 0.0,:] # drop unimportant features
+		
 		# Get literature genes that map to baseline model
 		imp_base = pd.read_csv(f"{d2}/{data_type}_{env}_imp.csv", index_col=0)
 		mod_base = pickle.load(open(f"{d2}/{data_type}_{env}_model_rep_0.pkl", "rb"))
 		imp_base.index = mod_base.feature_names_in_
+		
 		if data_type=="snp":
 			# Identify the baseline model features found in ben_snp and combine with imp
 			lit_ben_snp = imp_base.loc[imp_base.index.isin(ben_snp.iloc[:,0]),:]
@@ -1558,14 +1646,15 @@ for data_type in ["snp", "pav", "cnv"]:
 		np.savetxt(f"{d}/{data_type}_{env}_top_{top}_plus_comb_lit_genes", features, fmt="%s")
 		models_to_run.write(f"{d}/{data_type}_{env}_top_{top}_plus_comb_lit_genes\n")
 		del res_env, top, imp, imp_base, mod, mod_base
+
 models_to_run.close()
 
 # Randomize the label and add it to the top features + combined literature gene list datasets
 pheno = pd.read_csv("Data/Peter_2018/pheno.csv", index_col=0)
 test = pd.read_csv("Data/Peter_2018/Test.txt", header=None)
 pheno_train = pheno.loc[~pheno.index.isin(test[0]),:]
-dr = "/mnt/gs21/scratch/seguraab/yeast_project/SHAP_Interaction/XGB/randomized"
-for i in range(100):
+dr = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/XGB/randomized"
+for i in tqdm(range(100)):
 	randomized = pd.DataFrame(index=pheno_train.index)
 	for env in target_envs:
 		randomized[env] = pheno_train[env].sample(frac=1, random_state=i).reset_index(drop=True).values
@@ -1574,6 +1663,10 @@ for i in range(100):
 	del randomized
 
 ########################### Model performance figure ###########################
+## These are the 15 models with the FS features plus respective lit genes
+d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/XGB/fs"
+
+
 ## These are the 15 models with the FS features and all lit genes combined
 d = "/mnt/gs21/scratch/seguraab/yeast_project/SHAP_Interaction/XGB/fs"
 res = pd.read_csv(f"{d}/RESULTS_xgboost.txt", sep="\t") # Model results
@@ -1869,7 +1962,7 @@ for env in target_envs:
 	plt.close()
 
 ########################### SHAP Interaction Scores ############################
-# Violin plots of interactions cores
+# Violin plots of interactions scores
 d = "/mnt/gs21/scratch/seguraab/yeast_project/SHAP_Interaction"
 for env in target_envs:	
 	print(env)
