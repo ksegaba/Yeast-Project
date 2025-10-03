@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 '''This script does the following:
-1. Create the feature lists for training the three types of models (Supplemental data file 11):
+1. Create the feature lists for training three types of models:
     a. Only benchmark genes (from the baseline models)
     b. Only important non-benchmark genes (from the optimized models)
     c. Benchmark genes + important non-benchmark genes (combined feature sets)
+    Modeling performances are saved as Supplementary file 11.
 2. Plot the performances of the three types of models (Fig. 4A-C)
-3. Regress model performance on the number of features used to train models (Table S13)
+3. Regress model performance on the number of features used to train models (Table S12)
 '''
 
 import glob
@@ -138,7 +139,7 @@ for i, env in enumerate(target_envs):
 # No assertion errors were triggered.
 
 ################################################################################
-# 2. Plot the performances of the three types of models (Figure 4A-C)
+# 2. Plot the performances of the three types of models (Figure 4A-C, S11 File)
 ################################################################################
 # Model performance figure
 d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF/bench_gene_models"
@@ -155,8 +156,12 @@ res_combined = res_combined[~(res_combined.Tag.str.startswith("snp") &
 
 res_combined.insert(2, "Data", res.Tag.str.split(
     "_", expand=True)[0])  # add data column
+res_combined.insert(3, "Env", res.Tag.str.split(
+    "_", expand=True)[1])  # add env column
 res_nlit.insert(2, "Data", res_nlit.Tag.str.split("_", expand=True)[0])
+res_nlit.insert(3, "Env", res_nlit.Tag.str.split("_", expand=True)[1])
 res_lit.insert(2, "Data", res_lit.Tag.str.split("_", expand=True)[0])
+res_lit.insert(3, "Env", res_lit.Tag.str.split("_", expand=True)[1])
 
 # Plot performances of all models
 fig, ax = plt.subplots(nrows=3, ncols=3, sharex=True,
@@ -214,44 +219,44 @@ plt.savefig(
 plt.close("all")
 
 # What is the difference in model performances between the three types of models?
-'''>>> res_nlit.reset_index().sort_values("Tag").r2_test - \
-...     res_lit.reset_index().sort_values("Tag").r2_test
-0     0.379174 <-- cnv_YPDBENOMYL500
-1     0.387678 <-- cnv_YPDCAFEIN40
-2     0.452961 <-- cnv_YPDCAFEIN50
-3     0.478124 <-- cnv_YPDCUSO410MM
-4     0.381501 <-- cnv_YPDSODIUMMETAARSENITE
-5     0.300990 <-- pav_YPDBENOMYL500
-6     0.497854 <-- pav_YPDCAFEIN40
-7     0.029137 <-- pav_YPDCAFEIN50
-8     0.180187 <-- pav_YPDCUSO410MM
-9     0.196991 <-- pav_YPDSODIUMMETAARSENITE
-10   -0.102376 <-- snp_YPDBENOMYL500
-11    0.231024 <-- snp_YPDCAFEIN40
-12   -0.025879 <-- snp_YPDCAFEIN50
-13   -0.028396 <-- snp_YPDCUSO410MM
-14    0.036645 <-- snp_YPDSODIUMMETAARSENITE
->>> res_combined.reset_index().sort_values("Tag").r2_test - \
-...     res_lit.reset_index().sort_values("Tag").r2_test
-0     0.289978 <-- cnv_YPDBENOMYL500
-1     0.628411 <-- cnv_YPDCAFEIN40
-2     0.496463 <-- cnv_YPDCAFEIN50
-3     0.239560 <-- cnv_YPDCUSO410MM
-4     0.461907 <-- cnv_YPDSODIUMMETAARSENITE
-5     0.423909 <-- pav_YPDBENOMYL500
-6     0.362877 <-- pav_YPDCAFEIN40
-7     0.027541 <-- pav_YPDCAFEIN50
-8     0.213597 <-- pav_YPDCUSO410MM
-9     0.205563 <-- pav_YPDSODIUMMETAARSENITE
-10   -0.093428 <-- snp_YPDBENOMYL500
-11    0.194559 <-- snp_YPDCAFEIN40
-12    0.028931 <-- snp_YPDCAFEIN50
-13   -0.025528 <-- snp_YPDCUSO410MM
-14    0.036829 <-- snp_YPDSODIUMMETAARSENITE
+'''>>> res_nlit.reset_index().sort_values(by=["Data", "Env"]).reset_index().r2_test - \
+... res_lit.reset_index().sort_values(by=["Data", "Env"]).reset_index().r2_test
+0.311960 <-- cnv, YPDBENOMYL500
+0.186067 <-- cnv, YPDCAFEIN40
+0.179139 <-- cnv, YPDCAFEIN50
+0.418395 <-- cnv, YPDCUSO410MM
+0.070128 <-- cnv, YPDSODIUMMETAARSENITE
+0.620563 <-- pav, YPDBENOMYL500
+0.461988 <-- pav, YPDCAFEIN40
+0.505226 <-- pav, YPDCAFEIN50
+0.298687 <-- pav, YPDCUSO410MM
+0.232443 <-- pav, YPDSODIUMMETAARSENITE
+0.006514 <-- snp, YPDBENOMYL500
+0.015958 <-- snp, YPDCAFEIN40
+-0.000193 <-- snp, YPDCAFEIN50
+0.052007 <-- snp, YPDCUSO410MM
+0.036731 <-- snp, YPDSODIUMMETAARSENITE
+>>> res_combined.reset_index().sort_values(by=["Data", "Env"]).reset_index().r2_test - \
+... res_lit.reset_index().sort_values(by=["Data", "Env"]).reset_index().r2_test
+0.310364  <-- cnv, YPDBENOMYL500
+0.213597  <-- cnv, YPDCAFEIN40
+0.205563  <-- cnv, YPDCAFEIN50
+0.423909  <-- cnv, YPDCUSO410MM
+0.080054  <-- cnv, YPDSODIUMMETAARSENITE
+0.608730  <-- pav, YPDBENOMYL500
+0.481588  <-- pav, YPDCAFEIN40
+0.509258  <-- pav, YPDCAFEIN50
+0.289978  <-- pav, YPDCUSO410MM
+0.226765  <-- pav, YPDSODIUMMETAARSENITE
+0.009382  <-- snp, YPDBENOMYL500
+0.016142  <-- snp, YPDCAFEIN40
+0.014707  <-- snp, YPDCAFEIN50
+0.055453  <-- snp, YPDCUSO410MM
+0.045679  <-- snp, YPDSODIUMMETAARSENITE
 '''
 
 ################################################################################
-# 3. Regress model performance on the number of features used to train models (Table S13)
+# 3. Regress model performance on the number of features used to train models (Table S12)
 ################################################################################
 linreg_res = {'benchmark gene models': {},
               'important non-benchmark gene models': {},
@@ -301,7 +306,7 @@ pd.concat([out, pd.DataFrame.from_dict({
     "combined models": {"Data": "all", "intercept": b2, "p-value": p2,
                         "r": r2, "se": se2, "slope": m2}}).transpose().reset_index()],
           axis=0, ignore_index=True).to_csv(
-              "Scripts/Data_Vis/Section_4/Table_S13_benchmark_gene_model_performances_vs_feature_num.csv")
+              "Scripts/Data_Vis/Section_4/Table_S12_benchmark_gene_model_performances_vs_feature_num.csv")
 
 linregress(res_lit.FeatureNum, res_lit.r2_test)
 # LinregressResult(slope=0.00017299985470615398, intercept=0.2710279232187656, rvalue=0.18788040604989847, pvalue=0.4276454100569397, stderr=0.00021316914804781604, intercept_stderr=0.1055754074416109)
