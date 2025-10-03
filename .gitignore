@@ -135,6 +135,8 @@ Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/RF/RF_FS_missing_runs.txt
 Scripts/Data_Processing/*.out
 Scripts/Data_Vis/*.png
 Scripts/Data_Vis/*.xlsx
+Scripts/Data_Vis/Figures/
+Scripts/Data_Vis/logs/
 Scripts/Data_Vis/Section_1
 Scripts/Data_Vis/Section_2
 Scripts/Data_Vis/Section_3
@@ -146,5 +148,3 @@ Scripts/Genomic_Prediction_RF/GO_Enrichment/ORFs_fs
 Scripts/Genomic_Prediction_RF/GO_Enrichment/SNPs_fs
 Scripts/Genomic_Prediction_RF/PWY_Enrichment/ORFs_fs
 Scripts/Genomic_Prediction_RF/PWY_Enrichment/SNPs_fs
-
-
