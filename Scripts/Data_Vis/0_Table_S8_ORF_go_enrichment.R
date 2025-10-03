@@ -4,16 +4,16 @@
 
 rm(list=ls())
 
+suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(parallel))
-suppressPackageStartupMessages(library(GSEABase))
+# suppressPackageStartupMessages(library(GSEABase))
 
 setwd("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
 #### Evidence code-filtered GO term annotation file (see SNP_gene_set_enrichment.R)
-go <- read.csv("Data/yeast_GO/sgd_GO_BP.csv")
-# write.table(go, "Data/yeast_GO/sgd_GO_BP.tsv", sep="\t")
-length(unique(go$GO.ID)) # [1] 4902
+go <- fread("Data/yeast_GO/sgd_GO_BP_no_info.txt")
+length(unique(go$GO.ID)) # [1] 4890
 
 #### ORF to gene map file
 map <- read.delim("Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t", header=1)
@@ -34,7 +34,7 @@ get_genes <- function(f, path){
     df$X <- gsub(".", "-", df$X, fixed=T) # replace periods with dashes
     df$X <- gsub("^X", "", df$X) # remove leading X
     out <- right_join(map, df, by=c("orf"="X")) # add gene information
-    out <- left_join(out, go[,c('Gene', 'GO.ID', 'BP', 'CC', 'MF')], by=c("gene"="Gene")) # add GO information
+    out <- left_join(out, go[,c('Gene', 'GO.ID')], by=c("gene"="Gene")) # add GO information
     out <- out[order(out$mean_imp, decreasing=T),] # order by importance score
     name <- str_extract(f, "[A-Z0-9]+_[a-z_]+_[0-9]+_imp") # extract file name
     print(name)
@@ -51,8 +51,8 @@ mclapply(cnv_files, get_genes, path, mc.cores=5) #35
 #                    contingency table for each GO term:                       #
 #                                  | ORF in top | ORF not top                  #
 #                   -----------------------------------------                  #
-#                    In GO term    |            |                              #
-#                    Not in GO term|            |                              #
+#                    Has GO term   |            |                              #
+#              Doesn't have GO term|            |                              #
 ################################################################################
 ### Get files with genes
 dir <- "Scripts/Data_Vis/Section_3/GO_Enrichment/PAVs_fs"
@@ -66,9 +66,9 @@ all_orfs <- all_orfs[-1,] # drop "ID"
 all_orfs <- gsub(".", "-", all_orfs, fixed=T) # replace periods with dashes
 all_orfs <- gsub("^X", "", all_orfs) # remove leading X
 all_orfs <- left_join(data.frame(all_orfs), map, by=c("all_orfs"="orf")) # add gene information
-all_orfs <- left_join(all_orfs, go[,c('Gene', 'GO.ID', 'BP', 'CC', 'MF')],
+all_orfs <- left_join(all_orfs, go[,c('Gene', 'GO.ID')],
                       by=c("gene"="Gene"), relationship="many-to-many") # add GO information
-colnames(all_orfs) <- c("orf", "gene", "organism", "GO", "BP", "CC", "MF")
+colnames(all_orfs) <- c("orf", "gene", "organism", "GO")
 remove(go)
 
 ### Enrichment analysis functions
@@ -91,8 +91,8 @@ ora <- function(f, all_orfs, path){
 
     # read in top ORF feature file
     top <- read.delim(f, sep="\t")
-    top <- top[,c(1,2,3,14,15,16,17,18)]
-    colnames(top) <- c("orf", "gene", "organism", "mean_imp", "GO", "BP", "CC", "MF")
+    top <- top[,c(1,2,3,14,15)]
+    colnames(top) <- c("orf", "gene", "organism", "mean_imp", "GO")
     
     # get background set
     bg <- all_orfs[!(all_orfs$orf %in% top$orf),] # remove top from background set
@@ -132,17 +132,17 @@ ora <- function(f, all_orfs, path){
     # add biological process, cellular component, and molecular function info
     if (nrow(sub)!=0){
         print("   Grabbing BP, CC, and MF info...")
-        sub$BP <- "" # biological process
-        sub$CC <- "" # cellular component
-        sub$MF <- "" # molecular function
-        for(i in 1:nrow(sub)){
-            tryCatch({
-                if(!is.null(getGOTerm(sub[i,1])$BP[1])) sub[i,10] <- getGOTerm(sub[i,1])$BP[1]
-                if(!is.null(getGOTerm(sub[i,1])$CC[1])) sub[i,11] <- getGOTerm(sub[i,1])$CC[1]
-                if(!is.null(getGOTerm(sub[i,1])$MF[1])) sub[i,12] <- getGOTerm(sub[i,1])$MF[1]
-            }, error = function(e){print(paste("no GO for ", sub[i,1])); NaN},
-                finally = {})
-        }
+        # sub$BP <- "" # biological process
+        # sub$CC <- "" # cellular component
+        # sub$MF <- "" # molecular function
+        # for(i in 1:nrow(sub)){
+        #     tryCatch({
+        #         if(!is.null(getGOTerm(sub[i,1])$BP[1])) sub[i,10] <- getGOTerm(sub[i,1])$BP[1]
+        #         if(!is.null(getGOTerm(sub[i,1])$CC[1])) sub[i,11] <- getGOTerm(sub[i,1])$CC[1]
+        #         if(!is.null(getGOTerm(sub[i,1])$MF[1])) sub[i,12] <- getGOTerm(sub[i,1])$MF[1]
+        #     }, error = function(e){print(paste("no GO for ", sub[i,1])); NaN},
+        #         finally = {})
+        # }
         print("   Calculating q values...")
         qvals <- p.adjust(sub$p.val, method="BH")
         sub$qvalues <- qvals

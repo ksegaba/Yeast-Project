@@ -7,7 +7,7 @@ rm(list=ls())
 suppressPackageStartupMessages(library(data.table))
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(parallel))
-suppressPackageStartupMessages(library(GSEABase))
+# suppressPackageStartupMessages(library(GSEABase))
 
 setwd("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
@@ -33,22 +33,8 @@ go <- subset(go, Evidence %in% exp)
 unique(go$Type)
 Gene <- str_extract(go$Gene.Synonym, "[A-Z0-9-]+|")
 go <- cbind(go, Gene)
-
-# Add extra GO term information
-print("   Grabbing BP, CC, and MF info...")
-go$BP <- "" # biological process
-go$CC <- "" # cellular component
-go$MF <- "" # molecular function
-for(i in 1:nrow(go)){
-    tryCatch({
-        if(!is.null(getGOTerm(go[i,5])$BP[1])) go[i,19] <- getGOTerm(go[i,5])$BP[1]
-        if(!is.null(getGOTerm(go[i,5])$CC[1])) go[i,20] <- getGOTerm(go[i,5])$CC[1]
-        if(!is.null(getGOTerm(go[i,5])$MF[1])) go[i,21] <- getGOTerm(go[i,5])$MF[1]
-    }, error = function(e){print(paste("no GO for ", go[i,5])); NaN},
-        finally = {})
-}
-# write.csv(go, "Data/yeast_GO/sgd_GO_BP.csv", quote=F, row.names=F)
-go <- read.csv("Data/yeast_GO/sgd_GO_BP.csv")
+# write.table(go, "Data/yeast_GO/sgd_GO_BP_no_info.txt", sep="\t", quote=F, row.names=F)
+go <- fread("Data/yeast_GO/sgd_GO_BP_no_info.txt", sep="\t")
 
 ############################# Map GO terms to SNPs #############################
 genes <- read.csv("Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_CORRECTED.tsv",
@@ -57,8 +43,8 @@ colnames(genes) <- c("snp", "chr", "pos", "gene")
 genes <- genes[genes$gene!="intergenic",] # drop intergenic snps
 genes <- genes[!grepl(",", genes$gene),] # drop snps that mapped to multiple genes
 out <- left_join(genes, go, by=c("gene"="Gene"))
-write.table(out, 
-    "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go_all.tsv", sep="\t")
+# write.table(out, 
+#     "Data/Peter_2018/biallelic_snps_diploid_and_S288C_genes_go_all.tsv", sep="\t")
 
 ################################################################################
 #                           GO Enrichment Analysis                             #
@@ -77,8 +63,8 @@ get_genes <- function(f, baseline=F) {
     name <- str_extract(f, "[A-Z0-9]+_[a-z_]+_[0-9]+_imp") # extract file name
     name <- paste("Genes_", name, sep="")
     path <- as.character("Scripts/Data_Vis/Section_3/GO_Enrichment/SNPs_fs")
-    out <- out[,c(1,4,26:36,9,22:24)]
-    write.csv(out, paste(file.path(path, name), "csv", sep=""), quote=F, row.names=F)
+    out <- out[,c(1,4,9,33)]
+    write.csv(out, paste(file.path(path, name), ".csv", sep=""), quote=F, row.names=F)
     return(out)
 }
 
@@ -108,10 +94,10 @@ ora <- function(all_genes, top, bg, path){
     
     # fill in contingency table for each gene
     print("   Running ORA...")
-    for (go in unique(all_genes$GO.ID)){
+    for (go in unique(all_genes$GO)){
         if (!is.na(go)){
-            a <- length(unique(top[which(top$GO.ID==go),]$gene)) # Genes in top features and have `go`
-            b <- length(unique(bg[which(bg$GO.ID==go),]$gene)) # Genes not in top features and have `go`
+            a <- length(unique(top[which(top$GO==go),]$gene)) # Genes in top features and have `go`
+            b <- length(unique(bg[which(bg$GO==go),]$gene)) # Genes not in top features and have `go`
             c <- length(unique(top$gene)) - a # Genes in top features and do not have `go`
             d <- length(unique(bg$gene)) - b # Genes not in top features and do not have `go`
             tbl <- matrix(c(a, b, c, d), ncol=2, byrow=TRUE) # gene contingency table
@@ -129,18 +115,18 @@ ora <- function(all_genes, top, bg, path){
     
     # add biological process, cellular component, and molecular function info
     if (nrow(sub)!=0){
-        print("   Grabbing BP, CC, and MF info...")
-        sub$BP <- "" # biological process
-        sub$CC <- "" # cellular component
-        sub$MF <- "" # molecular function
-        for(i in 1:nrow(sub)){
-            tryCatch({
-                if(!is.null(getGOTerm(sub[i,1])$BP[1])) sub[i,10] <- getGOTerm(sub[i,1])$BP[1]
-                if(!is.null(getGOTerm(sub[i,1])$CC[1])) sub[i,11] <- getGOTerm(sub[i,1])$CC[1]
-                if(!is.null(getGOTerm(sub[i,1])$MF[1])) sub[i,12] <- getGOTerm(sub[i,1])$MF[1]
-            }, error = function(e){print(paste("no GO for ", sub[i,1])); NaN},
-                finally = {})
-        }
+        # print("   Grabbing BP, CC, and MF info...")
+        # sub$BP <- "" # biological process
+        # sub$CC <- "" # cellular component
+        # sub$MF <- "" # molecular function
+        # for(i in 1:nrow(sub)){
+        #     tryCatch({
+        #         if(!is.null(getGOTerm(sub[i,1])$BP[1])) sub[i,10] <- getGOTerm(sub[i,1])$BP[1]
+        #         if(!is.null(getGOTerm(sub[i,1])$CC[1])) sub[i,11] <- getGOTerm(sub[i,1])$CC[1]
+        #         if(!is.null(getGOTerm(sub[i,1])$MF[1])) sub[i,12] <- getGOTerm(sub[i,1])$MF[1]
+        #     }, error = function(e){print(paste("no GO for ", sub[i,1])); NaN},
+        #         finally = {})
+        # }
         print("   Calculating q values...")
         qvals <- p.adjust(sub$p.val, method="BH")
         sub$qvalues <- qvals
@@ -155,14 +141,15 @@ go_enrichment <- function(f){
     ### ORA and GSEA of top gene features
     # add gene information to top snp file
     top <- get_genes(f)
-    colnames(top) <- c("snp", "gene", "mean_imp", "GO", "BP", "CC", "MF")
+    colnames(top) <- c("snp", "gene", "GO", "mean_imp")
     
     # drop intergenic snps from top
     top <- top[which(top$gene!="intergenic"),]
     
     # prepare background set
     bg <- all_genes[!(all_genes$gene %in% top$gene),] # remove top from background set
-    bg <- bg[c(4,9,22:24)] # keep only gene, GO.ID, BP, CC, MF
+    bg <- bg[c(4,9)] # keep only gene, GO.ID
+    colnames(bg) <- c("gene", "GO")
     bg <- bg[!duplicated(bg),] # remove duplicates
     print(paste("   Top Genes: ", length(unique(top$gene)), sep=""))
     print(paste("   Genes not in top: ", length(unique(bg$gene)), sep=""))
