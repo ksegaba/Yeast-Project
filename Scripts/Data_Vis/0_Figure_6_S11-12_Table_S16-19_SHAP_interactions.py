@@ -13,6 +13,8 @@ yeast. This script does the following:
    - Determine what variant-variant types identified the same gene-gene interactions
      (Table S18)
 4. Enrichment analysis of experimentally verified GIs among the SHAP interactions
+   - Supplementary file 10: Experimentally verified genetic interactions from
+     BioGRID & Costanzo et al. 2021
    - Figure S11: Venn diagram of overlap between experimentally verified GIs
    - Table S19: Enrichment results
 5. SHAP interaction plots for the top 20 SHAP interactions across all models
