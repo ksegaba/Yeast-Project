@@ -1,6 +1,6 @@
 #!/bin/bash --login 
 #SBATCH --array=1-35 # 35 array tasks
-#SBATCH --time=60:00:00
+#SBATCH --time=04:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -15,27 +15,18 @@ PIPE=/mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in
 DATA=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
 echo "${SLURM_ARRAY_TASK_ID} ; ${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
 
-cd /mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_rrBLUP_results/baseline
+cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_rrBLUP_results/baseline
 
 # echo "Step 11: split geno and pheno into training sets
 # Split the genotype and phenotype matrices into training sets
-# module purge
-# module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
 # Rscript ${PIPE}/11_split_geno_pheno_fread.r ${DATA}/geno.csv ${DATA}/pheno.csv ${DATA}/Test.txt
 
-# echo "Step 12...build rrBLUP model using training geno and pheno data"
-# module purge
-# module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
-# Rscript ${PIPE}/09_rrBLUP_fread_predict_values.r geno_training.csv pheno_training.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} 5 10 ${DATA}/CVFs.csv rrBLUP_geno_training
-
-# echo "step 13: create Marker files for feature selection"
-# module purge
-# module load GCC/6.4.0-2.28  OpenMPI/2.1.2  Python/3.6.4
-# python ${PIPE}/12_select_markers_according_to_abs_coef.py -coef Coef_rrBLUP_geno_training_${TRAITS[${SLURM_ARRAY_TASK_ID}]}.csv -start 500 -stop 80000 -step 500
+#echo "...generate the cross-validation scheme file (CVFs_20rep.csv) using the pheno training data"
+# conda activate shap
+# python /mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass/07_make_CVs.py -file /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno_training.csv -cv 5 -number 20
+# conda deactivate
 
 echo "step 14b: baseline rrBLUP models"
-module purge
-module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
-Rscript ${PIPE}/13_rrBLUP_training_test_split_fread_predict_values.r ${DATA}/geno.csv ${DATA}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt 5 10 ${DATA}/CVFs.csv baseline_snp_rrBLUP
+Rscript ${PIPE}/13_rrBLUP_training_test_split_fread_predict_values.r ${DATA}/geno.csv ${DATA}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt 5 20 ${DATA}/CVFs_20rep.csv baseline_snp_rrBLUP
 
 scontrol show job $SLURM_JOB_ID

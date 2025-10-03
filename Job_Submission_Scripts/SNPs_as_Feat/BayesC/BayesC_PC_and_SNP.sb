@@ -1,27 +1,26 @@
-#!/bin/sh --login
+#!/bin/bash --login
 #SBATCH --array=1-35
-#SBATCH --time=50:00:00
+#SBATCH --time=1:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=40G
 #SBATCH --job-name BayesC_baseline_PC_and_SNP
 #SBATCH --output=%x_%A_%a.out
 
-cd /mnt/home/seguraab/Shiu_Lab/Project
-module purge
-module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
+cd /mnt/research/glbrc_group/shiulab/kenia
 
-TRAITS=($(head -n 1 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
-PIPE=Scripts/Genomic_Prediction_BayesC
-DATA=Data/Peter_2018
-save=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_BayesC_results/baseline
+TRAITS=($(head -n 1 Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
+PIPE=Shiu_Lab/Project/Scripts/Genomic_Prediction_BayesC
+DATA=Shiu_Lab/Project/Data/Peter_2018
+save=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_BayesC_results/baseline
 
 echo "${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
 
 # PCs
-Rscript ${PIPE}/BayesC_Model.R ${DATA}/geno_PCs1.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 baseline_PCs_tassel_BayesC $save
+# Rscript ${PIPE}/BayesC_Model.R ${DATA}/geno_PCs1.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs_20rep.csv 5 20 baseline_PCs_tassel_BayesC $save
+Rscript ${PIPE}/BayesC_Model.R ${DATA}/PCs_first5.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs_20rep.csv 5 20 baseline_PCs_sklearn_BayesC $save
 
 # Baseline SNPs
-Rscript ${PIPE}/BayesC_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs.csv 5 10 baseline_snp_BayesC $save
+# Rscript ${PIPE}/BayesC_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv all ${DATA}/Test.txt ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/CVFs_20rep.csv 5 20 baseline_snp_BayesC $save
 
 scontrol show job $SLURM_JOB_ID

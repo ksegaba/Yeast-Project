@@ -1,40 +1,101 @@
-#!/bin/sh --login
+#!/bin/bash --login
 #SBATCH --array=1-35
-#SBATCH --time=40:00:00
+#SBATCH --time=1:00:00
 #SBATCH --ntasks=2
-#SBATCH --cpus-per-task=5
+#SBATCH --cpus-per-task=7
 #SBATCH --mem=30G
 #SBATCH --job-name XGB_baseline
 #SBATCH --output=%x_%A_%a.out
 
-cd /mnt/home/seguraab/Shiu_Lab/Project
+cd /mnt/research/glbrc_group/shiulab/kenia/
 
-TRAITS=($(head -n 1 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
-PIPE=Scripts/Genomic_Prediction_XGBoost
-DATA=Data/Peter_2018
-save=/mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_XGBoost_results/baseline
+TRAITS=($(head -n 1 /mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
+PIPE=Shiu_Lab/Project/Scripts/Genomic_Prediction_XGBoost
+DATA=Shiu_Lab/Project/Data/Peter_2018
+save=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_XGBoost_results/baseline
 
+module purge
 conda activate /mnt/home/seguraab/miniconda3/envs/shap
 
 echo "${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
 
 # Baseline PCs
-python ${PIPE}/xgboost_model.py -X ${DATA}/geno_PCs1.csv \
+# python ${PIPE}/1b_xgb_regression.py -X ${DATA}/geno_PCs1.csv \
+#    -Y ${DATA}/pheno.csv \
+#    -test ${DATA}/Test.txt \
+#    -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
+#    -prefix ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_PCs_tassel_baseline \
+#    -save $save -tag PCs_tassel -fold 5 -n 20 -plot f
+python ${PIPE}/1b_xgb_regression.py -X ${DATA}/PCs_first5.csv \
    -Y ${DATA}/pheno.csv \
    -test ${DATA}/Test.txt \
-   -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
-   -prefix ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_PCs_tassel_baseline \
-   -save $save -type PCs_tassel -fold 5 -n 10 -plot f
+   -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
+   -prefix ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_PCs_sklearn_baseline \
+   -save $save -tag PCs_sklearn -fold 5 -n 20 -plot f
 
 
 # Baseline SNPs
-python ${PIPE}/xgboost_model.py -X ${DATA}/geno.csv \
-    -Y ${DATA}/pheno.csv \
-    -test ${DATA}/Test.txt \
-    -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
-    -prefix ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_snp_baseline \
-    -save $save -type SNP -fold 5 -n 10 -plot f
+# python ${PIPE}/1b_xgb_regression.py -X ${DATA}/geno.csv \
+#     -Y ${DATA}/pheno.csv \
+#     -test ${DATA}/Test.txt \
+#     -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
+#     -prefix ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_snp_baseline \
+#     -save $save -tag SNP -fold 5 -n 20 -plot f
 
 conda deactivate
+
+# # Commands I ran in python to extract model parameters from the saved models:
+# import joblib
+# import pandas as pd
+# import os
+# model_dir='/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_XGBoost_results/baseline'
+# model_dir='/mnt/research/glbrc_group/shiulab/kenia/yeast_project/PC_yeast_XGBoost_results/'
+# model_dir='/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_XGBoost_results/fs'
+# model_params = []
+# for fname in os.listdir(model_dir):
+#    if fname.endswith('.pkl'):
+#       model_path = os.path.join(model_dir, fname)
+#       model = joblib.load(model_path)
+#       params = model.get_params()
+#       params['model_file'] = fname
+#       model_params.append(params)
+
+# df_params = pd.DataFrame(model_params)
+# df_params.select_dtypes('number').describe()
+# '''
+# # From snp baseline and pc sklearn
+#        colsample_bytree        gamma    max_depth  min_child_weight  missing  n_estimators  random_state    subsample          eta        alpha
+# count       1400.000000  1400.000000  1400.000000       1400.000000      0.0   1400.000000   1400.000000  1400.000000  1400.000000  1400.000000
+# mean           0.836227     0.377580     5.971429         12.428571      NaN    271.285714      9.500000     0.757484     0.198782     0.691371
+# std            0.086952     0.995239     2.379153          4.249447      NaN    138.821461      5.768342     0.134211     0.100640     0.570219
+# min            0.700382     0.100721     2.000000          6.000000      NaN     15.000000      0.000000     0.500882     0.017152     0.102809
+# 25%            0.759952     0.104885     4.000000         10.000000      NaN    155.000000      4.750000     0.642511     0.116630     0.273482
+# 50%            0.816047     0.115390     6.000000         12.000000      NaN    272.500000      9.500000     0.767111     0.216958     0.538233
+# 75%            0.913225     0.133022     8.000000         16.000000      NaN    395.000000     14.250000     0.854318     0.291968     0.907117
+# max            0.998791     4.877140    10.000000         20.000000      NaN    500.000000     19.000000     0.999794     0.398342     2.923663
+
+# # From pc tassel
+#        colsample_bytree       gamma   max_depth  min_child_weight  missing  n_estimators  random_state   subsample         eta       alpha
+# count        700.000000  700.000000  700.000000        700.000000      0.0    700.000000    700.000000  700.000000  700.000000  700.000000
+# mean           0.870356    0.352110    5.600000         11.142857      NaN    277.428571      9.500000    0.753698    0.209836    0.630569
+# std            0.079437    0.798420    2.633557          4.418344      NaN    137.650276      5.770404    0.146875    0.114439    0.571736
+# min            0.708573    0.100601    2.000000          6.000000      NaN     50.000000      0.000000    0.505677    0.012057    0.104984
+# 25%            0.828894    0.106876    3.000000          8.000000      NaN    140.000000      4.750000    0.635951    0.094598    0.171785
+# 50%            0.860260    0.115324    5.000000         10.000000      NaN    305.000000      9.500000    0.764613    0.215502    0.484866
+# 75%            0.931438    0.145293    8.000000         14.000000      NaN    385.000000     14.250000    0.893788    0.316308    0.869657
+# max            0.999501    3.804972   10.000000         20.000000      NaN    500.000000     19.000000    0.996039    0.398348    2.355350
+
+# # From snp fs
+#        colsample_bytree       gamma   max_depth  min_child_weight  missing  n_estimators  random_state   subsample         eta       alpha
+# count        350.000000  350.000000  350.000000        350.000000      0.0    350.000000    350.000000  350.000000  350.000000  350.000000
+# mean           0.851066    0.352630    6.371429         12.628571      NaN    299.428571      4.500000    0.740714    0.191127    0.566763
+# std            0.094421    0.927680    2.677356          4.586549      NaN    118.138447      2.876393    0.122132    0.107490    0.493754
+# min            0.700418    0.100729    2.000000          6.000000      NaN     45.000000      0.000000    0.536942    0.039651    0.108284
+# 25%            0.774861    0.106105    4.000000         10.000000      NaN    220.000000      2.000000    0.628713    0.096567    0.255194
+# 50%            0.852612    0.124227    7.000000         12.000000      NaN    320.000000      4.500000    0.762541    0.185128    0.393526
+# 75%            0.939506    0.152392    9.000000         18.000000      NaN    385.000000      7.000000    0.841181    0.271433    0.689432
+# max            0.987158    4.878771   10.000000         20.000000      NaN    500.000000      9.000000    0.946288    0.398729    2.126437
+# '''
+# df_params.to_csv(f"{model_dir}/xgb_model_params.csv", index=False)
 
 scontrol show job $SLURM_JOB_ID

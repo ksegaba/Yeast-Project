@@ -9,16 +9,18 @@
 #SBATCH --output=%x_%j
 
 
-TRAITS=($(head -n 1 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
-tool=/mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass
-data=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
+TRAITS=($(head -n 1 /mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
 
-cd /mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_rrBLUP_results/baseline
+tool=/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass
+data=/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018
+
+cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_rrBLUP_results/baseline
 
 module purge 
 module load GCC/10.2.0  OpenMPI/4.0.5  R/4.0.3
 
 echo "Step 14. genomic prediction using population structure (TASSEL5 PCs) within a cross-validation scheme"
-Rscript ${tool}/13_rrBLUP_training_test_split_fread_predict_values.r ${data}/geno_PCs1.csv ${data}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${data}/Test.txt 5 10 ${data}/CVFs.csv PCs_tassel_rrblup
+# Rscript ${tool}/13_rrBLUP_training_test_split_fread_predict_values.r ${data}/geno_PCs1.csv ${data}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${data}/Test.txt 5 20 ${data}/CVFs_20rep.csv PCs_tassel_rrblup
+Rscript ${tool}/13_rrBLUP_training_test_split_fread_predict_values.r ${data}/PCs_first5.csv ${data}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${data}/Test.txt 5 20 ${data}/CVFs_20rep.csv PCs_sklearn_rrblup
 
 scontrol show job $SLURM_JOB_ID

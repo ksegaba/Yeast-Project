@@ -1,4 +1,4 @@
-#!/bin/sh --login
+#!/bin/bash --login
 #SBATCH --array=0-34
 #SBATCH --time=4:00:00
 #SBATCH --ntasks=1
@@ -8,8 +8,6 @@
 #SBATCH --output=%x_%j.out
 
 cd /mnt/gs21/scratch/seguraab/yeast_project/SNP_yeast_rrBLUP_results/fs_based_on_rf
-module purge
-module load GCC/10.2.0  OpenMPI/4.0.5  R/4.0.3
 
 PIPE=/mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass
 DATA=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018

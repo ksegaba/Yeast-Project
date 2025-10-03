@@ -1,4 +1,4 @@
-#!/bin/sh --login
+#!/bin/bash --login
 #SBATCH --array=1-35
 #SBATCH --time=8:00:00
 #SBATCH --ntasks=2
@@ -12,8 +12,9 @@ cd /mnt/home/seguraab/Shiu_Lab/Project
 TRAITS=($(head -n 1 /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
 PIPE=Scripts/Genomic_Prediction_XGBoost
 DATA=Data/Peter_2018
-save=/mnt/gs21/scratch/seguraab/yeast_project/ORF_yeast_XGBoost_results/baseline
+save=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_XGBoost_results/baseline
 
+module purge
 conda activate /mnt/home/seguraab/miniconda3/envs/shap
 
 echo "${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
@@ -22,18 +23,18 @@ echo "${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
 python ${PIPE}/xgboost_model.py -X ${DATA}/ORFs_pres_abs.csv \
     -Y ${DATA}/pheno.csv \
     -test ${DATA}/Test.txt \
-    -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
+    -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
     -prefix ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_pav_baseline \
-    -save $save -type PAV -fold 5 -n 10 -plot f
+    -save $save -tag PAV -fold 5 -n 20 -plot f
 
 
 # Baseline ORFs copy number (CNVs)
 python ${PIPE}/xgboost_model.py -X ${DATA}/ORFs_no_NA.csv \
     -Y ${DATA}/pheno.csv \
     -test ${DATA}/Test.txt \
-    -trait ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
+    -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} \
     -prefix ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_cnv_baseline \
-    -save $save -type CNV -fold 5 -n 10 -plot f
+    -save $save -tag CNV -fold 5 -n 20 -plot f
 
 conda deactivate
 

@@ -1,5 +1,5 @@
-#!/bin/sh --login
-#SBATCH --array=0-34
+#!/bin/bash --login
+#SBATCH --array=6-34
 #SBATCH --time=30:00:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
@@ -8,8 +8,6 @@
 #SBATCH --output=%x_%j.out
 
 cd /mnt/home/seguraab/Shiu_Lab/Project
-module purge
-module load GCC/9.3.0  OpenMPI/4.0.3  R/4.0.3
 
 PIPE=Scripts/Genomic_Prediction_BayesC
 DATA=Data/Peter_2018
