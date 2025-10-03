@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-Figure 5: SHAP values of top genes/benchmark genes VS genetic similarity to
-S288C or W303 (SACE_GAV).
+Figure 4: SHAP values of top genes/benchmark genes VS genetic similarity to
+S288C.
 
 This script performs the following tasks:
 1. Generate genetic distance matrices from SNP (0,1,2 encoding) and PAV data
    (Supplementary data files 12 & 13)
-2. K-means clustering of the genetic distance matrices (Figs. 4D, S5A)
-3. Compare the fitness distributions and shap values between the cluster
-   containing the lab strains and the most distinct cluster to it. (Figs. 4E,
-   S5B; Table S14)
+2. K-means clustering of the genetic distance matrices (Figs. 4D, S5)
+3. Compare the shap values between the cluster containing the lab strains and
+   the most distinct cluster to it. (Fig. 4E; Table S13)
 4. Determine how many of the optimized ORFs are absent in S288C or how many
    important SNP features are intergenic
 """
@@ -342,17 +341,17 @@ for i, bench_list in enumerate([ben_s288c, caf_s288c, cu_s288c, sma_s288c, caf_s
             clust0_snp_shap = s288c_snp_shap.loc[
                 s288c_snp_shap.Cluster == 0].drop(columns=["Cluster"])
             print('clust0_snp_shap', clust0_snp_shap.shape)
-            # calculate the median shap value per gene per isolate
+            # calculate the median absolute shap value per gene per isolate
             clust0_snp_shap_med = clust0_snp_shap.T.groupby(
                 map_snps.loc[clust0_snp_shap.columns].gene).median()
             print('clust0_snp_shap_med', clust0_snp_shap_med.shape)
             for clust in [1, 2, 3, 4, 5]:
                 print(f"Comparing cluster 0 to cluster {clust} for {env} SNPs")
-                # subset the clust shap values
+                # subset the clust median absolute shap values
                 clust_snp_shap = s288c_snp_shap.loc[
                     s288c_snp_shap.Cluster == clust].drop(columns=["Cluster"])
                 print(f'clust{clust}_snp_shap', clust_snp_shap.shape)
-                # calculate the median shap value per gene per isolate
+                # calculate the median absolute shap value per gene per isolate
                 clust_snp_shap_med = clust_snp_shap.T.groupby(
                     map_snps.loc[clust0_snp_shap.columns].gene).median()
                 print(f'clust{clust}_snp_shap_med', clust_snp_shap_med.shape)
@@ -472,7 +471,7 @@ mwu_res_df.columns = ["U", "pval", "num_benchmark_features",
 mwu_res_df["difference_median_shap_btwn_clusters"] = mwu_res_df["s288c_clust_shap_50%"] - \
     mwu_res_df["other_clust_shap_50%"]
 mwu_res_df.reset_index().to_excel(
-    "Scripts/Data_Vis/Section_4/Table_S14_bench_gene_shap_btwn_clusters_mwu_stats.xlsx",
+    "Scripts/Data_Vis/Section_4/Table_S13_bench_gene_shap_btwn_clusters_mwu_stats.xlsx",
     index=False)
 
 ################################################################################
