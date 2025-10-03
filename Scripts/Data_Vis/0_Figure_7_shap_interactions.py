@@ -2,16 +2,16 @@
 """Analysis for the section on genetic interactions underlying benomyl stress in
 yeast. This script does the following:
 1. Generate feature tables for SNP, PAV, CNV, SNP+PAV, SNP+CNV, PAV+CNV, and
-   SNP+PAV+CNV benomyl benchmark gene RF models.
+   SNP+PAV+CNV benomyl benchmark gene RF models. (Model performances in Fig. 6A)
 2. Plot the performances of the best RF benomyl models out of all the training
    repetitions. These models will be used to generate SHAP interaction scores
    (Table S16).
-3. Exploratory analysis of SHAP interaction scores:
+3. Exploratory analysis of SHAP interaction scores (Table S17):
    - Determine the number of unique variant-variant and gene-gene interactions
      (Fig. S12: UpSet plot of the unique gene-gene interactions identified by
      the SHAP interactions from different models)
-   - Determine which variant-variant types tend to have higher interaction
-     scores (Table S18)
+   - Determine what variant-variant types identified the same gene-gene interactions
+     (Table S18)
 4. Enrichment analysis of experimentally verified GIs among the SHAP interactions
    - Figure S11: Venn diagram of overlap between experimentally verified GIs
    - Table S19: Enrichment results
@@ -1078,23 +1078,6 @@ ts17_no_pav = ts17_no_pav.sort_values('Interaction', ascending=False)
 ts17_no_pav.groupby(["Gene1", "Gene2"]).count().sort_values(
     "Model", ascending=False)
 
-# # highest shap interaction scores (these are not really comparable across models)# ts17_no_pav['rank'] = ts17_no_pav['Interaction'].rank(
-#     method='average', ascending=False)
-# top20 = ts17_no_pav.sort_values("Interaction", ascending=False).iloc[:20, :]
-# top20.Pair.nunique()  # 20
-# top20.iloc[:, [0, 1, 4, 5, 6, 7, 8, 9]]
-# top20.groupby("Gene1"). count()
-# top20.groupby("Gene2").count()
-# top20.groupby("GI_Type").count()
-
-# # highest shap interaction scores by variant interaction type
-# top5_snp_snp = ts17_no_pav.loc[ts17_no_pav.GI_Type == "SNP-SNP"].iloc[:5, :]
-# top5_cnv_cnv = ts17_no_pav.loc[ts17_no_pav.GI_Type == "CNV-CNV"].iloc[:5, :]
-# top5_pav_pav = ts17_no_pav.loc[ts17_no_pav.GI_Type == "PAV-PAV"].iloc[:5, :]
-# top5_snp_cnv = ts17_no_pav.loc[ts17_no_pav.GI_Type == "SNP-CNV"].iloc[:5, :]
-# top5_snp_pav = ts17_no_pav.loc[ts17_no_pav.GI_Type == "SNP-PAV"].iloc[:5, :]
-# top5_cnv_pav = ts17_no_pav.loc[ts17_no_pav.GI_Type == "PAV-CNV"].iloc[:5, :]
-
 # highest shap interaction scores by model type
 top5_snp_model = ts17_no_pav.loc[ts17_no_pav.Model == "SNP"].iloc[:5, :]
 top5_snp_model["rank"] = np.arange(1, 6)
@@ -1207,7 +1190,6 @@ def interaction_plot(feature1, feature2, shap1, shap2, row, ax, cbar_label="geno
 
 
 # Loop through the top 20 gene pairs and plot their feature values
-# for top_df in [top20, top5_snp_snp, top5_cnv_cnv, top5_pav_pav, top5_snp_cnv, top5_snp_pav, top5_cnv_pav]:
 for top_df in [verified_ben30_gi, top5_snp_model, top5_cnv_model, top5_snp_pav_model,
                top5_snp_cnv_model, top5_pav_cnv_model, top5_snp_pav_cnv_model]:
     for i, row in top_df.iterrows():
@@ -1252,7 +1234,6 @@ for top_df in [verified_ben30_gi, top5_snp_model, top5_cnv_model, top5_snp_pav_m
             shap1 = shap_snp_pav_cnv.loc[:, RF_feature1_name]
             shap2 = shap_snp_pav_cnv.loc[:, RF_feature2_name]
         #
-        # if os.path.exists(f"Scripts/Data_Vis/Section_6/shap_interaction/Figure_6B-F_rank_{i+1}_{row.GI_Type}_{row.Gene1}_{row.Gene2}_interaction.pdf"):
         if os.path.exists(f"Scripts/Data_Vis/Section_6/shap_interaction/Figure_6B-F_rank_{row['rank']}_model_{row.Model}_{row.GI_Type}_{row.Gene1}_{row.Gene2}_interaction.pdf"):
             continue
         #
