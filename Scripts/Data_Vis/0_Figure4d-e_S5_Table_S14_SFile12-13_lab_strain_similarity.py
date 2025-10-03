@@ -5,7 +5,7 @@ S288C.
 
 This script performs the following tasks:
 1. Generate genetic distance matrices from SNP (0,1,2 encoding) and PAV data
-   (Supplementary data files 12 & 13)
+   (Supplementary files 13 & 14)
 2. K-means clustering of the genetic distance matrices (Figs. 4D, S5)
 3. Compare the shap values between the cluster containing the lab strains and
    the most distinct cluster to it. (Fig. 4E; Table S13)
@@ -219,7 +219,7 @@ s288c_distinct_cluster_pav = 3
 ################################################################################
 # 3. Compare the fitness distributions and shap values between the cluster
 #    containing the lab strains and the most distinct cluster to it. (Figs. 4E,
-#    S5B; Table S14)
+#    S5B; Table S13)
 ################################################################################
 # Benchmark genes validated in S288C
 ben_meta = pd.read_csv(
