@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 ################################################################################
-# Figure S1B, S1C, S1D, S1E
+# Figure 1B-E
 ################################################################################
 import os
 import math
@@ -97,9 +97,6 @@ clades = clades[["Standardized name", "Clades"]]  # subset relevant columns
 pheno.merge(clades, left_index=True, right_on="Standardized name").\
     groupby("Clades").describe().to_csv(
         "Scripts/Data_Vis/Section_1/pheno_clades_stats.csv")
-# snps.merge(clades, left_index=True, right_on="Standardized name").groupby("Clades").value_counts()
-# pavs.merge(clades, left_index=True, right_on="Standardized name").groupby("Clades").describe()
-# cnvs.merge(clades, left_index=True, right_on="Standardized name").groupby("Clades").value_counts()
 
 # cluster data
 kin_dendrogram = dendrogram(linkage(kinship, method="average"))
@@ -138,7 +135,7 @@ plt.close()
 with open("Scripts/Data_Vis/Section_1/clade_colors.json", "w") as f:
     json.dump(color_list, f, indent=4)  # save color dictionary
 
-# plot with clades
+# plot with clades (Figure 1C)
 fig, ax = plt.subplots(2, 2)
 kin_ordered = kinship.iloc[kin_row_order, kin_row_order]
 a = sns.heatmap(kin_ordered, cmap="RdBu_r", center=0, square=True, ax=ax[0][0],
@@ -150,7 +147,7 @@ for i, color in enumerate(row_colors):
     ax[0][0].add_patch(plt.Rectangle(xy=(-0.05, i), width=0.05, height=1, color=color, lw=0,
                                      transform=ax[0][0].get_yaxis_transform(), clip_on=False))
 
-
+# Figure 1B,D,E
 pheno_corr_ordered = pheno_corr.iloc[kin_row_order, kin_row_order]
 b = sns.heatmap(pheno_corr_ordered, cmap="RdBu_r", center=pheno_corr_ordered.mean().mean(),
                 square=True, ax=ax[0][1], xticklabels=False, yticklabels=False,
@@ -169,7 +166,6 @@ d = sns.heatmap(cnv_corr_ordered, cmap="RdBu_r", center=0.8, square=True,
                 vmin=cnv_corr_ordered.min().min(), vmax=cnv_corr_ordered.max().max(),
                 cbar_kws={'orientation': 'horizontal'})
 fig.tight_layout()
-# pav centered at 0.9; with clade colors
 fig.savefig(
-    "Scripts/Data_Vis/Section_1/Figure_1d-e_data_correlations5.pdf", dpi=300)
+    "Scripts/Data_Vis/Section_1/Figure_1b-e_data_correlations5.pdf", dpi=300)
 plt.close()
