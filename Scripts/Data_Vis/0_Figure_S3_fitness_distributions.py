@@ -30,14 +30,6 @@ for i, col in enumerate(pheno.columns):
 
 
 plt.tight_layout()
-plt.savefig("Scripts/Data_Vis/Section_3/Figure_S3_train_test_pheno.pdf",
+plt.savefig("Scripts/Data_Vis/Section_2/Figure_S3_train_test_pheno.pdf",
             bbox_inches="tight")
-plt.close()
-
-# S3. Violin plot of fitness distributions in each environment
-fig, ax = plt.subplots(figsize=(10, 4))
-sns.violinplot(data=pheno, ax=ax, linewidth=0.7)
-ax.tick_params(axis='x', rotation=90)
-ax.set_ylabel("Fitness")
-plt.savefig("Scripts/Data_Vis/Section_3/Figure_S3.pdf", bbox_inches="tight")
 plt.close()
