@@ -3,9 +3,9 @@
 yeast. This script does the following:
 1. Generate feature tables for SNP, PAV, CNV, SNP+PAV, SNP+CNV, PAV+CNV, and
    SNP+PAV+CNV benomyl benchmark gene RF models. (Model performances in Fig. 6A)
-2. Plot the performances of the best RF benomyl models out of all the training
-   repetitions. These models will be used to generate SHAP interaction scores
-   (Table S16).
+2. Plot the performances (Table S16) of the best RF benomyl models out of all
+   the training repetitions. These models will be used to generate SHAP
+   interaction scores (Table S17).
 3. Exploratory analysis of SHAP interaction scores (Table S17):
    - Determine the number of unique variant-variant and gene-gene interactions
      (Fig. S12: UpSet plot of the unique gene-gene interactions identified by
@@ -17,7 +17,7 @@ yeast. This script does the following:
      BioGRID & Costanzo et al. 2021
    - Figure S11: Venn diagram of overlap between experimentally verified GIs
    - Table S19: Enrichment results
-5. SHAP interaction plots for the top 20 SHAP interactions across all models
+5. SHAP interaction plots for the top SHAP interactions from each model
    - Figures 6B-F
 """
 
