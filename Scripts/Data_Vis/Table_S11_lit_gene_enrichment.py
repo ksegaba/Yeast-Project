@@ -2,7 +2,8 @@
 # This script generates the following:
 # 1. Supplementary Data File 8: SNP to gene mapping with benchmark gene annotations
 # 2. Supplementary Data File 9: ORF to gene mapping with benchmark gene annotations
-# 3. Table S12: Enrichment of benchmark genes at different rank percentiles
+# (gene annotations to Files S8 and S9 were added in the Table S5 script)
+# 3. Table S11: Enrichment of benchmark genes at different rank percentiles
 ################################################################################
 
 import os
@@ -355,7 +356,7 @@ for percentile in [0.99, 0.95, 0.90, 0.85, 0.80, 0.75]:
     enrich_res_sub["log10(q-values)"] = enrich_res_sub.apply(lambda x: np.log10(
         x["q-values"]) if x.direction == "-" else -np.log10(x["q-values"]), axis=1)
     enrich_res_sub.sort_values(by="q-values", ascending=True).to_csv(
-        f"Scripts/Data_Vis/Section_3/Table_S12_Enrichment_of_literature_genes_above_{int(percentile*100)}%_RF.csv", index=False)
+        f"Scripts/Data_Vis/Section_3/Table_S11_Enrichment_of_literature_genes_above_{int(percentile*100)}%_RF.csv", index=False)
     #
     # Visualize the significant enrichment values
     significant = enrich_res_sub.loc[enrich_res_sub["q-values"] < 0.05, [
