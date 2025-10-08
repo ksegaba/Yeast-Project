@@ -6,7 +6,7 @@
 #SBATCH --ntasks=2
 #SBATCH --cpus-per-task=7
 #SBATCH --mem-per-cpu=3G
-#SBATCH --job-name rf_pav_cnv_baseline
+#SBATCH --job-name rf_pav_cnv_complete
 #SBATCH --output=%x_%j.out
 
 cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/baseline
@@ -22,10 +22,12 @@ DATA=/mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018
 echo "${SLURM_ARRAY_TASK_ID} ; ${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
 
 # ORF presence/absence
-# python ${PIPE}/ML_regression.py -df ${DATA}/ORFs_pres_abs.csv -df2 ${DATA}/pheno.csv -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -sep , -test ${DATA}/Test.txt -alg RF -n_jobs 12 -n 20 -cv_num 5 -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_pav_baseline -plots t
+# ORFs_pres_abs.csv is File S5; pheno.csv is File S1
+python ${PIPE}/ML_regression.py -df ${DATA}/ORFs_pres_abs.csv -df2 ${DATA}/pheno.csv -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -sep , -test ${DATA}/Test.txt -alg RF -n_jobs 12 -n 20 -cv_num 5 -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_pav_complete -plots t
 
 # ORF copy/number
-python ${PIPE}/ML_regression.py -df ${DATA}/ORFs_no_NA.csv -df2 ${DATA}/pheno.csv -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -sep , -test ${DATA}/Test.txt -alg RF -n_jobs 12 -n 20 -cv_num 5 -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_cnv_baseline -plots t
+# ORFs_no_NA.csv is File S6
+python ${PIPE}/ML_regression.py -df ${DATA}/ORFs_no_NA.csv -df2 ${DATA}/pheno.csv -y_name ${TRAITS[${SLURM_ARRAY_TASK_ID}]} -sep , -test ${DATA}/Test.txt -alg RF -n_jobs 12 -n 20 -cv_num 5 -save ${TRAITS[${SLURM_ARRAY_TASK_ID}]}_cnv_complete -plots t
 
 conda deactivate
 
