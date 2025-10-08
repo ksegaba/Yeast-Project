@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=20G
-#SBATCH --job-name rrBLUP_step14
+#SBATCH --job-name rrBLUP_snp_complete
 #SBATCH --output=%x_%j.out
 
 cd /mnt/home/seguraab/Shiu_Lab/Project
@@ -17,16 +17,19 @@ echo "${SLURM_ARRAY_TASK_ID} ; ${TRAITS[${SLURM_ARRAY_TASK_ID}]}"
 
 cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_rrBLUP_results/baseline
 
-# echo "Step 11: split geno and pheno into training sets
+# Additional scripts from Wang et al. 2022
+# https://github.com/ShiuLab/Manuscript_Code/tree/master/2022_GP_in_Switchgrass
+
 # Split the genotype and phenotype matrices into training sets
-# Rscript ${PIPE}/11_split_geno_pheno_fread.r ${DATA}/geno.csv ${DATA}/pheno.csv ${DATA}/Test.txt
+Rscript ${PIPE}/11_split_geno_pheno_fread.r ${DATA}/geno.csv ${DATA}/pheno.csv ${DATA}/Test.txt
 
-#echo "...generate the cross-validation scheme file (CVFs_20rep.csv) using the pheno training data"
-# conda activate shap
-# python /mnt/home/seguraab/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass/07_make_CVs.py -file /mnt/home/seguraab/Shiu_Lab/Project/Data/Peter_2018/pheno_training.csv -cv 5 -number 20
-# conda deactivate
+# Generate the cross-validation scheme file (CVFs_20rep.csv) using the pheno training data"
+conda activate shap
+python ${PIPE}/07_make_CVs.py -file ${DATA}/pheno_training.csv -cv 5 -number 20
+conda deactivate
 
-echo "step 14b: baseline rrBLUP models"
-Rscript ${PIPE}/13_rrBLUP_training_test_split_fread_predict_values.r ${DATA}/geno.csv ${DATA}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt 5 20 ${DATA}/CVFs_20rep.csv baseline_snp_rrBLUP
+# rrBLUP regression
+# geno.csv is File S2; pheno.csv is File S1
+Rscript ${PIPE}/rrBLUP_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt 5 20 ${DATA}/CVFs_20rep.csv complete_snp_rrBLUP
 
 scontrol show job $SLURM_JOB_ID
