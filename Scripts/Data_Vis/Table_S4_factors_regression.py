@@ -17,7 +17,7 @@ from scipy.cluster.hierarchy import leaves_list
 os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
 ################################################################################
-# TABLE S3
+# TABLE S4
 ################################################################################
 # linear regression of single-env model performance on fitness-related factors
 pheno = pd.read_csv("Data/Peter_2018/pheno.csv", index_col=0)  # fitness data
@@ -32,7 +32,7 @@ cv = (pheno.std(axis=0) / pheno.mean(axis=0) *
 cv.describe()
 
 # trait heritabilities
-h2 = pd.read_csv("Data/Peter_2018/Heritability_h2_H2_sommer_CORRECTED.csv")
+h2 = pd.read_csv("Data/Peter_2018/Heritability_h2_H2_sommer.csv")
 h2.set_index("Conditions", inplace=True)
 X = pd.concat([var, med, h2.h2], ignore_index=False, axis=1)  # fitness factors
 X_s = (X-X.mean())/X.std()  # center and scale
@@ -59,23 +59,23 @@ for data_type in ["SNPs", "PAVs", "CNVs", "PCs"]:
     r2_scores = r2_score(df.r2_test, yhats, multioutput=None)
     print(data_type, res.pvalues)
     #
-    # with open(f"Scripts/Data_Vis/Section_3/Table_S3_factors_ols_{data_type}_results_CORRECTED.txt", "w") as out:
-    with open(f"Scripts/Data_Vis/Section_3/Table_S3_factors_ols_{data_type}_results_var_alone.txt", "w") as out:
+    # with open(f"Scripts/Data_Vis/Section_2/Table_S3_factors_ols_{data_type}_results.txt", "w") as out:
+    with open(f"Scripts/Data_Vis/Section_2/Table_S3_factors_ols_{data_type}_results_var_alone.txt", "w") as out:
         out.write(res.summary().as_text())
         out.write(f"\nR-sq: {r2_scores}")
     # vars(res) # attributes
     #
     pickle.dump(mod, open(
-        # f"Scripts/Data_Vis/Section_3/Table_S3_factors_ols_{data_type}_model_CORRECTED.pkl", 'wb'))  # save the model
-        f"Scripts/Data_Vis/Section_3/Table_S3_factors_ols_{data_type}_model_var_alone.pkl", 'wb'))  # save the model
+        # f"Scripts/Data_Vis/Section_2/Table_S3_factors_ols_{data_type}_model.pkl", 'wb'))  # save the model
+        f"Scripts/Data_Vis/Section_2/Table_S3_factors_ols_{data_type}_model_var_alone.pkl", 'wb'))  # save the model
     #
     yhats = pd.Series(yhats)
     yhats.index = df.index
     yhats.name = 'y_pred'
     pd.concat([Y.r2_test, yhats], ignore_index=False, axis=1).\
         to_csv(
-            # f"Scripts/Data_Vis/Section_3/Table_S3_factors_ols_{data_type}_preds_CORRECTED.csv")
-            f"Scripts/Data_Vis/Section_3/Table_S3_factors_ols_{data_type}_preds_var_alone.csv")
+            # f"Scripts/Data_Vis/Section_2/Table_S3_factors_ols_{data_type}_preds.csv")
+            f"Scripts/Data_Vis/Section_2/Table_S3_factors_ols_{data_type}_preds_var_alone.csv")
     #
     del df, Y, mod
 
@@ -114,8 +114,8 @@ for data_type in ["SNPs", "PAVs", "CNVs"]:
     res = mod.fit()
     print(data_type, res.pvalues)
     pickle.dump(mod, open(
-        f"Scripts/Data_Vis/Section_3/Table_S3_featnum_ols_{data_type}_model_CORRECTED.pkl", 'wb'))
-    with open(f"Scripts/Data_Vis/Section_3/Table_S3_featnum_ols_{data_type}_results_CORRECTED.txt", "w") as out:
+        f"Scripts/Data_Vis/Section_2/Table_S4_featnum_ols_{data_type}_model.pkl", 'wb'))
+    with open(f"Scripts/Data_Vis/Section_2/Table_S4_featnum_ols_{data_type}_results.txt", "w") as out:
         out.write(res.summary().as_text())
 
 # SNPs Intercept     5.247553e-07
@@ -129,7 +129,7 @@ for data_type in ["SNPs", "PAVs", "CNVs"]:
 
 feat_nums = pd.DataFrame(feat_nums)
 feat_nums.to_csv(
-    "Scripts/Data_Vis/Section_3/Table_S3_featnums_matrix_CORRECTED.csv")
+    "Scripts/Data_Vis/Section_2/Table_S4_featnums_matrix.csv")
 
 # Interpret the statsmodels linear models with SHAP values
 # first need to build the design matrix and add the interaction terms
@@ -148,7 +148,7 @@ def make_design_mat(X):
 Xs_design = make_design_mat(X_s)  # standardized factor values
 X_design = make_design_mat(X)  # original factor values
 # X_design.to_csv(
-#     "Scripts/Data_Vis/Section_3/Table_S3_factors_design_matrix_CORRECTED.csv")
+#     "Scripts/Data_Vis/Section_2/Table_S4_factors_design_matrix.csv")
 
 fig, ax = plt.subplots(nrows=7, ncols=4, figsize=(14, 22))
 points_to_annotate = ["YPDCAFEIN40", "YPDCAFEIN50", "YPDBENOMYL500",
@@ -164,7 +164,7 @@ for j, data_type in enumerate(["PCs", "SNPs", "PAVs", "CNVs"]):
     #
     # Load the fitted model, obtain the parameters, and compute SHAP values
     mod = joblib.load(open(
-        f"Scripts/Data_Vis/Section_3/Table_S3_factors_ols_{data_type}_model_CORRECTED.pkl", "rb"))
+        f"Scripts/Data_Vis/Section_2/Table_S4_factors_ols_{data_type}_model.pkl", "rb"))
     y_preds = pd.Series(mod.fit().predict(), index=X_s.index, name="y_pred")
     # r2 = r2_score(Y.set_index("Y").loc[y_preds.index, "r2_test"], y_preds)
     # print(f"{data_type} R2: {r2}")
@@ -194,12 +194,12 @@ for j, data_type in enumerate(["PCs", "SNPs", "PAVs", "CNVs"]):
     shap_ordered = pd.DataFrame(shap_ordered, index=Xs_design_ordered.index,
                                 columns=Xs_design_ordered.columns)
     shap_ordered.to_csv(
-        f"Scripts/Data_Vis/Section_3/Table_S4_factors_shap_{data_type}_matrix.csv")
+        f"Scripts/Data_Vis/Section_2/Table_S4_factors_shap_{data_type}_matrix.csv")
     #
     # # Correlation of shap values with model performance
     # pd.concat([Y.set_index('Y').loc[shap_ordered.index, 'r2_test'], shap_ordered],
     # 	axis=1, ignore_index=False).corr().to_csv(
-    # 	f"Scripts/Data_Vis/Section_3/Table_S3_factors_shap_{data_type}_corr_performance_CORRECTED.csv")
+    # 	f"Scripts/Data_Vis/Section_2/Table_S3_factors_shap_{data_type}_corr_performance.csv")
     #
     # Correlation of shap values with X_design_ordered and r2_test
     shap_factors = pd.concat(
@@ -209,7 +209,7 @@ for j, data_type in enumerate(["PCs", "SNPs", "PAVs", "CNVs"]):
     shap_factors.columns = ["r2_test"] + X_design_ordered.columns.tolist() + \
         [f"shap_{col}" for col in shap_ordered.columns]
     # shap_factors.corr().to_csv(
-    # 	f"Scripts/Data_Vis/Section_3/Table_S3_factors_shap_{data_type}_corr_factors_CORRECTED.csv")
+    # 	f"Scripts/Data_Vis/Section_2/Table_S3_factors_shap_{data_type}_corr_factors.csv")
     #
     # ## Heatmap with SHAP values annotated
     # # ax = shap.plots.heatmap(shap_values, feature_order=feat_order,
@@ -226,7 +226,7 @@ for j, data_type in enumerate(["PCs", "SNPs", "PAVs", "CNVs"]):
     # 	cmap="RdBu_r", xticklabels=["r2_test"], yticklabels=X_design_ordered.index,
     # 	cbar_kws={"label": "Model performance (test R2)"}, ax=ax[2], square=True)
     # # plt.tight_layout()
-    # plt.savefig(f"Scripts/Data_Vis/Section_3/Table_S3_factors_shap_{data_type}_heatmap_CORRECTED.pdf")
+    # plt.savefig(f"Scripts/Data_Vis/Section_2/Table_S4_factors_shap_{data_type}_heatmap.pdf")
     # plt.close('all')
     #
     # ## Waterfall plots
@@ -238,7 +238,7 @@ for j, data_type in enumerate(["PCs", "SNPs", "PAVs", "CNVs"]):
     # 		feature_names=shap_values.feature_names)
     # 	shap.plots.waterfall(shap_instance, show=False)
     # 	plt.title(instance, fontsize=7)
-    # 	plt.savefig(f"Scripts/Data_Vis/Section_3/Table_S3_factors_shap_{data_type}_{instance}_waterfall_CORRECTED.pdf")
+    # 	plt.savefig(f"Scripts/Data_Vis/Section_2/Table_S4_factors_shap_{data_type}_{instance}_waterfall.pdf")
     # 	plt.close('all')
     #
     # Scatter plots of SHAP values vs feature values
@@ -272,7 +272,7 @@ for j, data_type in enumerate(["PCs", "SNPs", "PAVs", "CNVs"]):
     #
     # plt.tight_layout()
     # plt.savefig(
-    #     f"Scripts/Data_Vis/Section_3/Table_S3_factors_shap_{data_type}_scatter_CORRECTED.pdf")
+    #     f"Scripts/Data_Vis/Section_2/Table_S4_factors_shap_{data_type}_scatter.pdf")
     # plt.close("all")
     #
     del Y, mod, explainer, shap_values, clustering, Xs_design_ordered
@@ -280,5 +280,5 @@ for j, data_type in enumerate(["PCs", "SNPs", "PAVs", "CNVs"]):
 
 plt.tight_layout()
 plt.savefig(
-    f"Scripts/Data_Vis/Section_3/Table_S3_factors_shap_scatter_CORRECTED.pdf")
+    f"Scripts/Data_Vis/Section_2/Table_S4_factors_shap_scatter.pdf")
 plt.close("all")

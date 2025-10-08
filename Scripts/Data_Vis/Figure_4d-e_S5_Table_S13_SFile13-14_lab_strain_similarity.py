@@ -47,7 +47,7 @@ geno = geno.T
 # geno = dt.fread("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/geno_with_S288C.csv").to_pandas()
 # geno.set_index("ID", inplace=True)
 
-# Calculate the SNP-based euclidean distance and the SNP-based jaccard distance
+# Calculate the SNP-based euclidean distance (S13 File)
 # remove the test set before calculating genetic distances
 geno_train = geno.loc[~geno.index.isin(test[0]), :]
 eu_dist_snp = pdist(geno_train.astype(int).values, metric="euclidean")
@@ -73,7 +73,7 @@ in_ref_orfs = pav.loc[pav["in_ref_blast"] == 1, "gene"].to_list()
 len(in_ref_orfs)  # 5517
 len(np.intersect1d(in_ref_orfs, pav.gene.to_list()))  # 5490
 
-# Calculate the PAV-based euclidean distance and the PAV-based jaccard distance
+# Calculate the PAV-based euclidean distance (S14 File)
 # read in PAV genotype data
 pav_df = dt.fread("Data/Peter_2018/ORFs_pres_abs.csv").to_pandas()
 pav_df.set_index("ID", inplace=True)
@@ -99,13 +99,12 @@ eu_dist_snp = pd.read_csv("Scripts/Data_Vis/Section_4/genetic_distance_snp012_eu
 eu_dist_pav = pd.read_csv("Scripts/Data_Vis/Section_4/genetic_distance_pav_euclidean_to_S288C.csv",
                           index_col=0)
 
-# to get training instances
-test = pd.read_csv("Data/Peter_2018/Test.txt", header=None)
-
 # Fitness data
 pheno = pd.read_csv("Data/Peter_2018/pheno.csv", index_col=0)
 
-###############  ################
+# to get training instances
+test = pd.read_csv("Data/Peter_2018/Test.txt", header=None)
+
 snp_train = eu_dist_snp.loc[~eu_dist_snp.index.isin(
     test[0]), ~eu_dist_snp.index.isin(test[0])]
 pav_train = eu_dist_pav.loc[~eu_dist_pav.index.isin(

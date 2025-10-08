@@ -11,23 +11,23 @@ Arguments:
 Usage:
     python combine_go_pwy_enrichment.py <path> <pattern> <dtype> <atype>
 Examples:
-    python 0_Table_S8_combine_go_pwy_enrichment.py \
+    python Table_S8_combine_go_pwy_enrichment.py \
         Scripts/Data_Vis/Section_3/PWY_Enrichment/SNPs_fs/ \
         ORA_PWY_Genes_ SNP pwy Scripts/Data_Vis/Section_3/
-    python 0_Table_S8_combine_go_pwy_enrichment.py \
+    python Table_S8_combine_go_pwy_enrichment.py \
         Scripts/Data_Vis/Section_3/PWY_Enrichment/PAVs_fs/ \
         ORA_PWY_Genes_[A-Z0-9]+_pav PAV pwy Scripts/Data_Vis/Section_3/
-    python 0_Table_S8_combine_go_pwy_enrichment.py \
+    python Table_S8_combine_go_pwy_enrichment.py \
         Scripts/Data_Vis/Section_3/PWY_Enrichment/CNVs_fs/ \
         ORA_PWY_Genes_[A-Z0-9]+_cnv CNV pwy Scripts/Data_Vis/Section_3/
 
-    python 0_Table_S8_combine_go_pwy_enrichment.py \
+    python Table_S8_combine_go_pwy_enrichment.py \
         Scripts/Data_Vis/Section_3/GO_Enrichment/SNPs_fs/ \
         ORA_Genes_ SNP go Scripts/Data_Vis/Section_3/
-    python 0_Table_S8_combine_go_pwy_enrichment.py \
+    python Table_S8_combine_go_pwy_enrichment.py \
         Scripts/Data_Vis/Section_3/GO_Enrichment/PAVs_fs/ \
         ORA_Genes_[A-Z0-9]+_pav PAV go Scripts/Data_Vis/Section_3/
-    python 0_Table_S8_combine_go_pwy_enrichment.py \
+    python Table_S8_combine_go_pwy_enrichment.py \
         Scripts/Data_Vis/Section_3/GO_Enrichment/CNVs_fs/ \
         ORA_Genes_[A-Z0-9]+_cnv CNV go Scripts/Data_Vis/Section_3/
 Returns:
@@ -97,13 +97,3 @@ if (atype == "go" or atype == "GO"):
                 df.insert(0, "Environment", sheet_name)
                 df.to_excel(writer, sheet_name="All", index=False,
                             header=False, startrow=writer.sheets['All'].max_row)
-
-
-# Call the following lines on the command line to create the GO and pathway enrichment excel files
-# cd ~/Shiu_Lab/Project/Scripts/Data_Vis/
-# python 0_SuppDatFile_14_15_combine_go_pwy_enrichment.py Scripts/Data_Vis/Section_3/GO_Enrichment/SNPs_fs ORA_Genes_[A-Z0-9]+_ SNP go Scripts/Data_Vis/Section_3
-# python 0_SuppDatFile_14_15_combine_go_pwy_enrichment.py Scripts/Data_Vis/Section_3/GO_Enrichment/PAVs_fs ORA_Genes_[A-Z0-9]+_ PAV go Scripts/Data_Vis/Section_3
-# python 0_SuppDatFile_14_15_combine_go_pwy_enrichment.py Scripts/Data_Vis/Section_3/GO_Enrichment/CNVs_fs ORA_Genes_[A-Z0-9]+_ CNV go Scripts/Data_Vis/Section_3
-# python 0_SuppDatFile_14_15_combine_go_pwy_enrichment.py Scripts/Data_Vis/Section_3/PWY_Enrichment/SNPs_fs ORA_PWY_Genes_[A-Z0-9]+_ SNP pwy Scripts/Data_Vis/Section_3
-# python 0_SuppDatFile_14_15_combine_go_pwy_enrichment.py Scripts/Data_Vis/Section_3/PWY_Enrichment/PAVs_fs ORA_PWY_Genes_[A-Z0-9]+_ PAV pwy Scripts/Data_Vis/Section_3
-# python 0_SuppDatFile_14_15_combine_go_pwy_enrichment.py Scripts/Data_Vis/Section_3/PWY_Enrichment/CNVs_fs ORA_PWY_Genes_[A-Z0-9]+_ CNV pwy Scripts/Data_Vis/Section_3

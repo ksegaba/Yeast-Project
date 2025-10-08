@@ -9,7 +9,7 @@ from statsmodels.stats.multitest import multipletests
 os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
 ################################################################################
-# TABLE S2
+# TABLE S3
 ################################################################################
 # Correlations between performance of models trained on different data types
 # Model results files:
@@ -18,7 +18,7 @@ res_base = pd.read_csv(
 res_fs = pd.read_csv(
     "Scripts/Data_Vis/Section_2/RESULTS_ALL_ALG_FS.txt", sep="\t")
 
-############################ BASELINE MODELS FIRST #############################
+############################ COMPLETE MODELS FIRST #############################
 # Compare between data types
 pcc_btwn_data = pd.DataFrame()
 mwu_btwn_data = pd.DataFrame()
@@ -48,7 +48,7 @@ for alg in ["RF", "XGBoost", "rrBLUP", "Bayesian LASSO", "BayesC"]:
 
 pcc_btwn_data.columns = columns
 pcc_btwn_data.to_csv(
-    "Scripts/Data_Vis/Section_2/Table_S2_baseline_performance_correlations_between_data_types_CORRECTED.tsv", index=True, sep="\t")
+    "Scripts/Data_Vis/Section_2/Table_S3_baseline_performance_correlations_between_data_types.tsv", index=True, sep="\t")
 
 mwu_btwn_data = mwu_btwn_data.T
 mwu_btwn_data.index = pd.MultiIndex.from_tuples(
@@ -58,7 +58,7 @@ mwu_btwn_data.columns = ["Algorithm", "Comparison", "Statistic", "Value"]
 mwu_btwn_data = mwu_btwn_data.pivot_table(
     index=["Algorithm", "Comparison"], columns="Statistic", values="Value").reset_index()
 mwu_btwn_data.to_csv(
-    "Scripts/Data_Vis/Section_2/Table_S2_baseline_performance_mannwhitneyu_between_data_types.tsv", index=False, sep="\t")
+    "Scripts/Data_Vis/Section_2/Table_S3_baseline_performance_mannwhitneyu_between_data_types.tsv", index=False, sep="\t")
 
 
 # Compare between algorithms
@@ -79,7 +79,7 @@ for data_type in ["PCs_sklearn", "SNP", "PAV", "CNV"]:
 
 pcc_btwn_alg.columns = columns
 pcc_btwn_alg.to_csv(
-    "Scripts/Data_Vis/Section_2/Table_S2_baseline_performance_correlations_between_algorithms_CORRECTED.tsv", index=True, sep="\t")
+    "Scripts/Data_Vis/Section_2/Table_S3_baseline_performance_correlations_between_algorithms.tsv", index=True, sep="\t")
 
 # compare between environments across algorithms
 pcc_btwn_env = pd.DataFrame()
@@ -100,7 +100,7 @@ for data_type in ["PCs_sklearn", "SNP", "PAV", "CNV"]:
 
 pcc_btwn_env.columns = columns
 pcc_btwn_env.to_csv(
-    "Scripts/Data_Vis/Section_2/Table_S2_baseline_performance_correlations_between_envs_across_data_types_CORRECTED.tsv", index=True, sep="\t")
+    "Scripts/Data_Vis/Section_2/Table_S3_baseline_performance_correlations_between_envs_across_data_types.tsv", index=True, sep="\t")
 
 # compare between environments across data types
 pcc_btwn_env = pd.DataFrame()
@@ -120,9 +120,9 @@ for alg in ["RF", "XGBoost", "rrBLUP", "Bayesian LASSO", "BayesC"]:
 
 pcc_btwn_env.columns = columns
 pcc_btwn_env.to_csv(
-    "Scripts/Data_Vis/Section_2/Table_S2_baseline_performance_correlations_between_envs_across_algorithms_CORRECTED.tsv", index=True, sep="\t")
+    "Scripts/Data_Vis/Section_2/Table_S3_baseline_performance_correlations_between_envs_across_algorithms.tsv", index=True, sep="\t")
 
-########################### FEATURE SELECTION MODELS ###########################
+############################### OPTIMIZED MODELS ###############################
 # Compare between data types
 pcc_btwn_data_fs = pd.DataFrame()
 mwu_btwn_data = pd.DataFrame()
@@ -151,7 +151,7 @@ for alg in ["RF", "XGBoost", "rrBLUP", "Bayesian LASSO", "BayesC"]:
 
 pcc_btwn_data_fs.columns = columns
 pcc_btwn_data_fs.to_csv(
-    "Scripts/Data_Vis/Section_2/Table_S2_FS_performance_correlations_between_data_types.tsv", index=True, sep="\t")
+    "Scripts/Data_Vis/Section_2/Table_S3_FS_performance_correlations_between_data_types.tsv", index=True, sep="\t")
 
 mwu_btwn_data = mwu_btwn_data.T
 mwu_btwn_data.index = pd.MultiIndex.from_tuples(
@@ -161,7 +161,7 @@ mwu_btwn_data.columns = ["Algorithm", "Comparison", "Statistic", "Value"]
 mwu_btwn_data = mwu_btwn_data.pivot_table(
     index=["Algorithm", "Comparison"], columns="Statistic", values="Value").reset_index()
 mwu_btwn_data.to_csv(
-    "Scripts/Data_Vis/Section_2/Table_S2_optimized_performance_mannwhitneyu_between_data_types.tsv", index=False, sep="\t")
+    "Scripts/Data_Vis/Section_2/Table_S3_optimized_performance_mannwhitneyu_between_data_types.tsv", index=False, sep="\t")
 
 # Compare between algorithms
 pcc_btwn_alg_fs = pd.DataFrame()
@@ -181,7 +181,7 @@ for data_type in ["SNP", "PAV", "CNV"]:
 
 pcc_btwn_alg_fs.columns = columns
 pcc_btwn_alg_fs.to_csv(
-    "Scripts/Data_Vis/Section_2/Table_S2_FS_performance_correlations_between_algorithms.tsv", index=True, sep="\t")
+    "Scripts/Data_Vis/Section_2/Table_S3_FS_performance_correlations_between_algorithms.tsv", index=True, sep="\t")
 
 # compare between environments across algorithms
 pcc_btwn_env = pd.DataFrame()
@@ -201,7 +201,7 @@ for data_type in ["SNP", "PAV", "CNV"]:
 
 pcc_btwn_env.columns = columns
 pcc_btwn_env.to_csv(
-    "Scripts/Data_Vis/Section_2/Table_S2_FS_performance_correlations_between_envs_across_data_types.tsv", index=True, sep="\t")
+    "Scripts/Data_Vis/Section_2/Table_S3_FS_performance_correlations_between_envs_across_data_types.tsv", index=True, sep="\t")
 
 # compare between environments across data types
 pcc_btwn_env = pd.DataFrame()
@@ -221,7 +221,7 @@ for alg in ["RF", "XGBoost", "rrBLUP", "Bayesian LASSO", "BayesC"]:
 
 pcc_btwn_env.columns = columns
 pcc_btwn_env.to_csv(
-    "Scripts/Data_Vis/Section_2/Table_S2_FS_performance_correlations_between_envs_across_algorithms.tsv", index=True, sep="\t")
+    "Scripts/Data_Vis/Section_2/Table_S3_FS_performance_correlations_between_envs_across_algorithms.tsv", index=True, sep="\t")
 
 # Which algorithm results in better performance overall?
 rf_greater = []
@@ -260,5 +260,5 @@ _, q_values, _, _ = multipletests(
 
 rf_greater.insert(5, "q-value", q_values)
 rf_greater.\
-    to_csv("Scripts/Data_Vis/Section_2/Table_S2_RF_vs_other_algs_mannwhitneyu_greater_CORRECTED.tsv",
+    to_csv("Scripts/Data_Vis/Section_2/Table_S3_RF_vs_other_algs_mannwhitneyu_greater.tsv",
            index=False, sep="\t")
