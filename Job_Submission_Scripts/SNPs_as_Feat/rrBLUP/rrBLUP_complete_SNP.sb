@@ -30,6 +30,6 @@ conda deactivate
 
 # rrBLUP regression
 # geno.csv is File S2; pheno.csv is File S1
-Rscript ${PIPE}/rrBLUP_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt 5 20 ${DATA}/CVFs_20rep.csv complete_snp_rrBLUP
+Rscript /mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Genomic_Prediction_rrBLUP/rrBLUP_Model.R ${DATA}/geno.csv ${DATA}/pheno.csv all ${TRAITS[${SLURM_ARRAY_TASK_ID}]} ${DATA}/Test.txt 5 20 ${DATA}/CVFs_20rep.csv complete_snp_rrBLUP
 
 scontrol show job $SLURM_JOB_ID

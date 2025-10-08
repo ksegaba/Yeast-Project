@@ -11,7 +11,7 @@
 
 TRAITS=($(head -n 1 /mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/pheno.csv | sed 's/,/ /g'))
 
-tool=/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/External_software/Genomic_prediction_in_Switchgrass
+tool=/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Genomic_Prediction_rrBLUP
 data=/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018
 
 cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_rrBLUP_results/baseline
