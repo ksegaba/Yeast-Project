@@ -108,7 +108,7 @@ env_order <- c("YPDCHX05", "YPDCHX1", "YPDANISO50", "YPDANISO10", "YPDANISO20",
              "YPDSODIUMMETAARSENITE", "YPD6AU", "YPDCUSO410MM")
 clustered_data <- data[env_order, env_order]
 
-h2 <- read.csv("Data/Peter_2018/Heritability_h2_H2_sommer_CORRECTED.csv", row.names=1) # heritability data
+h2 <- read.csv("Data/Peter_2018/Heritability_h2_H2_sommer.csv", row.names=1) # heritability data
 rownames(h2) <- h2$Condition
 h2 <- h2[, c("h2", "h2_SE")]
 h2 <- h2[env_order, ] # reorder to match heatmap
