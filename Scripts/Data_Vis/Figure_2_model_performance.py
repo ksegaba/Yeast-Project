@@ -92,7 +92,7 @@ plt.close()
 ############################################################################
 # Figure 2
 ############################################################################
-h2 = pd.read_csv("Data/Peter_2018/Heritability_h2_H2_sommer_CORRECTED.csv")
+h2 = pd.read_csv("Data/Peter_2018/Heritability_h2_H2_sommer.csv")
 h2 = pd.concat([h2.set_index("Conditions"), pc.reset_index().set_index("Y")["new_cond"]],
                axis=1, ignore_index=False).reset_index()
 
