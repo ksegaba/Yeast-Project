@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=36G
-#SBATCH --job-name XGB_fs
+#SBATCH --job-name XGB_ORF_optimized
 #SBATCH --output=%x_%j.out
 
 cd /mnt/home/seguraab/Shiu_Lab/Project
@@ -25,6 +25,7 @@ CNV_FEATS=$(echo ${cnv_mods[${SLURM_ARRAY_TASK_ID}]} | grep -P '(?<=top_)[0-9]+(
 
 echo "PAV: ${PAV_TRAIT}; ${PAV_FEATS}"
 # Baseline ORFs presence/absence
+# ORFs_pres_abs.csv is File S5; pheno.csv is File S1
 python ${PIPE}/xgboost_model.py -X ${DATA}/ORFs_pres_abs.csv \
     -Y ${DATA}/pheno.csv \
     -feat ${MARK}/features_pav_${PAV_TRAIT}_top_${PAV_FEATS} \
@@ -35,6 +36,7 @@ python ${PIPE}/xgboost_model.py -X ${DATA}/ORFs_pres_abs.csv \
 
 echo "CNV: ${CNV_TRAIT}; ${CNV_FEATS}"
 # Baseline ORFs copy number (CNVs)
+# ORFs_no_NA.csv is File S6
 python ${PIPE}/xgboost_model.py -X ${DATA}/ORFs_no_NA.csv \
     -Y ${DATA}/pheno.csv \
     -feat ${MARK}/features_cnv_${CNV_TRAIT}_top_${CNV_FEATS} \
