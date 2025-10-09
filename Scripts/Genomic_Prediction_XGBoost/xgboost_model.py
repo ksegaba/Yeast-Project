@@ -29,7 +29,9 @@ XGBoost for regression on SNP, ORF, and CNO data from Peter et al. 2018
 __author__ = "Kenia Segura Abá"
 
 from configparser import ExtendedInterpolation
-import sys, os, argparse
+import sys
+import os
+import argparse
 import time
 import random
 import pickle
@@ -86,40 +88,6 @@ def param_hyperopt(param_grid, max_evals=100):
     print("\n\nBest parameters:", params_best)
     return params_best, trials
 
-def tune_hyperparameters(xg_reg, X_train, y_train, data_type, trait, fold):
-    """ Hyperparameter sweep using grid search with cross-validation """
-    start = time.time()
-
-    # Hyperparameter tuning
-    parameters = {"eta":hp.quniform("eta", 0.1, 0.4), # learning rate
-                "max_depth":scope.int(hp.quniform("max_depth", 3, 5, 10)), # tree depth
-                "subsample": hp.quniform("subsample", 0.5, 1.0), # instances per tree
-                "colsample_bytree": hp.quniform("colsample_bytree", 0.5, 1.0), # features per tree
-                "gamma": hp.quniform("gamma", 0.0, 1.0), # min_split_loss
-                "n_estimators": scope.int(hp.quniform("n_estimators", 50, 500,2))} # sample training instances
-    
-    best_params, trials = param_hyperopt(max_evals=100, param_grid=parameters)
-    
-    # gs = GridSearchCV(estimator=xg_reg,
-    #             param_grid=parameters,
-    #             cv=fold,           # cross validation folds
-    #             scoring="r2",   # find model with the best R-squared
-    #             verbose=2,
-    #             n_jobs=10)
-    # fitted_model = gs.fit(X_train, y_train) # fit the model
-
-    run_time = time.time() - start
-    print("GridSearch Run Time: %f" % (run_time))
-
-    # Write results to file
-    # gs_results = pd.DataFrame(gs.cv_results_)
-    # gs_results.to_csv(f"{args.save}/{prefix}_GridSearch.csv")
-
-    print("Best parameters: ", best_params)
-
-    # return (fitted_model.best_params_, gs.best_estimator_)
-    return best_params, trials
-
 
 def xgb_reg(trait, fold, n, data_type, prefix, plot):
     global X_train
@@ -136,50 +104,34 @@ def xgb_reg(trait, fold, n, data_type, prefix, plot):
     y_test = y.loc[y.index.isin(test[0])]
 
     # Ensure rows are in the same order
-    X_train = X_train.loc[y_train.index,:]
-    X_test = X_test.loc[y_test.index,:]
-
-    # Convert trainig set to Dmatrix data structure 
-    # data_dmatrix = xgb.DMatrix(data=X_train,label=y_train)
-
-    # Instantiate XGBoost regressor object
-    # xg_reg = xgb.XGBRegressor(random_state=random.seed(123))
+    X_train = X_train.loc[y_train.index, :]
+    X_test = X_test.loc[y_test.index, :]
 
     # Hyperparameter tuning
-    # best_params, trials = tune_hyperparameters(
-    #     xg_reg, X_train, y_train, data_type, trait, fold)
+    parameters = {"learning_rate": hp.uniform("learning_rate", 0.01, 0.5),  # learning rate
+                  # tree depth
+                  "max_depth": scope.int(hp.quniform("max_depth", 3, 10, 1)),
+                  # instances per tree
+                  "subsample": hp.uniform("subsample", 0.5, 1.0),
+                  # features per tree
+                  "colsample_bytree": hp.uniform("colsample_bytree", 0.5, 1.0),
+                  "gamma": hp.uniform("gamma", 0.0, 1.0),  # min_split_loss
+                  "n_estimators": scope.int(hp.quniform("n_estimators", 50, 500, 2))
+                  }  # sample training instances
 
-    # Hyperparameter tuning
-    parameters = {"learning_rate":hp.uniform("learning_rate", 0.01, 0.5), # learning rate
-                "max_depth":scope.int(hp.quniform("max_depth", 3, 10, 1)), # tree depth
-                "subsample": hp.uniform("subsample", 0.5, 1.0), # instances per tree
-                "colsample_bytree": hp.uniform("colsample_bytree", 0.5, 1.0), # features per tree
-                "gamma": hp.uniform("gamma", 0.0, 1.0), # min_split_loss
-                "n_estimators": scope.int(hp.quniform("n_estimators", 50, 500, 2))
-                } # sample training instances
-    
     start = time.time()
     best_params, trials = param_hyperopt(parameters, 100)
     run_time = time.time() - start
     print("Total hyperparameter tuning time:", run_time)
 
     ################## Training with Cross-Validation ##################
-    results_cv = [] # hold performance metrics of cv reps
-    results_test = [] # hold performance metrics on test set
-    feature_imp = pd.DataFrame(columns=[f"rep_{i}" for i in range(0,n)])
+    results_cv = []  # hold performance metrics of cv reps
+    results_test = []  # hold performance metrics on test set
+    feature_imp = pd.DataFrame(columns=[f"rep_{i}" for i in range(0, n)])
     preds = {}
-    # Training with Cross-validation
-    # cv = RepeatedKFold(n_splits=fold, n_repeats=n, random_state=123)
-    # cv_scores = xgb.cv(
-    #     params=best_params,
-    #     dtrain=data_dmatrix,
-    #     num_boost_round=10,
-    #     stratified=True,
-    #     folds=cv,
-    #     metrics="rmse", # there is no r2_score equivalent
-    #     seed=123)
 
-    for j in range(0, n): # repeat cv 10 times
+    # Training with Cross-validation
+    for j in range(0, n):  # repeat cv 10 times
         print(f"Running {j+1} of {n}")
         # Build model using the best parameters
         best_model = xgb.XGBRegressor(
@@ -190,9 +142,9 @@ def xgb_reg(trait, fold, n, data_type, prefix, plot):
             gamma=best_params["gamma"],
             n_estimators=int(best_params["n_estimators"]),
             random_state=j)
-        
+
         cv_pred = cross_val_predict(
-            best_model, X_train, y_train, cv=fold, n_jobs=-1) # predictions
+            best_model, X_train, y_train, cv=fold, n_jobs=-1)  # predictions
 
         # Performance statistics on validation set
         mse_val = mean_squared_error(y_train, cv_pred)
@@ -233,30 +185,33 @@ def xgb_reg(trait, fold, n, data_type, prefix, plot):
 
         # Save predicted labels to file
         preds[f"rep_{j}"] = pd.concat([pd.Series(cv_pred, index=X_train.index),
-            pd.Series(y_pred, index=X_test.index)], axis=0)
+                                       pd.Series(y_pred, index=X_test.index)], axis=0)
 
-        if plot=="t":
+        if plot == "t":
             # Plot linear regression of actual and predicted test values
-            sns.regplot(x=y_pred, y=y_test, fit_reg=True, ci=95, seed=123, color="black")
+            sns.regplot(x=y_pred, y=y_test, fit_reg=True,
+                        ci=95, seed=123, color="black")
             plt.xlabel("Predicted")
             plt.ylabel("Actual")
             plt.title(f"{trait}")
-            plt.savefig(f"{args.save}/{prefix}_lm_test_rep_{j}.pdf", format="pdf")
+            plt.savefig(
+                f"{args.save}/{prefix}_lm_test_rep_{j}.pdf", format="pdf")
             plt.close()
-            
+
             # Plot feature importances
             xgb.plot_importance(
-                best_model, grid=False, max_num_features=20, 
+                best_model, grid=False, max_num_features=20,
                 title=f"{trait} Feature Importances", xlabel="Weight")
-            plt.savefig(f"{args.save}/{prefix}_top20_rep_{j}.pdf", format="pdf")
+            plt.savefig(
+                f"{args.save}/{prefix}_top20_rep_{j}.pdf", format="pdf")
             plt.close()
 
     # Write feature importances across reps to file
     feature_imp.to_csv(f"{args.save}/{prefix}_imp.csv")
-    
+
     # Write predictions across reps to file
     pd.DataFrame.from_dict(preds).to_csv(f"{args.save}/{prefix}_preds.csv")
-    
+
     return (results_cv, results_test)
 
 
@@ -264,7 +219,7 @@ if __name__ == "__main__":
     # Argument parser
     parser = argparse.ArgumentParser(
         description="XGBoost Regression on SNP and ORF data")
-    
+
     # Required input
     req_group = parser.add_argument_group(title="Required Input")
     req_group.add_argument(
@@ -279,7 +234,7 @@ if __name__ == "__main__":
         "-save", help="path to save output files", required=True)
     req_group.add_argument(
         "-prefix", help="prefix of output file names", required=True)
-    
+
     # Optional input
     req_group.add_argument(
         "-type", help="data type of X matrix (e.g. SNP, PAV, CNV)", default="")
@@ -291,12 +246,12 @@ if __name__ == "__main__":
         "-feat", help="file containing features (from X) to include in model", default="all")
     req_group.add_argument(
         "-plot", help="plot feature importances and predictions (t/f)", default="t")
-    
+
     # Help
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit()
-    args = parser.parse_args() # Read arguments
+    args = parser.parse_args()  # Read arguments
 
     # Read in data
     X = dt.fread(args.X)
@@ -310,7 +265,7 @@ if __name__ == "__main__":
         print("Using subset of features from: %s" % args.feat)
         with open(args.feat) as f:
             features = f.read().strip().splitlines()
-        X = X.loc[:,features]
+        X = X.loc[:, features]
         print(f"New dimensions: {X.shape}")
 
     # Train the model
@@ -322,11 +277,11 @@ if __name__ == "__main__":
 
     # Save results to file
     results_cv = pd.DataFrame(
-        results_cv, 
+        results_cv,
         columns=["MSE_val", "RMSE_val", "EVS_val", "R2_val", "PCC_val"])
     # results_cv.to_csv(f"{args.save}/{args.type}_{args.trait}_cv_results.csv")
     results_test = pd.DataFrame(
-        results_test, 
+        results_test,
         columns=["MSE_test", "RMSE_test", "EVS_test", "R2_test", "PCC_test"])
     # results_test.to_csv(
     #     f"{args.save}/{args.type}_{args.trait}_test_results.csv")
