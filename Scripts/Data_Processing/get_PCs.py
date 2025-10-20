@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA # sklearn v1.2.2
 
 # Load in snp data
 os.chdir('/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project')
-geno = dt.fread('Data/Peter_2018/geno.csv').to_pandas()
+geno = dt.fread('Data/Peter_2018/geno.csv').to_pandas() # S2 File SNP data
 test = pd.read_csv('Data/Peter_2018/Test.txt', header=None)
 
 # Split train and test data; fit PCA on train data
