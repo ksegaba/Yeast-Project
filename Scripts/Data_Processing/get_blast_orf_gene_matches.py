@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 os.chdir("/mnt/home/seguraab/Shiu_Lab/Project/")
 
+
 def fill_missing(row, fill_col='organism', lookup_col='gene', lookup_dict={}):
     if pd.isnull(row[fill_col]) and row[lookup_col] in lookup_dict:
         return lookup_dict[row[lookup_col]]
@@ -21,9 +22,9 @@ def get_final(row, lookup_col1='pident_x', lookup_col2='pident_y', fill_col1='ge
         if reverse:
             return row[fill_col2]
         else:
-            return row[fill_col1] 
-    elif row[lookup_col1]==row[lookup_col2]:
-        if row[fill_col1]==row[fill_col2]:
+            return row[fill_col1]
+    elif row[lookup_col1] == row[lookup_col2]:
+        if row[fill_col1] == row[fill_col2]:
             return row[fill_col1]
         else:
             return " // ".join([row[fill_col1], row[fill_col2]])
@@ -33,57 +34,68 @@ def get_final(row, lookup_col1='pident_x', lookup_col2='pident_y', fill_col1='ge
 
 if __name__ == "__main__":
     ########################## INITIAL BLASTX RESULTS ##########################
-    #### Filter ORF features mapped to S288C genes file
-    s288c_blastx = pd.read_csv("Data/S288C_reference_genome_R64-3-1_20210421/S288C_orf_peter_blastx.txt", skiprows=1, sep="\t")
+    # Filter ORF features mapped to S288C genes file
+    s288c_blastx = pd.read_csv(
+        "Data/S288C_reference_genome_R64-3-1_20210421/S288C_orf_peter_blastx.txt", skiprows=1, sep="\t")
     strict = s288c_blastx.groupby("qacc").apply(lambda group:
-        group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
-            (group.pident == group.pident.max())]).reset_index(drop=True)
+                                                group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
+                                                      (group.pident == group.pident.max())]).reset_index(drop=True)
     strict["organism"] = "Saccharomyces cerevisiae S288C"
 
-    #### Filter ORF features mapped to Arabidopsis thaliana genes
-    tair10_blastx = pd.read_csv("Data/Arabidopsis_Genome_TAIR10.1/peter_orf_TAIR10_blastx.txt", sep="\t")
+    # Filter ORF features mapped to Arabidopsis thaliana genes
+    tair10_blastx = pd.read_csv(
+        "Data/Arabidopsis_Genome_TAIR10.1/peter_orf_TAIR10_blastx.txt", sep="\t")
     tair10_strict = tair10_blastx.groupby("qacc").apply(lambda group:
-        group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
-            (group.pident == group.pident.max())]).reset_index(drop=True)
+                                                        group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
+                                                              (group.pident == group.pident.max())]).reset_index(drop=True)
     tair10_strict["organism"] = "Arabidopsis thaliana TAIR10.1"
 
-    #### Filter ORF features mapped to Drosophila melanogaster genes
-    iso1mt_blastx = pd.read_csv("Data/Drosophila_Genome_R6_ISO1MT/peter_orf_ISO1MT_blastx.txt", sep="\t")
+    # Filter ORF features mapped to Drosophila melanogaster genes
+    iso1mt_blastx = pd.read_csv(
+        "Data/Drosophila_Genome_R6_ISO1MT/peter_orf_ISO1MT_blastx.txt", sep="\t")
     iso1mt_strict = iso1mt_blastx.groupby("qacc").apply(lambda group:
-        group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
-            (group.pident == group.pident.max())]).reset_index(drop=True)
+                                                        group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
+                                                              (group.pident == group.pident.max())]).reset_index(drop=True)
     iso1mt_strict["organism"] = "Drosophila melanogaster Release 6 plus ISO1 MT"
 
-    #### Filter ORF features mapped to Human genes
-    human_blastx = pd.read_csv("Data/Human_Genome_GRCh38.p14/peter_orf_human_blastx.txt", sep="\t")
+    # Filter ORF features mapped to Human genes
+    human_blastx = pd.read_csv(
+        "Data/Human_Genome_GRCh38.p14/peter_orf_human_blastx.txt", sep="\t")
     human_strict = human_blastx.groupby("qacc").apply(lambda group:
-        group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
-            (group.pident == group.pident.max())]).reset_index(drop=True) # no matches returned
+                                                      group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
+                                                            (group.pident == group.pident.max())]).reset_index(drop=True)  # no matches returned
 
-    #### Filter ORF features mapped to Neurospora crassa genes
-    nc12_blastx = pd.read_csv("Data/Neurospora_OR74A_Genome_NC12/peter_orf_NC12_blastx.txt", sep="\t")
+    # Filter ORF features mapped to Neurospora crassa genes
+    nc12_blastx = pd.read_csv(
+        "Data/Neurospora_OR74A_Genome_NC12/peter_orf_NC12_blastx.txt", sep="\t")
     nc12_strict = nc12_blastx.groupby("qacc").apply(lambda group:
-        group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
-            (group.pident == group.pident.max())]).reset_index(drop=True)
+                                                    group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
+                                                          (group.pident == group.pident.max())]).reset_index(drop=True)
     nc12_strict["organism"] = "Neurospora crassa NC12"
 
-    #### Filter ORF features mapped to non-redundant database
-    nr_blastx = pd.read_csv("Data/BLAST_nr_db/peter_orf_nr_blastx.txt", sep="\t")
+    # Filter ORF features mapped to non-redundant database
+    nr_blastx = pd.read_csv(
+        "Data/BLAST_nr_db/peter_orf_nr_blastx.txt", sep="\t")
     nr_strict = nr_blastx.groupby("qacc").apply(lambda group:
-        group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
-            (group.pident == group.pident.max())]).reset_index(drop=True)
+                                                group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
+                                                      (group.pident == group.pident.max())]).reset_index(drop=True)
     # pd.Series(nr_strict["sacc"].unique()).to_csv("Data/BLAST_nr_db/nr_genes_for_sgd_08222023.txt", index=False, header=False)
 
-    #### Map nr database identifiers with gene systematic names
+    # Map nr database identifiers with gene systematic names
     # Note 03/16/2025: I uploaded nr_genes_for_sgd_08222023.txt to NCBI datasets
     # and SGD gene lists tool (called AllianceMine) to obtain gene systematic names.
-    ncbi_matches = pd.read_csv("Data/BLAST_nr_db/nr_genes_for_sgd_08222023_ncbi_datasets_matches.tsv", sep="\t", index_col=False)
-    sgd_matches = pd.read_csv("Data/BLAST_nr_db/nr_genes_for_sgd_08222023_sgd_matches.tsv", sep="\t", index_col=False)
-    
+    ncbi_matches = pd.read_csv(
+        "Data/BLAST_nr_db/nr_genes_for_sgd_08222023_ncbi_datasets_matches.tsv", sep="\t", index_col=False)
+    sgd_matches = pd.read_csv(
+        "Data/BLAST_nr_db/nr_genes_for_sgd_08222023_sgd_matches.tsv", sep="\t", index_col=False)
+
     # unify ncbi and sgd S. cerevisiae matches
-    sgd_matches["Nomenclature ID"] = sgd_matches.apply(lambda x: x["Gene.primaryIdentifier"].split(":")[1], axis=1)
-    ncbi_matches = ncbi_matches.merge(sgd_matches, how="left", on="Nomenclature ID")
-    ncbi_matches["Gene.systematicName"] = ncbi_matches.apply(lambda x: x["Gene.secondaryIdentifier"] if pd.notna(x["Gene.secondaryIdentifier"]) else x["Symbol"], axis=1)
+    sgd_matches["Nomenclature ID"] = sgd_matches.apply(
+        lambda x: x["Gene.primaryIdentifier"].split(":")[1], axis=1)
+    ncbi_matches = ncbi_matches.merge(
+        sgd_matches, how="left", on="Nomenclature ID")
+    ncbi_matches["Gene.systematicName"] = ncbi_matches.apply(
+        lambda x: x["Gene.secondaryIdentifier"] if pd.notna(x["Gene.secondaryIdentifier"]) else x["Symbol"], axis=1)
     '''sanity check
     >>> ncbi_matches["Taxonomic Name"].unique()
     array(['Saccharomyces cerevisiae S288C', 'Saccharomyces paradoxus',
@@ -94,21 +106,28 @@ if __name__ == "__main__":
        'Drosophila guanche', 'Naumovozyma castellii'], dtype=object)
     >>> ncbi_matches["Taxonomic Name"].isna().sum()
     0'''
-    ncbi_sgd_map = dict(zip(ncbi_matches["Input"], ncbi_matches["Gene.systematicName"])) # nr identifier to gene name map
-    gene_org_map = dict(zip(ncbi_matches["Gene.systematicName"], ncbi_matches["Taxonomic Name"])) # gene name to organism map
-    
-    
+    ncbi_sgd_map = dict(zip(
+        ncbi_matches["Input"], ncbi_matches["Gene.systematicName"]))  # nr identifier to gene name map
+    # gene name to organism map
+    gene_org_map = dict(
+        zip(ncbi_matches["Gene.systematicName"], ncbi_matches["Taxonomic Name"]))
+
     # combine all the blastx results into one file
-    matches = pd.concat([strict, tair10_strict, iso1mt_strict, nc12_strict, nr_strict], ignore_index=True)
-    matches["Gene.systematicName"] = matches.apply(lambda x: ncbi_sgd_map[x["sacc"]] if x["sacc"] in ncbi_sgd_map.keys() else x["sacc"], axis=1)
-    matches["Organism"] = matches.apply(lambda x: gene_org_map[x["Gene.systematicName"]] if x["Gene.systematicName"] in gene_org_map.keys() else x["organism"], axis=1)
-    matches["Organism"].unique() # looks good, no repeated org. names
-    matches.Organism.isna().sum() # 2588 identifiers with no organism match, they weren't found by ncbi datasets
+    matches = pd.concat([strict, tair10_strict, iso1mt_strict,
+                        nc12_strict, nr_strict], ignore_index=True)
+    matches["Gene.systematicName"] = matches.apply(
+        lambda x: ncbi_sgd_map[x["sacc"]] if x["sacc"] in ncbi_sgd_map.keys() else x["sacc"], axis=1)
+    matches["Organism"] = matches.apply(lambda x: gene_org_map[x["Gene.systematicName"]]
+                                        if x["Gene.systematicName"] in gene_org_map.keys() else x["organism"], axis=1)
+    matches["Organism"].unique()  # looks good, no repeated org. names
+    # 2588 identifiers with no organism match, they weren't found by ncbi datasets
+    matches.Organism.isna().sum()
     matches.loc[matches.Organism.isna(), "Gene.systematicName"].\
-        to_csv("Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED_missing.tsv", index=False) # I may need to search these manually on ncbi
-    matches.to_csv("Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED.tsv", sep="\t", index=False)
-    
-    
+        to_csv("Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED_missing.tsv",
+               index=False)  # I may need to search these manually on ncbi
+    matches.to_csv(
+        "Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED.tsv", sep="\t", index=False)
+
     # Get the SGD Identifiers at least, it's more complicated when the organism is different
     '''On the command line:
     mapfile -t query_genes < orf_gene_blastx_matches_CORRECTED_missing.tsv
@@ -120,20 +139,26 @@ if __name__ == "__main__":
             awk -v q="$query" '{print q, $0}' >> orf_gene_blastx_matches_CORRECTED_missing_output_entrez.tsv
     done
     '''
-    matches = pd.read_csv("Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED.tsv", sep="\t")
-    id_map = pd.read_csv("Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED_missing_output.tsv", sep="\t", header=None)
+    matches = pd.read_csv(
+        "Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED.tsv", sep="\t")
+    id_map = pd.read_csv(
+        "Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED_missing_output.tsv", sep="\t", header=None)
     id_map.drop_duplicates(keep="first", inplace=True)
     id_map.set_index(0, inplace=True)
-    to_add = pd.read_csv("Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED_missing_output_sgd_results.tsv", sep="\t", index_col=0)
+    to_add = pd.read_csv(
+        "Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED_missing_output_sgd_results.tsv", sep="\t", index_col=0)
     for i, r in matches.iterrows():
         if r["Gene.systematicName"] in id_map.index:
             print(i)
-            matches.iloc[i, 18] = to_add.loc[id_map.loc[r["Gene.systematicName"]].values[0], "Gene.secondaryIdentifier"] # replace "Gene.systematicName"
-            matches.iloc[i, 19] = "Saccharomyces cerevisiae S288C" # replace "Organism"
+            matches.iloc[i, 18] = to_add.loc[id_map.loc[r["Gene.systematicName"]
+                                                        ].values[0], "Gene.secondaryIdentifier"]  # replace "Gene.systematicName"
+            # replace "Organism"
+            matches.iloc[i, 19] = "Saccharomyces cerevisiae S288C"
         else:
             continue
-    matches.to_csv("Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED_final.tsv", sep="\t", index=False)
-    
+    matches.to_csv(
+        "Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED_final.tsv", sep="\t", index=False)
+
     '''Old code below: 03/16/2025 - cannot delete because I obtained the list of extra organisms to do a reciprocal tblastx on
     ### Combine SGD and NCBI nr_strict gene matches to blastx output
     sgd = pd.read_csv("Data/BLAST_nr_db/nr_genes_sgd_matches_08222023.txt", sep="\t") # nr to sgd results
@@ -185,100 +210,142 @@ if __name__ == "__main__":
          "Apteryx mantelli mantelli":"Apteryx mantelli mantelli AptMant0"}, inplace=True) # replace organism name
     # matches.to_csv("Data/Peter_2018/orf_gene_blastx_matches.txt", sep="\t", index=False) # save to file without removing duplicates
     '''
-    
+
     ######################## RECIPROCAL TBLASTX RESULTS ########################
-    ### Read reciprocal tblastx results files
+    # Read reciprocal tblastx results files
     # blastx = pd.read_csv("Data/Peter_2018/orf_gene_blastx_matches.txt", sep="\t") # initial blastx results; commented out 03/16/2025
-    blastx = pd.read_csv("Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED_final.tsv", sep="\t")
-    s288c_tblastx = pd.read_csv("Data/S288C_reference_genome_R64-3-1_20210421/S288C_to_peter_orf_tblastx.txt", sep="\t")
+    blastx = pd.read_csv(
+        "Data/BLAST_nr_db/orf_gene_blastx_matches_CORRECTED_final.tsv", sep="\t")
+    s288c_tblastx = pd.read_csv(
+        "Data/S288C_reference_genome_R64-3-1_20210421/S288C_to_peter_orf_tblastx.txt", sep="\t")
     s288c_tblastx["organism"] = "Saccharomyces cerevisiae S288C"
-    tair10_tblastx = pd.read_csv("Data/Arabidopsis_Genome_TAIR10.1/DNA/TAIR10_to_peter_orf_tblastx.txt", sep="\t")
+    tair10_tblastx = pd.read_csv(
+        "Data/Arabidopsis_Genome_TAIR10.1/DNA/TAIR10_to_peter_orf_tblastx.txt", sep="\t")
     tair10_tblastx["organism"] = "Arabidopsis thaliana TAIR10.1"
-    iso1mt_tblastx = pd.read_csv("Data/Drosophila_Genome_R6_ISO1MT/DNA/ISO1MT_to_peter_orf_tblastx.txt", sep="\t")
+    iso1mt_tblastx = pd.read_csv(
+        "Data/Drosophila_Genome_R6_ISO1MT/DNA/ISO1MT_to_peter_orf_tblastx.txt", sep="\t")
     iso1mt_tblastx["organism"] = "Drosophila melanogaster Release 6 plus ISO1 MT"
-    nc12_tblastx = pd.read_csv("Data/Neurospora_OR74A_Genome_NC12/DNA/NC12_to_peter_orf_tblastx.txt", sep="\t")
+    nc12_tblastx = pd.read_csv(
+        "Data/Neurospora_OR74A_Genome_NC12/DNA/NC12_to_peter_orf_tblastx.txt", sep="\t")
     nc12_tblastx["organism"] = "Neurospora crassa NC12"
-    nt_tblastx = pd.read_csv("Data/BLAST_nr_db/nt_to_peter_orf_tblastx.txt", sep="\t")
-    sp_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/S_paradoxus_to_peter_orf_tblastx.txt", sep="\t")
+    nt_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nt_to_peter_orf_tblastx.txt", sep="\t")
+    sp_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/S_paradoxus_to_peter_orf_tblastx.txt", sep="\t")
     sp_tblastx["organism"] = "Saccharomyces paradoxus CBS432"
-    sp_tblastx["qacc"] = sp_tblastx.qacc.apply(lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2])) # replace gene IDs
-    dg_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/D_guanche_to_peter_orf_tblastx.txt", sep="\t")
+    sp_tblastx["qacc"] = sp_tblastx.qacc.apply(lambda x: "_".join(
+        x.split("_cds_")[1].split("_")[0:2]))  # replace gene IDs
+    dg_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/D_guanche_to_peter_orf_tblastx.txt", sep="\t")
     dg_tblastx["organism"] = "Drosophila guanche DGUA_6"
-    dg_tblastx["qacc"] = dg_tblastx.qacc.apply(lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
-    td_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/T_delbrueckii_to_peter_orf_tblastx.txt", sep="\t")
+    dg_tblastx["qacc"] = dg_tblastx.qacc.apply(
+        lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
+    td_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/T_delbrueckii_to_peter_orf_tblastx.txt", sep="\t")
     td_tblastx["organism"] = "Torulaspora delbrueckii CBS 1146 ASM24337v1"
-    td_tblastx["qacc"] = td_tblastx.qacc.apply(lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
-    nd_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/N_dairenensis_to_peter_orf_tblastx.txt", sep="\t")
+    td_tblastx["qacc"] = td_tblastx.qacc.apply(
+        lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
+    nd_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/N_dairenensis_to_peter_orf_tblastx.txt", sep="\t")
     nd_tblastx["organism"] = "Naumovozyma dairenensis CBS 421 ASM22711v2"
-    nd_tblastx["qacc"] = nd_tblastx.qacc.apply(lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
-    tp_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/T_phaffii_to_peter_orf_tblastx.txt", sep="\t")
+    nd_tblastx["qacc"] = nd_tblastx.qacc.apply(
+        lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
+    tp_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/T_phaffii_to_peter_orf_tblastx.txt", sep="\t")
     tp_tblastx["organism"] = "Tetrapisispora phaffii CBS 4417 ASM23690v1"
-    tp_tblastx["qacc"] = tp_tblastx.qacc.apply(lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
-    zr_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/Z_rouxii_to_peter_orf_tblastx.txt", sep="\t")
+    tp_tblastx["qacc"] = tp_tblastx.qacc.apply(
+        lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
+    zr_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/Z_rouxii_to_peter_orf_tblastx.txt", sep="\t")
     zr_tblastx["organism"] = "Zygosaccharomyces rouxii CBS 732 ASM2636v1"
-    zr_tblastx["qacc"] = zr_tblastx.qacc.apply(lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
-    nc_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/N_castellii_to_peter_orf_tblastx.txt", sep="\t")
+    zr_tblastx["qacc"] = zr_tblastx.qacc.apply(
+        lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
+    nc_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/N_castellii_to_peter_orf_tblastx.txt", sep="\t")
     nc_tblastx["organism"] = "Naumovozyma castellii CBS 4309 ASM23734v1"
-    nc_tblastx["qacc"] = nc_tblastx.qacc.apply(lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
-    ng_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/N_glabratus_to_peter_orf_tblastx.txt", sep="\t")
+    nc_tblastx["qacc"] = nc_tblastx.qacc.apply(
+        lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
+    ng_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/N_glabratus_to_peter_orf_tblastx.txt", sep="\t")
     ng_tblastx["organism"] = "Nakaseomyces glabrata CBS 138 ASM254v2"
-    ng_tblastx["qacc"] = ng_tblastx.qacc.apply(lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
-    vp_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/V_polyspora_to_peter_orf_tblastx.txt", sep="\t")
+    ng_tblastx["qacc"] = ng_tblastx.qacc.apply(
+        lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
+    vp_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/V_polyspora_to_peter_orf_tblastx.txt", sep="\t")
     vp_tblastx["organism"] = "Vanderwaltozyma polyspora DSM 70294 ASM15003v1"
-    vp_tblastx["qacc"] = vp_tblastx.qacc.apply(lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
-    se_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/S_eubayanus_to_peter_orf_tblastx.txt", sep="\t")
+    vp_tblastx["qacc"] = vp_tblastx.qacc.apply(
+        lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
+    se_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/S_eubayanus_to_peter_orf_tblastx.txt", sep="\t")
     se_tblastx["organism"] = "Saccharomyces eubayanus FM1318 SEUB3.0"
-    se_tblastx["qacc"] = se_tblastx.qacc.apply(lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
-    amm_tblastx =pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/A_mantelli_mantelli_to_peter_orf_tblastx.txt", sep="\t")
+    se_tblastx["qacc"] = se_tblastx.qacc.apply(
+        lambda x: "_".join(x.split("_cds_")[1].split("_")[0:2]))
+    amm_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/A_mantelli_mantelli_to_peter_orf_tblastx.txt", sep="\t")
     amm_tblastx["organism"] = "Apteryx mantelli mantelli AptMant0"
 
-    ### Gene ID maps
+    # Gene ID maps
     # pd.Series(pd.concat([nt_tblastx.qacc, sp_tblastx.qacc, dg_tblastx.qacc, td_tblastx.qacc,
     #            nd_tblastx.qacc, tp_tblastx.qacc, zr_tblastx.qacc, nc_tblastx.qacc,
     #            ng_tblastx.qacc, vp_tblastx.qacc, se_tblastx.qacc, amm_tblastx.qacc])\
     # .unique()).to_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_genes_for_ncbi.txt", index=False, header=False) # genes from which all the ORF-gene matches come from
-    
+
     # I saved the ncbi datasets results to tblastx_genes_for_ncbi_results.tsv
-    ncbi_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_genes_for_ncbi_results.tsv", sep="\t")
-    ncbi_tblastx_map = dict(zip(ncbi_tblastx["Input"], ncbi_tblastx["Symbol"])) # ncbi tblastx qacc to ncbi gene IDs map
-    ncbi_tblastx_org_map = dict(zip(ncbi_tblastx["Symbol"], ncbi_tblastx["Scientific name"])) # ncbi tblastx gene IDs to organism map
-    
+    ncbi_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_genes_for_ncbi_results.tsv", sep="\t")
+    # ncbi tblastx qacc to ncbi gene IDs map
+    ncbi_tblastx_map = dict(zip(ncbi_tblastx["Input"], ncbi_tblastx["Symbol"]))
+    # ncbi tblastx gene IDs to organism map
+    ncbi_tblastx_org_map = dict(
+        zip(ncbi_tblastx["Symbol"], ncbi_tblastx["Scientific name"]))
+
     # Results I got from SGD AllianceMine (03/17/2025)
     # I did this because in the ncbi tblastx file, the S. cerevisiae gene names are the protein names, not the systematic names.
-    sgd_tblastx = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_genes_for_ncbi_sgd_results.tsv", sep="\t")
-    sgd_tblastx_map = dict(zip(sgd_tblastx["Input"], sgd_tblastx["Gene.systematicName"]))
-    sgd_tblastx.organism.replace({"S. cerevisiae":"Saccharomyces cerevisiae",
-        "H. sapiens":"Homo sapiens", "D. melanogaster":"Drosophila melanogaster"}, inplace=True) # to match ncbi
-    sgd_tblastx_org_map = dict(zip(sgd_tblastx["Gene.systematicName"], sgd_tblastx["organism"]))
-    
-    ### Subset blastx matches that match the reciprocal tblastx results
+    sgd_tblastx = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_genes_for_ncbi_sgd_results.tsv", sep="\t")
+    sgd_tblastx_map = dict(
+        zip(sgd_tblastx["Input"], sgd_tblastx["Gene.systematicName"]))
+    sgd_tblastx.organism.replace({"S. cerevisiae": "Saccharomyces cerevisiae",
+                                  "H. sapiens": "Homo sapiens", "D. melanogaster": "Drosophila melanogaster"}, inplace=True)  # to match ncbi
+    sgd_tblastx_org_map = dict(
+        zip(sgd_tblastx["Gene.systematicName"], sgd_tblastx["organism"]))
+
+    # Subset blastx matches that match the reciprocal tblastx results
     tblastx_combined = pd.concat([s288c_tblastx, tair10_tblastx, iso1mt_tblastx,
                                   nc12_tblastx, nt_tblastx, sp_tblastx, dg_tblastx,
                                   td_tblastx, nd_tblastx, tp_tblastx, zr_tblastx,
                                   nc_tblastx, ng_tblastx, vp_tblastx, se_tblastx,
-                                  amm_tblastx], ignore_index=True) # combine results
+                                  amm_tblastx], ignore_index=True)  # combine results
     tblastx_strict = tblastx_combined.groupby("sacc").apply(lambda group:
-        group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
-            (group.pident == group.pident.max())]).reset_index(drop=True) # apply strict filter
+                                                            group[(group.evalue == group.evalue.min()) & (group["pident"] >= 95) &
+                                                                  (group.pident == group.pident.max())]).reset_index(drop=True)  # apply strict filter
     # tblastx_strict.qacc.to_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_genes_for_ncbi.tsv", sep="\t", index=False) # added 3/17/2025
-    
+
     # NCBI datasets and SGD results files (03/17/2025)
-    ncbi_res = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_genes_for_ncbi_results.txt", sep="\t")
-    sgd_res = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_genes_for_ncbi_sgd_results.txt", sep="\t")
-    ncbi_res["Nomenclature authority ID"] = ncbi_res.apply(lambda x: x["Symbol"] if not pd.notna(x["Nomenclature authority ID"]) else x["Nomenclature authority ID"], axis=1)
-    ncbi_res_map = dict(zip(ncbi_res["Input"], ncbi_res["Nomenclature authority ID"]))
-    ncbi_res_org_map = dict(zip(ncbi_res["Nomenclature authority ID"], ncbi_res["Scientific name"]))
+    ncbi_res = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_genes_for_ncbi_results.txt", sep="\t")
+    sgd_res = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_genes_for_ncbi_sgd_results.txt", sep="\t")
+    ncbi_res["Nomenclature authority ID"] = ncbi_res.apply(lambda x: x["Symbol"] if not pd.notna(
+        x["Nomenclature authority ID"]) else x["Nomenclature authority ID"], axis=1)
+    ncbi_res_map = dict(
+        zip(ncbi_res["Input"], ncbi_res["Nomenclature authority ID"]))
+    ncbi_res_org_map = dict(
+        zip(ncbi_res["Nomenclature authority ID"], ncbi_res["Scientific name"]))
     sgd_res["Primary.DBID"] = sgd_res["Primary.DBID"].str.replace("SGD:", "")
-    sgd_res_map = dict(zip(sgd_res["Primary.DBID"], sgd_res["Gene.systematicName"]))
-    
+    sgd_res_map = dict(
+        zip(sgd_res["Primary.DBID"], sgd_res["Gene.systematicName"]))
+
     # Now, map the tblastx identifiers with the ncbi and sgd identifiers
     tblastx_strict["gene"] = tblastx_strict["qacc"]
     tblastx_strict["orf"] = tblastx_strict["sacc"]
-    tblastx_strict.gene = tblastx_strict.gene.replace(ncbi_tblastx_map) # replace nt tblastx qacc with ncbi gene IDs from tblastx results
-    tblastx_strict.gene = tblastx_strict.gene.replace(sgd_tblastx_map) # replace nt tblastx qacc with sgd gene IDs from tblastx results
+    # replace nt tblastx qacc with ncbi gene IDs from tblastx results
+    tblastx_strict.gene = tblastx_strict.gene.replace(ncbi_tblastx_map)
+    # replace nt tblastx qacc with sgd gene IDs from tblastx results
+    tblastx_strict.gene = tblastx_strict.gene.replace(sgd_tblastx_map)
     # tblastx_strict.loc[tblastx_strict.organism.isna(), "gene"].\
     #     to_csv('Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_missing.txt', sep='\t', index=False, header=None) # 3/17/2025
-    
+
     # Get the SGD Identifiers at least, it's more complicated when the organism is different (3/17/2025)
     '''On the command line:
     mapfile -t query_genes < tblastx_strict_missing.txt
@@ -294,125 +361,184 @@ if __name__ == "__main__":
     done
     '''
     id_map = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_missing_output_entrez.tsv",
-        sep="\t", header=None, names=["Input", "Gene", "Organism"])
+                         sep="\t", header=None, names=["Input", "Gene", "Organism"])
     id_map.drop_duplicates(keep="first", inplace=True)
     id_map.set_index("Input", inplace=True)
-    
+
     # Entrez retrived the standard gene names, so I had to use SGD to get the systematic names. (3/17/2025)
     id_map_genes = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_missing_output_entrez_sgd_results.tsv",
-        sep="\t")
-    
+                               sep="\t")
+
     # Map the genes with missing organism info to ncbi and sgd results
     idx_to_check = tblastx_strict.loc[tblastx_strict.organism.isna()].index
     for i, r in tblastx_strict.loc[tblastx_strict.organism.isna()].iterrows():
-        try: # get the gene standard name from the tblastx identifier
+        try:  # get the gene standard name from the tblastx identifier
             if r["gene"] in id_map.index:
                 gene = id_map.loc[r["gene"], "Gene"]
             else:
-                continue # ncbi entrez did not find a gene match
+                continue  # ncbi entrez did not find a gene match
         except KeyError:
-            gene = r["gene"] # the tblastx identifier is already the gene standard name
-        
-        if gene in id_map_genes.Input.values: # get the gene systematic name
-            if pd.isna(id_map_genes.loc[id_map_genes["Input"]==gene, "Gene.systematicName"].values[0]):
-                tblastx_strict.iloc[r.name, 13] = id_map_genes.loc[id_map_genes["Input"]==gene, "Primary.DBID"].values[0] # gene column
+            # the tblastx identifier is already the gene standard name
+            gene = r["gene"]
+
+        if gene in id_map_genes.Input.values:  # get the gene systematic name
+            if pd.isna(id_map_genes.loc[id_map_genes["Input"] == gene, "Gene.systematicName"].values[0]):
+                tblastx_strict.iloc[r.name, 13] = id_map_genes.loc[id_map_genes["Input"]
+                                                                   == gene, "Primary.DBID"].values[0]  # gene column
             else:
-                tblastx_strict.iloc[r.name, 13] = id_map_genes.loc[id_map_genes["Input"]==gene, "Gene.systematicName"].values[0]
+                tblastx_strict.iloc[r.name, 13] = id_map_genes.loc[id_map_genes["Input"]
+                                                                   == gene, "Gene.systematicName"].values[0]
         else:
             print(f"{gene} not found in ncbi or sgd")
-        
-        try: # get the organism information
-            tblastx_strict.iloc[r.name, 12] = id_map_genes.loc[id_map_genes["Input"]==gene, "Organism"] # organism column
+
+        try:  # get the organism information
+            # organism column
+            tblastx_strict.iloc[r.name,
+                                12] = id_map_genes.loc[id_map_genes["Input"] == gene, "Organism"]
         except ValueError:
             tblastx_strict.iloc[r.name, 12] = id_map.loc[r["gene"], "Organism"]
-    
+
     # There are still 77 genes with no systematic name or organism info (need to get from SGD)
-    tblastx_strict.iloc[idx_to_check,:]
+    tblastx_strict.iloc[idx_to_check, :]
     tblastx_strict.loc[tblastx_strict.organism.isna()].qacc.\
         to_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_missing_output_entrez_part2.csv", index=False)
-    
-    part2_sgd = pd.read_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_missing_output_entrez_part2_sgd_results.csv", index_col=0)
-    
+
+    part2_sgd = pd.read_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/tblastx_strict_missing_output_entrez_part2_sgd_results.csv", index_col=0)
+
     for i, r in tblastx_strict.loc[tblastx_strict.organism.isna()].iterrows():
         if r["qacc"] in part2_sgd.index:
-            tblastx_strict.iloc[i, 13] = part2_sgd.loc[part2_sgd.index==r["qacc"], "Gene.systematicName"].values[0]
-            tblastx_strict.iloc[i, 12] = part2_sgd.loc[part2_sgd.index==r["qacc"], "Organism"].values[0]
+            tblastx_strict.iloc[i, 13] = part2_sgd.loc[part2_sgd.index ==
+                                                       r["qacc"], "Gene.systematicName"].values[0]
+            tblastx_strict.iloc[i, 12] = part2_sgd.loc[part2_sgd.index ==
+                                                       r["qacc"], "Organism"].values[0]
         else:
             print(r["qacc"])
-    
+
     # Manually add the genes and organism for the 3 remaining identifiers (from ncbi datasets gene)
-    tblastx_strict.loc[tblastx_strict.qacc=="NR_132242.1","gene"] = "YNCM0016W"
-    tblastx_strict.loc[tblastx_strict.qacc=="NR_132213.1","gene"] = "YNCL0016C"
-    tblastx_strict.loc[tblastx_strict.qacc=="NR_132211.1","gene"] = "YNCL0014C"
-    tblastx_strict.loc[tblastx_strict.qacc.isin(["NR_132242.1", "NR_132213.1", "NR_132211.1"]), "organism"] = "Saccharomyces cerevisiae S288C"
-    
+    tblastx_strict.loc[tblastx_strict.qacc ==
+                       "NR_132242.1", "gene"] = "YNCM0016W"
+    tblastx_strict.loc[tblastx_strict.qacc ==
+                       "NR_132213.1", "gene"] = "YNCL0016C"
+    tblastx_strict.loc[tblastx_strict.qacc ==
+                       "NR_132211.1", "gene"] = "YNCL0014C"
+    tblastx_strict.loc[tblastx_strict.qacc.isin(
+        ["NR_132242.1", "NR_132213.1", "NR_132211.1"]), "organism"] = "Saccharomyces cerevisiae S288C"
+
     # Lastly, fix the organism names
-    tblastx_strict["organism"] = tblastx_strict["organism"].apply(lambda x: str(x) if isinstance(x, (str, np.ndarray)) else x)
+    tblastx_strict["organism"] = tblastx_strict["organism"].apply(
+        lambda x: str(x) if isinstance(x, (str, np.ndarray)) else x)
     tblastx_strict["organism"].unique()
-    tblastx_strict["organism"].replace("S. cerevisiae", "Saccharomyces cerevisiae", inplace=True)
+    tblastx_strict["organism"].replace(
+        "S. cerevisiae", "Saccharomyces cerevisiae", inplace=True)
     tblastx_strict["organism"].unique()
-    
-    tblastx_strict.to_csv("Data/BLAST_nr_db/nr_blastx_match_organisms/orf_gene_tblastx_matches_CORRECTED_final.tsv", sep="\t", index=False)
-    
+
+    tblastx_strict.to_csv(
+        "Data/BLAST_nr_db/nr_blastx_match_organisms/orf_gene_tblastx_matches_CORRECTED_final.tsv", sep="\t", index=False)
+
     # Merge blastx results with tblastx results (match equivalent orf, gene pairs)
     final_matches = blastx[["qacc", "sacc", "evalue", "pident", "Gene.systematicName", "Organism"]].\
         merge(tblastx_strict[["qacc", "sacc", "evalue", "pident", "gene", "organism", "orf"]],
               left_on="qacc", right_on="orf", how="outer", suffixes=("_blastx", "_tblastx"))
-    final_matches = final_matches.loc[final_matches["Gene.systematicName"]==final_matches["gene"]] # where the blastx gene is the same as the tblastx gene
-    
-    final_matches.loc[final_matches.orf.duplicated()] # duplicated orf to gene matches exist
-    
+    # where the blastx gene is the same as the tblastx gene
+    final_matches = final_matches.loc[final_matches["Gene.systematicName"]
+                                      == final_matches["gene"]]
+
+    # duplicated orf to gene matches exist
+    final_matches.loc[final_matches.orf.duplicated()]
+
     # For each orf, keep the row with the smallest evalue and largest pident
-    final_matches["evalue_min"] = final_matches[["evalue_blastx", "evalue_tblastx"]].min(axis=1)
-    final_matches["pident_max"] = final_matches[["pident_blastx", "pident_tblastx"]].mean(axis=1)
-    final_matches_sub = final_matches.groupby("orf").apply(lambda group:\
-        group[(group.evalue_min == group.evalue_min.min()) &\
-              (group.pident_max == group.pident_max.max())]).reset_index(drop=True)
-    
+    final_matches["evalue_min"] = final_matches[[
+        "evalue_blastx", "evalue_tblastx"]].min(axis=1)
+    final_matches["pident_mean"] = final_matches[[
+        "pident_blastx", "pident_tblastx"]].mean(axis=1)
+    final_matches_sub = final_matches.groupby("orf").apply(lambda group:
+                                                           group[(group.evalue_min == group.evalue_min.min()) &
+                                                                 (group.pident_max == group.pident_max.max())]).reset_index(drop=True)
+
     # Now drop the duplicate rows
     final_matches_sub = final_matches_sub[["orf", "gene", "organism", "evalue_min", "pident_max"]].\
         drop_duplicates()
 
-    org_dupes = set() # some dupes are because the organism names are slightly different
+    org_dupes = set()  # some dupes are because the organism names are slightly different
     for i, r in final_matches_sub.loc[final_matches_sub.orf.duplicated(keep=False)].iterrows():
-        org_dupes.add(tuple(final_matches_sub.loc[final_matches_sub.orf==r.orf, "organism"]))
-    """>>> org_dupes
+        org_dupes.add(
+            tuple(final_matches_sub.loc[final_matches_sub.orf == r.orf, "organism"]))
+    """org_dupes
     {('Saccharomyces cerevisiae S288C', 'Vanderwaltozyma polyspora DSM 70294 ASM15003v1'),
     ('Saccharomyces cerevisiae S288C', 'Saccharomyces paradoxus CBS432'),
     ('Saccharomyces cerevisiae S288C', 'Saccharomyces cerevisiae S288C'),
     ('Saccharomyces cerevisiae S288C', 'Saccharomyces cerevisiae'),
     ('Saccharomyces cerevisiae S288C', 'Saccharomyces cerevisiae', 'Saccharomyces cerevisiae S288C', 'Saccharomyces cerevisiae')}"""
-    
+
     for i, r in final_matches_sub.loc[final_matches_sub.orf.duplicated(keep=False)].iterrows():
-        if tuple(final_matches_sub.loc[final_matches_sub.orf==r.orf, "organism"]) in \
+        if tuple(final_matches_sub.loc[final_matches_sub.orf == r.orf, "organism"]) in \
             [('Saccharomyces cerevisiae S288C', 'Saccharomyces cerevisiae S288C'),
              ('Saccharomyces cerevisiae S288C', 'Saccharomyces cerevisiae'),
              ('Saccharomyces cerevisiae S288C', 'Saccharomyces cerevisiae',
               'Saccharomyces cerevisiae S288C', 'Saccharomyces cerevisiae')]:
-            final_matches_sub.loc[final_matches_sub.orf==r.orf, "organism"] = "Saccharomyces cerevisiae S288C"
-    
+            final_matches_sub.loc[final_matches_sub.orf == r.orf,
+                                  "organism"] = "Saccharomyces cerevisiae S288C"
+
     final_matches_sub = final_matches_sub.drop_duplicates(keep="first")
-    
+
     # Save the final orf to gene map
     # 5439-YLL039C is the only orf that mapped to both S288C and V. polyspora, the evalue and pident are the same, so I'll keep the S288C gene.
     final_matches_sub.loc[final_matches_sub.organism != "Vanderwaltozyma polyspora DSM 70294 ASM15003v1"].\
-        to_csv("Data/Peter_2018/final_map_orf_to_gene_with_blast_CORRECTED.tsv", index=False, sep="\t")
-    
+        to_csv("Data/Peter_2018/final_map_orf_to_gene_with_blast_CORRECTED.tsv",
+               index=False, sep="\t")
+
     final_matches_sub.loc[final_matches_sub.organism != "Vanderwaltozyma polyspora DSM 70294 ASM15003v1"].\
         drop(columns=["evalue_min", "pident_max"]).to_csv(
             "Data/Peter_2018/final_map_orf_to_gene_CORRECTED.tsv", index=False, sep="\t")
-    
+
     final_matches_sub.organism.value_counts()
-    """>>> final_matches_sub.organism.value_counts()
+    """final_matches_sub.organism.value_counts()
     organism
     Saccharomyces cerevisiae S288C                    5555
     Saccharomyces paradoxus CBS432                     326
-    Saccharomyces cerevisiae                            44
+    Saccharomyces cerevisiae                            44 # I'll just manually change these to S288C
     Torulaspora delbrueckii CBS 1146 ASM24337v1          5
     Drosophila guanche DGUA_6                            4
     Vanderwaltozyma polyspora DSM 70294 ASM15003v1       1
     Name: count, dtype: int64"""
-        
+
+    df = pd.read_csv(
+        '/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/final_map_orf_to_gene_CORRECTED.tsv', sep='\t')
+    tmp = df.loc[df.organism.str.contains('Saccharomyces cerevisiae')]
+    df.orf.nunique()  # 5918 (these include genes from multiple species)
+    df.gene.nunique()  # 5904
+    tmp.orf.nunique()  # 5584
+    tmp.gene.nunique()  # 5569
+    tmp.orf.value_counts()[tmp.orf.value_counts() > 1].shape  # (15,)
+
+    # drop orfs that mapped to multiple genes (16 orfs)
+    df.drop_duplicates(subset="orf", keep=False, inplace=True)
+    df.orf.nunique()  # 5902 (16 dropped)
+    df.to_csv("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/final_map_orf_to_gene_CORRECTED_16_removed.tsv", sep="\t", index=False)
+
+    ''' What are the 16 ORFs that were removed?
+    map_orfs = pd.read_csv("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/final_map_orf_to_gene_CORRECTED.tsv", sep="\t")
+    map_orfs.loc[map_orfs.orf.duplicated(), "orf"]
+    758       2391-YCR040W_NumOfGenes_2
+    1407      3079-YDR385W_NumOfGenes_2
+    1810                   3509-YER179W
+    2562      4306-YHR055C_NumOfGenes_4 >> I'm surprised these aren't in the CuSO4 benchmark genes. They're CUP1-1 and CUP1-2
+    2564      4307-YHR056C_NumOfGenes_3
+    2745      4500-YIL018W_NumOfGenes_2 >> this orf is the only one that mapped to 2 caffeine benchmark genes
+    2888      4654-YIL172C_NumOfGenes_6
+    3526      5351-YKR059W_NumOfGenes_2
+    3777    5617-YLR154C-H_NumOfGenes_4
+    3779      5619-YLR157C_NumOfGenes_4
+    3781      5620-YLR161W_NumOfGenes_5
+    4059     5919-YLR467W_NumOfGenes_63
+    4868      6792-YNR073C_NumOfGenes_3
+    5390      7349-YOR394W_NumOfGenes_7
+    5660      7624-YPL281C_NumOfGenes_3
+    5741      7703-YPR080W_NumOfGenes_2
+    Name: orf, dtype: object
+    '''
+
     '''Old code below:
     tblastx_strict["gene"] = tblastx_strict["qacc"]
     tblastx_strict["orf"] = tblastx_strict["sacc"]
