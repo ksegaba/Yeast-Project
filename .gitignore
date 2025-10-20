@@ -1,18 +1,19 @@
 # Ignore the following directories
-Results/
+.vscode/
 Data/
 External_software/
-.ipynb_checkpoints/
-.vscode/
-yeast_RF_results/
-yeast_rrBLUP_results/
-Scripts/All_Algorithms/
-Scripts/Data_Vis/Data_Vis_Figures_64k_geno/
-Scripts/Data_Vis/ORF_CNO_Figures/
-Scripts/Data_Vis/ORF_CNV_Figures/
-Scripts/Data_Vis/SNP_Figures/
-Scripts/Data_Vis/Pheno_Figures/
+Results/
 Scripts/Data_Vis/_umap_default/
+Scripts/Data_Vis/old_ORF_CNV_Figures/
+Scripts/Data_Vis/old_Pheno_Figures/
+Scripts/Data_Vis/old_SHAP_Clustering/
+Scripts/Data_Vis/old_SNP_Figures/
+Scripts/Data_Vis/Section_1/
+Scripts/Data_Vis/Section_2/
+Scripts/Data_Vis/Section_3/
+Scripts/Data_Vis/Section_4/
+Scripts/Data_Vis/Section_5/
+Scripts/Data_Vis/Section_6/
 Scripts/Genomic_Prediction_rrBLUP/rrBLUP_Figures_64k_geno/
 Scripts/Genomic_Prediction_RF/GO_Enrichment_wrong_geno.csv_results/
 Scripts/Genomic_Prediction_RF/PWY_Enrichment_wrong_geno.csv_results/
@@ -39,6 +40,7 @@ Scripts/Genomic_Prediction_RKHS/logs
 Scripts/Genomic_Prediction_RKHS/output
 Scripts/Genomic_Prediction_RKHS/data
 Scripts/Genomic_Prediction_GxE/logs
+Scripts/Genomic_Prediction_GxE/data
 
 # Files to ignore
 Job_Submission_Scripts/SNPs_as_Feat/*.out
@@ -101,14 +103,7 @@ Scripts/Data_Vis/*.pdf
 Scripts/Data_Vis/*.txt
 Scripts/Data_Vis/*.tsv
 Scripts/Data_Vis/Data_Vis_Figures_64k_geno.tar.gz
-Scripts/Data_Vis/Figures/*.pdf
-Scripts/Data_Vis/ORF_CNV_Figures/*.pdf
-Scripts/Data_Vis/ORF_CNV_Figures/FS/*.pdf
-Scripts/Data_Vis/ORF_CNV_Figures/*.pdf
-Scripts/Data_Vis/ORF_CNV_Figures/SHAP_orf_copy_number/*.pdf
-Scripts/Data_Vis/ORF_CNV_Figures/SHAP_orf_copy_number/*.tsv
-Scripts/Data_Vis/ORF_CNV_Figures/SHAP_orf_presence_absence/*.pdf
-Scripts/Data_Vis/ORF_CNV_Figures/SHAP_orf_presence_absence/*.tsv
+
 Results/*.csv
 Results/*.pdf
 .RData
@@ -135,15 +130,6 @@ Job_Submission_Scripts/SNPs_as_Feat/Feature_Selection/RF/RF_FS_missing_runs.txt
 Scripts/Data_Processing/*.out
 Scripts/Data_Vis/*.png
 Scripts/Data_Vis/*.xlsx
-Scripts/Data_Vis/Figures/
-Scripts/Data_Vis/logs/
-Scripts/Data_Vis/Section_1
-Scripts/Data_Vis/Section_2
-Scripts/Data_Vis/Section_3
-Scripts/Data_Vis/Section_4
-Scripts/Data_Vis/Section_5
-Scripts/Data_Vis/Section_6/
-Scripts/Data_Vis/SHAP_Clustering_old/
 Scripts/Genomic_Prediction_RF/GO_Enrichment/ORFs_fs
 Scripts/Genomic_Prediction_RF/GO_Enrichment/SNPs_fs
 Scripts/Genomic_Prediction_RF/PWY_Enrichment/ORFs_fs
