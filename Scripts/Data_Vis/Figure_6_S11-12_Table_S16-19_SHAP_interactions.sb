@@ -118,10 +118,11 @@ echo "Summing SHAP values across isolates for SNP"
 python ${shap}/Sum_SHAP_interaction.py \
 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_rf/snp/ \
 	-dtype snp \
-	-save shap_interaction_scores_snp_one_variant_per_gene_benomyl_500ugml
+	-save total_shap_interaction_scores_snp_one_variant_per_gene_benomyl_500ugml # summed scores on the off diagonals, according to Lundberg et al., 2020 Nature Machine Intelligence
+	# -save shap_interaction_scores_snp_one_variant_per_gene_benomyl_500ugml # only has upper diagonal interaction scores
 
 ## PAV model
-cd pav
+cd ../pav
 python ${shap}/SHAP_training_saving_interaction.py \
 	-df ${data}/ORFs_pres_abs.csv \
 	-df2 ${data}/pheno.csv -sep , \
@@ -136,10 +137,11 @@ echo "Summing SHAP values across isolates for PAV"
 python ${shap}/Sum_SHAP_interaction.py \
 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_rf/pav/ \
 	-dtype pav \
-	-save shap_interaction_scores_pav_one_variant_per_gene_benomyl_500ugml
+	-save total_shap_interaction_scores_pav_one_variant_per_gene_benomyl_500ugml
+	# -save shap_interaction_scores_pav_one_variant_per_gene_benomyl_500ugml
 
 ## CNV model
-cd cnv
+cd ../cnv
 python ${shap}/SHAP_training_saving_interaction.py \
 	-df ${data}/ORFs_no_NA.csv \
 	-df2 ${data}/pheno.csv -sep , \
@@ -154,10 +156,11 @@ echo "Summing SHAP values across isolates for CNV"
 python ${shap}/Sum_SHAP_interaction.py \
 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_rf/cnv/ \
 	-dtype cnv \
-	-save shap_interaction_scores_cnv_one_variant_per_gene_benomyl_500ugml
+	-save total_shap_interaction_scores_cnv_one_variant_per_gene_benomyl_500ugml
+	# -save shap_interaction_scores_cnv_one_variant_per_gene_benomyl_500ugml
 
 ## Integrated models
-cd snp_pav_cnv
+cd ../snp_pav_cnv
 python ${shap}/SHAP_training_saving_interaction.py \
 	-df ../Features_one_variant_per_gene_benomyl_500ugml_snp_pav_cnv.txt \
 	-df2 ${data}/pheno.csv -sep , \
@@ -171,9 +174,10 @@ echo "Summing SHAP values across isolates for integrated model"
 python ${shap}/Sum_SHAP_interaction.py \
 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_rf/snp_pav_cnv/ \
 	-dtype integrated_snp_pav_cnv \
-	-save shap_interaction_scores_integrated_snp_pav_cnv_one_variant_per_gene_benomyl_500ugml
+	-save total_shap_interaction_scores_integrated_snp_pav_cnv_one_variant_per_gene_benomyl_500ugml
+	# -save shap_interaction_scores_integrated_snp_pav_cnv_one_variant_per_gene_benomyl_500ugml
 
-cd snp_pav
+cd ../snp_pav
 python ${shap}/SHAP_training_saving_interaction.py \
 	-df ../Features_one_variant_per_gene_benomyl_500ugml_snp_pav.txt \
 	-df2 ${data}/pheno.csv -sep , \
@@ -187,9 +191,10 @@ echo "Summing SHAP values across isolates for integrated model"
 python ${shap}/Sum_SHAP_interaction.py \
 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_rf/snp_pav/ \
 	-dtype integrated_snp_pav \
-	-save shap_interaction_scores_integrated_snp_pav_one_variant_per_gene_benomyl_500ugml
+	-save total_shap_interaction_scores_integrated_snp_pav_one_variant_per_gene_benomyl_500ugml
+	# -save shap_interaction_scores_integrated_snp_pav_one_variant_per_gene_benomyl_500ugml
 
-cd snp_cnv
+cd ../snp_cnv
 python ${shap}/SHAP_training_saving_interaction.py \
 	-df ../Features_one_variant_per_gene_benomyl_500ugml_snp_cnv.txt \
 	-df2 ${data}/pheno.csv -sep , \
@@ -203,9 +208,10 @@ echo "Summing SHAP values across isolates for integrated model"
 python ${shap}/Sum_SHAP_interaction.py \
 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_rf/snp_cnv/ \
 	-dtype integrated_snp_cnv \
-	-save shap_interaction_scores_integrated_snp_cnv_one_variant_per_gene_benomyl_500ugml
+	-save total_shap_interaction_scores_integrated_snp_cnv_one_variant_per_gene_benomyl_500ugml
+	# -save shap_interaction_scores_integrated_snp_cnv_one_variant_per_gene_benomyl_500ugml
 
-cd pav_cnv
+cd ../pav_cnv
 python ${shap}/SHAP_training_saving_interaction.py \
 	-df ../Features_one_variant_per_gene_benomyl_500ugml_pav_cnv.txt \
 	-df2 ${data}/pheno.csv -sep , \
@@ -219,7 +225,8 @@ echo "Summing SHAP values across isolates for integrated model"
 python ${shap}/Sum_SHAP_interaction.py \
 	-path /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_rf/pav_cnv/ \
 	-dtype integrated_one_ \
-	-save shap_interaction_scores_integrated_pav_cnv_one_variant_per_gene_benomyl_500ugml
+	-save total_shap_interaction_scores_integrated_pav_cnv_one_variant_per_gene_benomyl_500ugml
+	# -save shap_interaction_scores_integrated_pav_cnv_one_variant_per_gene_benomyl_500ugml
 
 conda deactivate
 
