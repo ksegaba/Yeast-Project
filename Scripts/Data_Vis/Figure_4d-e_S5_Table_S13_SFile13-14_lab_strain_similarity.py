@@ -38,12 +38,13 @@ os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 test = pd.read_csv("Data/Peter_2018/Test.txt", header=None)
 geno = dt.fread("Data/Peter_2018/0_raw_data/geno_012.csv").to_pandas()
 geno.set_index("ID", inplace=True)
+geno = geno.astype(int)
 
 # Add S288C SNP genotypes as a row of 0s (homozygous for the reference allele)
 geno = geno.T
 geno["S288C"] = 0
 geno = geno.T
-# geno.to_csv("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/geno_012_with_S288C.csv")
+# geno.to_csv("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/geno_012_with_S288C_v2.csv") # S12 File
 # geno = dt.fread("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/geno_with_S288C.csv").to_pandas()
 # geno.set_index("ID", inplace=True)
 
