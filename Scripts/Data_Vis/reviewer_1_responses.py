@@ -1,0 +1,2429 @@
+#! /usr/bin/env python3
+"""
+0. Calculate SHAP interaction values for the Figure 4A models.
+	a. Combine SNP, PAV, and CNV "important non-benchmark gene features + 
+	   benchmark genes" feature tables to train models on the integrated features.
+	b. Calculate the SHAP interaction values for SNP, PAV, CNV, SNP + PAV, SNP +
+	   CNV, PAV + CNV, and SNP + PAV + CNV models.
+	c. Estimate the correlation of local SHAP interaction values and epsilon
+	   values of the overlapping gene pairs.
+	d. Prepare feature table to predict SHAP interaction values.
+
+1. Determine the overlap between predicted benomyl genetic interactions (based
+on SHAP interaction values) and the experimentally determined benomyl genetic
+interactions from Costanzo et al. 2021, regardless of genetic interaction score
+and significance.
+	a. Estimate the correlation between local SHAP interaction values and epsilon
+	  values of the overlapping gene pairs.
+
+2. Determine the overlap between the SHAP interactions and the benomyl-genetic
+interactions from Piotrowski et al., 2018
+	a. How many of the SHAP interaction genes are hypersensitive or resistant to
+	   benomyl?
+	b. Are any of the remaining 34 environments represented in the chemical-GIs?
+	   How many of the top 20 gene features are hypersensitive or resistant in
+	   the Piotrowski dataset?
+
+3. Examine the relationship between W303 or S288C-specific SHAP effects, diploid
+fitness values, and genetic distance to W303/S288C
+
+4. Cross-reference Costanzo 2016 SMF data for single genes with broad SHAP effects
+across isolates.
+- https://www.biorxiv.org/content/10.64898/2025.12.28.696518v1.full#sec-2:
+	SACE_YDO (YJM1129) is in my training population. The study grew hog1 (YLR113W)
+	mutant in NaCl and EtOH. These had low performance in my models, but it may
+	be worth comparing the SHAP values for SACE_YDO of this gene to the fitness
+	effects of their study.
+- https://academic.oup.com/mbe/article/34/10/2486/3797322#521502883
+	
+5. Examine gene CNV values (1, 2, 3, etc) and fitness under different environmental
+conditions.
+
+salloc -N 1 -c 10 --mem=80GB --time=8:00:00
+conda activate /mnt/home/seguraab/miniconda3/envs/shap
+/mnt/home/seguraab/miniconda3/envs/shap/bin/python3
+"""
+
+import os, gc, re
+import pandas as pd
+import datatable as dt
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
+
+# ------------------------------------------------------------------------------
+#--------------------------------------#
+# a. Integrated feature tables derived
+#    from the Fig. 4A feature sets
+#--------------------------------------#
+# Figure 4A feature lists
+d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF"
+snp = pd.read_csv(f"{d}/Features_bench_plus_important_non_bench_YPDBENOMYL500_snp.txt", header=None)
+pav = pd.read_csv(f"{d}/Features_important_non_bench_plus_bench_genes_YPDBENOMYL500_pav.txt", header=None)
+cnv = pd.read_csv(f"{d}/Features_important_non_bench_plus_bench_genes_YPDBENOMYL500_cnv.txt", header=None)
+
+# Load the genotype matrices to make feature tables for integrated models
+snp_geno = pd.read_csv("Scripts/Data_Vis/S2_File.csv")
+pav_geno = pd.read_excel("Scripts/Data_Vis/S5_File.xlsx", engine="openpyxl")
+cnv_geno = pd.read_excel("Scripts/Data_Vis/S6_File.xlsx", engine="openpyxl")
+snp_geno.set_index("ID", inplace=True)
+pav_geno.set_index("ID", inplace=True)
+cnv_geno.set_index("ID", inplace=True)
+pav_geno = pav_geno.loc[snp_geno.index, :] # ensure isolates are in the same order
+cnv_geno = cnv_geno.loc[snp_geno.index, :]
+
+# Create the integrated feature tables
+snp_pav_df = pd.concat([snp_geno[snp[0].tolist()], pav_geno[pav[0].tolist()]], axis=1)
+snp_cnv_df = pd.concat([snp_geno[snp[0].tolist()], cnv_geno[cnv[0].tolist()]], axis=1)
+pav_cnv_df = pd.concat([pav_geno[pav[0].tolist()].add_suffix(";PAV", axis=1), 
+						cnv_geno[cnv[0].tolist()].add_suffix(";CNV", axis=1)], axis=1)
+snp_pav_cnv_df = pd.concat([snp_geno[snp[0].tolist()],
+							pav_geno[pav[0].tolist()].add_suffix(";PAV", axis=1), 
+							cnv_geno[cnv[0].tolist()].add_suffix(";CNV", axis=1)], axis=1)
+d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_fig4a_rf"
+snp_pav_df.to_csv(f"{d}/integrated_snp_pav_important_non_bench_plus_bench_genes_YPDBENOMYL500.txt")
+snp_cnv_df.to_csv(f"{d}/integrated_snp_cnv_important_non_bench_plus_bench_genes_YPDBENOMYL500.txt")
+pav_cnv_df.to_csv(f"{d}/integrated_pav_cnv_important_non_bench_plus_bench_genes_YPDBENOMYL500.txt")
+snp_pav_cnv_df.to_csv(f"{d}/integrated_snp_pav_cnv_important_non_bench_plus_bench_genes_YPDBENOMYL500.txt")
+
+# Save the single feature type tables in the same directory too
+snp_geno[snp[0].tolist()].to_csv(f"{d}/snp_important_non_bench_plus_bench_genes_YPDBENOMYL500.txt")
+pav_geno[pav[0].tolist()].to_csv(f"{d}/pav_important_non_bench_plus_bench_genes_YPDBENOMYL500.txt")
+cnv_geno[cnv[0].tolist()].to_csv(f"{d}/cnv_important_non_bench_plus_bench_genes_YPDBENOMYL500.txt")
+
+#--------------------------------------#
+# b. SHAP interaction values were estimated
+# c. Correlate them to Costanzo GI epsilon
+#--------------------------------------#
+# read SNP and ORF gene maps
+map_snps = pd.read_excel("Scripts/Data_Vis/S8_File.xlsx", engine="openpyxl")
+map_orfs = pd.read_excel("Scripts/Data_Vis/S9_File.xlsx", engine="openpyxl")
+map_snps_dict = map_snps[["snp", "gene"]].set_index("snp").to_dict(orient="dict")
+map_orfs_dict = map_orfs[["orf", "gene"]].set_index("orf").to_dict(orient="dict")
+
+# read in SHAP interaction values
+path = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_fig4a_rf"
+
+def load_shap_itx(shap_dir, map_orfs_dict=map_orfs_dict, map_snps_dict=map_snps_dict):
+	if shap_dir in ["snp", "pav", "cnv"]:
+		file = f"{path}/{shap_dir}/total_shap_interaction_scores_{shap_dir}_fig4a_benomyl_500ugml_interaction_summed.txt"
+	else:
+		file = f"{path}/{shap_dir}/total_shap_interaction_scores_integrated_{shap_dir}_fig4a_benomyl_500ugml_interaction_summed.txt"
+	shap_int = pd.read_csv(file, sep="\t")
+	# add column to indicate which model the scores came from
+	shap_int["Model"] = shap_dir.replace("_", " + ").upper()
+	# add two columns that correspond to the feature data types
+	if shap_dir in ["snp", "pav", "cnv"]:
+		shap_int["Feature1_Data"] = shap_int["Model"]
+		shap_int["Feature2_Data"] = shap_int["Model"]
+	elif shap_dir == "snp_pav":
+		shap_int["Feature1_Data"] = shap_int.apply(
+			lambda x: "SNP" if "chromosome" in x["Feature1"] else "PAV", axis=1)
+		shap_int["Feature2_Data"] = shap_int.apply(
+			lambda x: "SNP" if "chromosome" in x["Feature2"] else "PAV", axis=1)
+	elif shap_dir == "snp_cnv":
+		shap_int["Feature1_Data"] = shap_int.apply(
+			lambda x: "SNP" if "chromosome" in x["Feature1"] else "CNV", axis=1)
+		shap_int["Feature2_Data"] = shap_int.apply(
+			lambda x: "SNP" if "chromosome" in x["Feature2"] else "CNV", axis=1)
+	else:
+		shap_int["Feature1_Data"] = shap_int.apply(
+			lambda x: x["Feature1"].split(";")[-1] if ";" in x["Feature1"] else "SNP", axis=1)
+		shap_int["Feature2_Data"] = shap_int.apply(
+			lambda x: x["Feature2"].split(";")[-1] if ";" in x["Feature2"] else "SNP", axis=1)
+	# Clean the PAV/CNV feature IDs
+	def fix_orf_names(orf_pd_series, axis=0):
+		'''Prepare ORF identifiers for mapping to genes:'''
+		orf_pd_series = orf_pd_series.apply(lambda x: re.sub("^X", "", x))
+		orf_pd_series = orf_pd_series.apply(lambda x: re.sub(";PAV$", "", x))
+		orf_pd_series = orf_pd_series.apply(lambda x: re.sub(";CNV$", "", x))
+		orf_pd_series = orf_pd_series.apply(lambda x: re.sub("\.", "-", x))
+		return orf_pd_series
+	shap_int.Feature1 = fix_orf_names(shap_int.Feature1)
+	shap_int.Feature2 = fix_orf_names(shap_int.Feature2)
+	# Map features to genes
+	def feature2gene(feature):
+		if feature.endswith("-"): # for 45-PUT_IRON_TRASP-R-14849-
+			feature = feature[:-1]
+		try:
+			return map_orfs_dict["gene"][feature]
+		except KeyError:
+			try:
+				return map_snps_dict["gene"][feature]
+			except KeyError:
+				return feature
+	shap_int["Gene1"] = shap_int.Feature1.apply(lambda x: feature2gene(x))
+	shap_int["Gene2"] = shap_int.Feature2.apply(lambda x: feature2gene(x))
+	return shap_int
+
+all_shap_itx = []
+for shap_dir in ["snp", "pav", "cnv", "snp_pav", "snp_cnv", "pav_cnv", "snp_pav_cnv"]:
+	shap_itx = load_shap_itx(shap_dir)
+	print(shap_itx)
+	all_shap_itx.append(shap_itx)
+	gc.collect()
+
+ts17_df = pd.concat(all_shap_itx, axis=0)
+ts17_df.shape # (1633971, 633)
+del all_shap_itx
+
+# Save Table S17
+out_path = "Scripts/Data_Vis/Section_6/shap_interaction/Table_S17_benomyl_fig4a_RF_models_SHAP_interactions.txt"
+n_chunks = 16
+chunk_size = int(np.ceil(len(ts17_df) / n_chunks))
+for i, start in enumerate(range(0, len(ts17_df), chunk_size), start=1):
+	chunk = ts17_df.iloc[start:start + chunk_size]
+	chunk.to_csv(out_path, sep="\t", index=False, header=(i == 1), mode="w" if i == 1 else "a")
+	print(f"Finished writing chunk {i}/{n_chunks}")
+
+# Determine the overlap between SHAP interactions and Costanzo et al., 2021-----
+ts17_df = dt.fread(out_path).to_pandas()
+costanzo = pd.read_excel(
+	"Data/Costanzo_2021/2021_Costanzo_Data File S3_Raw interaction dataset.xlsx",
+	engine="openpyxl", sheet_name="Genome-scale_Benomyl")
+costanzo.shape # (100237, 25)
+costanzo.head()
+
+# extract gene systematic identifiers from query_orf and array_orf columns
+costanzo["Gene1"] = costanzo["query_orf"].str.split("_").str[0]
+costanzo["Gene2"] = costanzo["array_orf"].str.split("_").str[0]
+
+# sort gene pairs alphabetically to facilitate comparison between datasets
+def sort_genes(row, gene1_col, gene2_col):
+	gene1 = row[gene1_col]
+	gene2 = row[gene2_col]
+	sorted_genes = sorted([gene1, gene2])
+	return pd.Series(sorted_genes)
+
+costanzo[["Gene1_sorted", "Gene2_sorted"]] = costanzo.apply(
+	lambda row: sort_genes(row, "Gene1", "Gene2"), axis=1)
+ts17_df[["Gene1_sorted", "Gene2_sorted"]] = ts17_df.apply(
+	lambda row: sort_genes(row, "Gene1", "Gene2"), axis=1)
+
+# overlap between Costanzo et al. 2021 and SHAP interaction data
+costanzo_dict = set(costanzo[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1))
+len(costanzo_dict) # 92906
+
+shap_dict = set(ts17_df[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1))
+len(shap_dict) # 1212842
+
+overlap = costanzo_dict.intersection(shap_dict)
+len(overlap) # 3794 overlapping unique gene pairs
+
+# how many of the gene pairs have significant p-values
+significant = costanzo.loc[(costanzo["Gene1_sorted"].isin(ts17_df["Gene1_sorted"])) & (
+	costanzo["Gene2_sorted"].isin(ts17_df["Gene2_sorted"])) & (
+	costanzo["condition_p_value"] < 0.05),:]
+significant.shape # (1267, 29)
+
+significant[["Gene1_sorted", "Gene2_sorted"]].drop_duplicates(keep="first").shape # (1179, 2), has 88 duplicates.
+significant.loc[significant.duplicated(subset=["Gene1_sorted", "Gene2_sorted"],\
+									   keep=False)].sort_values(by=["Gene1_sorted", "Gene2_sorted"]) # 165 rows
+
+# determine the range of genetic interaction scores (epsilon) from Costanzo et al. 2021
+# for the overlapping gene pairs
+overlap_df = costanzo[
+	costanzo[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1).isin(overlap)]
+overlap_df.shape # (4196, 29)
+
+# calculate summary statistics on the Costanzo et al. 2021 columns
+overlap_df_summary = overlap_df.groupby(["Gene1_sorted", "Gene2_sorted"]).describe()
+overlap_df_summary = overlap_df_summary.stack(level=0, future_stack=True)
+overlap_df_summary.index.names = ["Gene1_sorted", "Gene2_sorted", "Column"]
+overlap_df_summary.to_csv(
+	"Scripts/Data_Vis/_costanzo_fig4a_shap_interaction_overlap_summary.csv")
+
+# Estimate the correlation between SHAP interaction scores and epsilon values---
+import statsmodels.api as sm
+from glob import glob
+from sklearn.preprocessing import StandardScaler
+from scipy.spatial.distance import pdist, squareform
+
+# load the genetic distance matrices
+dist_snp = pd.read_excel("Scripts/Data_Vis/S13_File.xlsx", engine="openpyxl")
+dist_pav = pd.read_excel("Scripts/Data_Vis/S14_File.xlsx", engine="openpyxl")
+dist_snp.set_index("ID", inplace=True)
+dist_pav.set_index(dist_pav.columns[0], inplace=True)
+
+# load the SNP & PAV matrices with S288C encodings
+snp = dt.fread("Scripts/Data_Vis/S12_File.csv").to_pandas()
+snp.set_index("ID", inplace=True)
+# fix the data types
+cols_tofix = snp.select_dtypes("object").columns.tolist()
+from setuptools._distutils.util import strtobool
+for col in cols_tofix:
+	snp[col] = snp[col].apply(lambda x: strtobool(x) if isinstance(x, str) else x)
+assert snp.select_dtypes("object").empty
+#snp.to_csv("Scripts/Data_Vis/S12_File_fixed_dtypes.csv")
+pav = pd.read_csv("Data/Peter_2018/ORFs_pres_abs_with_S288C.csv", index_col=0)
+pav.index = pav.index.str.replace("^X", "", regex=True).str.replace("\.", "-", regex=True)
+pav = pav.T
+pav = pav.loc[snp.index, :] # ensure isolates are in the same order
+pav = pav.astype(int)
+
+# subset the benomyl genetic interactions from Costanzo et al. 2021
+ben_gi = costanzo[["Gene1_sorted", "Gene2_sorted", "mean_condition_epsilon", "condition_p_value"]].dropna()
+ben_gi["Gene_Pair"] = ben_gi[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1)
+# gi_df = ben_gi.copy(deep=True)
+
+# functions to calculate the correlation between local SHAP interaction values 
+# and epsilon values of the overlapping benomyl gene pairs
+def fix_sample_names(rho, dist_snp, dist_pav):
+	"""Sample names do not match between the shap interaction matrices and
+	the genetic distance matrices for samples that begin with SACE_"""
+	new_idx = []
+	counter = 0
+	for idx in rho.index:
+		if idx in dist_snp["S288C"].index:
+			new_idx.append(idx)
+		elif idx in ["Interaction", "mean_condition_epsilon", "condition_p_value"]:
+			new_idx.append(idx)
+		else:
+			if f"SACE_{idx}" in dist_snp["S288C"].index:
+				new_idx.append(f"SACE_{idx}")
+				counter += 1
+	tmp = pd.merge(rho, dist_snp["S288C"], left_index=True, right_index=True, how="left")
+	tmp = pd.merge(tmp, dist_pav["S288C"], left_index=True, right_index=True, how="left")
+	try:
+		assert counter == tmp.isna().sum()["S288C_x"] - 1 # Interaction
+		assert counter == tmp.isna().sum()["S288C_y"] - 1
+	except AssertionError:
+		assert counter == tmp.isna().sum()["S288C_x"] - 3 # Interaction, mean_condition_epsilon, and condition_p_value
+		assert counter == tmp.isna().sum()["S288C_y"] - 3
+	return new_idx
+
+
+def add_genetic_distances(rho, name, dist_snp, dist_pav):
+	"""Add columns of SNP-based and PAV-based genetic distances between the
+	isolates and S288C (Euclidean distances). These distances were calculated
+	using the 118k SNPs and 7.7k PAVs"""
+	rho.name = name
+	rho.index = fix_sample_names(rho, dist_snp, dist_pav)
+	rho = pd.merge(rho, dist_snp["S288C"], left_index=True, right_index=True, how="left")
+	rho = pd.merge(rho, dist_pav["S288C"], left_index=True, right_index=True, how="left")
+	rho.rename(columns={"S288C_x": "All_SNPs_dist", "S288C_y": "All_PAVs_dist"}, inplace=True)
+	return rho
+
+
+def fit_line(data, x, y):
+	"""Fit a line to the data and return the slope, intercept, and R² value"""
+	data_nona = data.dropna(subset=[x, y])
+	X = sm.add_constant(data_nona[x])
+	model = sm.OLS(data_nona[y], X).fit()
+	m = model.params[1]
+	b = model.params[0]
+	adj_r2 = model.rsquared_adj
+	# return f"slope: {m:.4f}, intercept: {b:.4f}, adj R²: {adj_r2:.4f}"
+	return {x: {"y": y, "m": m, "b": b, "adj_r2": adj_r2}}
+
+
+def calc_local_shap_itx_corr(ts17_df, shap_dir, wdir, gi_df, dist_snp, dist_pav, snp, pav, save_name=None):
+	# Subset the relevant SHAP interaction matrix for the given model type
+	shap_itx = ts17_df.loc[ts17_df["Model"] == shap_dir.replace("_", " + ").upper(),:].copy(deep=True)
+	shap_itx.index = pd.MultiIndex.from_frame(shap_itx.iloc[:,:2])
+	shap_itx.drop(columns=shap_itx.columns[:2], inplace=True)
+	
+	# 1. Determine overlap with significant Costanzo et al. 2021 benomyl genetic interactions
+	shap_itx["Gene_Pair"] = shap_itx[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1)
+	overlap = gi_df.loc[(gi_df["Gene_Pair"].isin(shap_itx["Gene_Pair"])) & (
+		gi_df["condition_p_value"] < 0.05),:]
+	shap_itx_overlap = shap_itx.loc[shap_itx["Gene_Pair"].isin(overlap["Gene_Pair"]),:]
+	if len(shap_itx_overlap) == 0:
+		return None
+	
+	# 2. Calculate correlations between epsilon and local SHAP interaction values
+	# check for duplicate gene pairs before setting Gene_Pair as index
+	if overlap.Gene_Pair.nunique() == len(overlap):
+		overlap.set_index("Gene_Pair", inplace=True)
+	else:
+		print("Duplicate gene pairs in overlap, cannot set index to Gene_Pair. Calculating median.")
+		overlap = overlap[["mean_condition_epsilon", "condition_p_value", "Gene_Pair"]].groupby("Gene_Pair").median()
+	if shap_itx_overlap.Gene_Pair.nunique() == len(shap_itx_overlap):
+		shap_itx_overlap.reset_index(inplace=True)
+		shap_itx_overlap.set_index("Gene_Pair", inplace=True)
+		# ensure indices are the same order for both dataframes
+		shap_itx_overlap = shap_itx_overlap.loc[overlap.index,:]
+		# calculate spearman and pearson correlations
+		#for top_itx in []: # does correlation increase when only the most important overlapping gene pairs are considered?
+		rho = shap_itx_overlap.select_dtypes("number").corrwith(overlap["mean_condition_epsilon"], method="spearman", axis=0)
+		pcc = shap_itx_overlap.select_dtypes("number").corrwith(overlap["mean_condition_epsilon"], method="pearson", axis=0)
+	else:
+		print("Duplicate gene pairs in shap_itx_overlap, cannot set index to Gene_Pair.")
+		shap_itx_overlap = pd.merge(shap_itx_overlap.reset_index(), overlap,
+			left_on="Gene_Pair", right_on="Gene_Pair", how="left")
+		# calculate spearman and pearson correlations
+		rho = shap_itx_overlap.select_dtypes("number").corrwith(shap_itx_overlap["mean_condition_epsilon"], method="spearman", axis=0)
+		pcc = shap_itx_overlap.select_dtypes("number").corrwith(shap_itx_overlap["mean_condition_epsilon"], method="pearson", axis=0)
+	
+	# Load the feature importance values from the corresponding RF model
+	if shap_dir in ["snp", "pav", "cnv"]:
+		imp = pd.read_csv(f"{wdir}/{shap_dir}/SHAP_values_sorted_average_{shap_dir}_fig4a_benomyl_500ugml_training.txt", sep="\t", header=0, index_col=0)
+	elif shap_dir in ["snp_pav", "snp_cnv", "pav_cnv", "snp_pav_cnv"]:
+		imp = pd.read_csv(f"{wdir}/{shap_dir}/SHAP_values_sorted_average_integrated_{shap_dir}_fig4a_benomyl_500ugml_training.txt", sep="\t", header=0, index_col=0)
+	imp = imp.loc[imp["0"] > 0, :].sort_values("0", ascending=False)
+	
+	# 3. Estimate genetic distances based on top feature subsets
+	for n_imp in [700, 600, 500, 400, 300, 200, 100, 50, 10]:
+		# Add columns of genetic distances between the isolates and S288C based on the SNPs and PAVs
+		if n_imp == 700:
+			rho = add_genetic_distances(rho, "rho", dist_snp, dist_pav)
+			pcc = add_genetic_distances(pcc, "r", dist_snp, dist_pav)
+		if n_imp > len(imp):
+			continue
+		if shap_dir == "snp":
+			subset = snp[imp.iloc[:n_imp].index.tolist()]
+		elif shap_dir in ["pav", "cnv"]:
+			pav_cols = imp.iloc[:n_imp].index.tolist()
+			pav_cols = [re.sub("^X", "", col) for col in pav_cols]
+			pav_cols = [re.sub("\.", "-", col) for col in pav_cols]
+			subset = pav[pav_cols]
+		elif shap_dir in ["snp_pav", "snp_cnv", "snp_pav_cnv"]:
+			snp_cols = [col for col in imp.iloc[:n_imp].index if "chromosome" in col]
+			pav_cols = [col for col in imp.iloc[:n_imp].index if ";" in col]
+			snp_scaled = StandardScaler().fit_transform(snp[snp_cols])
+			subset = snp_scaled.copy()
+			if len(pav_cols) > 0:
+				pav_cols = set([re.sub(";CNV", "", re.sub(";PAV", "", re.sub("\.", "-", re.sub("^X", "", c)))) for c in pav_cols])
+				pav_scaled = StandardScaler().fit_transform(pav[list(pav_cols)])
+				subset = np.hstack([subset, pav_scaled])
+			subset = pd.DataFrame(subset, index=snp.index)
+		elif shap_dir in ["pav_cnv"]:
+			cols = [re.sub(";CNV", "", re.sub(";PAV", "", re.sub("\.", "-", re.sub("^X", "", c)))) for c in imp.iloc[:n_imp].index]
+			subset = pav[cols]
+		# calculate Euclidean distance
+		dist = pd.DataFrame(squareform(pdist(subset, metric="euclidean")), index=subset.index, columns=subset.index)
+		# insert column into rho
+		rho.insert(3, f"{shap_dir}_top{n_imp}_based_dist", rho.apply(lambda row: dist.loc[row.name, "S288C"] if row.name in dist.index else np.nan, axis=1))
+	
+	# 4. Save results and plot histogram of correlations
+	assert sum(rho.index==pcc.index) == len(rho)
+	rho.insert(1, "r", pcc["r"])
+	rho.to_csv(save_name.replace(".pdf", "_with_genet_dist.csv"))
+	
+	# calculate regression lines
+	results = {}
+	for col in rho.columns[2:]:
+		out = fit_line(rho, col, "r")
+		results.update(out)
+		del out
+	pd.DataFrame.from_dict(results, orient="index").to_csv(save_name.replace(".pdf", "_regression_results_r.csv"))
+	
+	fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(6, 3))
+	try:
+		ax[0].hist(rho.drop(["Interaction", "mean_condition_epsilon", "condition_p_value"])["rho"], bins=50)
+		ax[1].hist(pcc.drop(["Interaction", "mean_condition_epsilon", "condition_p_value"])["r"], bins=50)
+	except KeyError:
+		ax[0].hist(rho.drop("Interaction")["rho"], bins=50)
+		ax[1].hist(pcc.drop("Interaction")["r"], bins=50)
+	ax[0].set_xlabel("Spearman's rho", fontsize=8)
+	ax[0].set_ylabel("Number of isolates", fontsize=8)
+	ax[0].tick_params(axis="both", labelsize=7)
+	ax[1].set_xlabel("Pearson's r", fontsize=8)
+	ax[1].set_ylabel("Number of isolates", fontsize=8)
+	ax[1].tick_params(axis="both", labelsize=7)
+	plt.suptitle(f"Correlation btwn local SHAP interaction values ({len(shap_itx_overlap)} feature pairs) &\n Costanzo benomyl GI scores ({len(overlap)} gene pairs); ({shap_dir} model)", fontsize=8)
+	plt.tight_layout()
+	plt.savefig(save_name)
+	plt.close("all")
+	
+	del shap_itx, shap_itx_overlap, overlap, rho, pcc, results, imp
+	gc.collect()
+
+
+wdir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_fig4a_rf"
+shap_dirs = ["snp", "pav", "cnv", "snp_pav", "snp_cnv", "pav_cnv", "snp_pav_cnv"]
+for shap_dir in shap_dirs:
+	save_name = f"Scripts/Data_Vis/_fig4a_local_shap_interaction_corrs_benomyl_costanzo_{shap_dir}.pdf"
+	calc_local_shap_itx_corr(ts17_df, shap_dir, wdir, ben_gi, dist_snp, dist_pav, snp, pav, save_name)
+
+# Plot regression results
+# files = glob("_local_*_regression_results_rho.csv")
+files = glob("Scripts/Data_Vis/_fig4a_local_*_regression_results_r.csv")
+reg_results = pd.concat([pd.read_csv(file).assign(
+	Model=file.split("costanzo_")[1].split("_reg")[0]) for file in files], axis=0)
+reg_results["Genetic_distance_type"] = reg_results["Unnamed: 0"].str.replace("^([snpavc_])+", "", regex=True)
+reg_results = reg_results.pivot(index="Model", columns="Genetic_distance_type", values="adj_r2")
+reg_results = reg_results[["All_PAVs_dist", "All_SNPs_dist"] + [f"top{n}_based_dist" for n in [700, 600, 500, 400, 300, 200, 100, 50, 10]]]
+
+sns.heatmap(reg_results.T, annot=True, cmap="RdBu_r", vmin=-0.002, vmax=0.32)
+plt.tight_layout()
+plt.savefig("Scripts/Data_Vis/_fig4a_local_shap_interaction_corrs_benomyl_costanzo_regression_results_r_heatmap.pdf")
+plt.close("all")
+
+# What are the mean and standard deviations of the rho and r values between local SHAP interaction values and epsilon for the different models?
+for shap_dir in shap_dirs:
+	print(shap_dir)
+	res = pd.read_csv(f"Scripts/Data_Vis/_fig4a_local_shap_interaction_corrs_benomyl_costanzo_{shap_dir}_with_genet_dist.csv")
+	res[["rho", "r"]].describe().to_dict()
+
+# snp
+# {'rho': {'count': 626.0, 'mean': -0.007388108891349521, 'std': 0.11271769896564873, 'min': -0.2165984804208065, '25%': -0.0820572764465225, '50%': -0.03702513150204555, '75%': 0.0469316189362945, 'max': 0.2967855055523086},
+#  'r': {'count': 626.0, 'mean': -0.009216861906812656, 'std': 0.09184294908237517, 'min': -0.2745529677918091, '25%': -0.07355768764257002, '50%': -0.04116199718894885, '75%': 0.0363301753926538, 'max': 0.2366517446475052}}
+# pav
+# {'rho': {'count': 0.0, 'mean': nan, 'std': nan, 'min': nan, '25%': nan, '50%': nan, '75%': nan, 'max': nan},
+#  'r': {'count': 0.0, 'mean': nan, 'std': nan, 'min': nan, '25%': nan, '50%': nan, '75%': nan, 'max': nan}}
+# cnv
+# {'rho': {'count': 626.0, 'mean': -0.645367412140575, 'std': 0.7644831618762685, 'min': -1.0, '25%': -1.0, '50%': -1.0, '75%': -1.0, 'max': 1.0},
+#  'r': {'count': 626.0, 'mean': -0.645367412140575, 'std': 0.7644831618762685, 'min': -1.0, '25%': -1.0, '50%': -1.0, '75%': -1.0, 'max': 1.0}}
+# snp_pav
+# {'rho': {'count': 565.0, 'mean': -0.18687758941957217, 'std': 0.26713899470069, 'min': -0.5603715170278638, '25%': -0.4241486068111454, '50%': -0.26109391124871, '75%': 0.0257997936016511, 'max': 0.5067079463364293},
+#  'r': {'count': 565.0, 'mean': -0.11910896562992336, 'std': 0.15200974793378572, 'min': -0.4544154827158169, '25%': -0.2030012379367969, '50%': -0.1636579572107573, '75%': -0.0090888684111931, 'max': 0.3392008841734866}}
+# snp_cnv
+# {'rho': {'count': 560.0, 'mean': 0.08419450728959732, 'std': 0.17548962257603865, 'min': -0.6300751879699248, '25%': 0.02819548872180445, '50%': 0.1353383458646616, '75%': 0.18796992481203, 'max': 0.4285714285714286},
+#  'r': {'count': 560.0, 'mean': 0.20003809623672542, 'std': 0.24031922564499977, 'min': -0.5801079838550148, '25%': 0.0436397911619838, '50%': 0.2993383803352372, '75%': 0.3644688663818251, 'max': 0.548882570376176}}
+# pav_cnv
+# {'rho': {'count': 626.0, 'mean': -0.4025559105431309, 'std': 0.031897599737434515, 'min': -0.7999999999999999, '25%': -0.3999999999999999, '50%': -0.3999999999999999, '75%': -0.3999999999999999, 'max': -0.3999999999999999},
+#  'r': {'count': 626.0, 'mean': -0.8472535150512799, 'std': 0.02400944360496991, 'min': -0.961109807320122, '25%': -0.8471530457693914, '50%': -0.8471530457693914, '75%': -0.841475959994029, 'max': -0.7096202498870641}}
+# snp_pav_cnv
+# {'rho': {'count': 433.0, 'mean': 0.03627645217952414, 'std': 0.06362519229798458, 'min': -0.0785730291597561, '25%': 0.0018515285579862, '50%': 0.0363936474767917, '75%': 0.0659662794170369, 'max': 0.9999999999999998},
+#  'r': {'count': 433.0, 'mean': 0.07077656353431802, 'std': 0.06100434425044568, 'min': -0.0764195885886929, '25%': 0.0481234733153076, '50%': 0.074815111232697, '75%': 0.0938742011839898, 'max': 1.0}}
+
+#--------------------------------------#
+# d. Use Piotrowski et al. 2018 chemical-
+#    genetic profiles and Costanzo 2021
+#    fitness data as features to predict
+#    SHAP interaction values
+#--------------------------------------#
+
+# Piotrowski et al. 2018 chemical-genetic interaction profiles
+chem_gen = pd.read_excel("Scripts/Data_Vis/NIHMS884855-supplement-Suppl_Dataset_5.xlsx",
+						 engine="openpyxl", skiprows=2, index_col=0, header=0)
+# note: the NEGATIVE_DEGREE and POSITIVE_DEGREE columns in ...Suppl_Dataset_7.xlsx
+#       correspond to the number of chemical-genetic interactions with CG scores
+#       <= -2.5 and >= 2.5, respectively, in ...Suppl_Dataset_5.xlsx. For example,
+#       >>> sum(chem_gen.loc['PMT2'] >= 2.5
+#       61 (pmt2 mutant is resistant to 61 chemicals)
+#       >>> sum(chem_gen.loc['PMT2'] <= -2.5)
+#       111 (pmt2 mutant is hyper-sensitive to 111 chemicals)
+#       Thus, the values in ...Suppl_Dataset_7.xlsx are NOT FITNESS values.
+chem_gen_ben = chem_gen[[col for col in chem_gen.columns if ("Benomyl" in col)]]
+del chem_gen
+
+# add systematic gene IDs to chem_gen_ben
+# .sgd file was downloaded from the Saccharomyces Genome Database for S288C R64-3-1
+sgd_map = pd.read_csv("Data/S288C_reference_genome_R64-3-1_20210421/gene_association_R64-3-1_20210421.sgd",
+	sep="\t", header=None, skiprows=7)
+sgd_map = sgd_map.iloc[:, [2, 10]] # protein name and systematic gene ID
+sgd_map["gene"] = sgd_map[10].str.split("|").str[0]
+sgd_map.drop_duplicates(inplace=True)
+
+chem_gen_ben["gene"] = chem_gen_ben.index.map(
+	lambda x: sgd_map.loc[sgd_map[2] == x, "gene"].values[0] if (
+		x in sgd_map[2].values) and (len(
+			sgd_map.loc[sgd_map[2] == x, "gene"].values) == 1) else None)
+
+# some IDs were not retrieved
+chem_gen_ben[chem_gen_ben["gene"].isna()]
+#            Cond-000085_Benomyl  Cond-013962_Benomyl  gene
+# YAL058C-A             0.303822               0.2848  None
+# YDR186C               0.221850               0.1140  None
+# YHR003C               1.440267                  NaN  None
+# YKL027W               1.434335                  NaN  None
+chem_gen_ben.loc[chem_gen_ben["gene"].isna(), "gene"] = chem_gen_ben.loc[chem_gen_ben["gene"].isna(), :].index
+chem_gen_ben[chem_gen_ben["gene"].isna()] # empty DataFrame
+
+# Determine the overlap between SHAP interactions and Piotrowski and create a feature table
+# Also add in the SMF & DMF & GI epsilon values into the feature table
+def fix_isolate_names(out_df, dist_snp):
+	new_idx = []
+	for iso in out_df.columns:
+		if iso in dist_snp["S288C"].index:
+			new_idx.append(iso)
+		elif f"SACE_{iso}" in dist_snp["S288C"].index:
+			new_idx.append(f"SACE_{iso}")
+		else:
+			new_idx.append(iso)
+	return new_idx
+
+
+median_significant = significant[["Gene1_sorted", "Gene2_sorted", "mean_condition_epsilon"]].groupby(["Gene1_sorted", "Gene2_sorted"]).median()
+median_significant.reset_index(inplace=True)
+shap_dirs = ["snp", "pav", "cnv", "snp_pav", "snp_cnv", "pav_cnv", "snp_pav_cnv"]
+for shap_dir in shap_dirs:
+	# subset the SHAP interaction matrices
+	shap_itx = ts17_df.loc[ts17_df["Model"] == shap_dir.replace("_", " + ").upper(),:].copy(deep=True)
+	if shap_dir in ["pav_cnv", "snp_pav_cnv"]:
+		shap_itx.index = shap_itx.Feature1 + "." + shap_itx.Feature2 + "." + shap_itx.Gene1 + "." + shap_itx.Gene2 + "." + shap_itx.Feature1_Data + "." + shap_itx.Feature1_Data
+	else:
+		shap_itx.index = shap_itx.Feature1 + "." + shap_itx.Feature2 + "." + shap_itx.Gene1 + "." + shap_itx.Gene2
+	# determine if genes are in Piotrowski dataset
+	shap_itx["Gene1_in_Piotrowski"] = shap_itx["Gene1_sorted"].isin(chem_gen_ben["gene"])
+	shap_itx["Gene2_in_Piotrowski"] = shap_itx["Gene2_sorted"].isin(chem_gen_ben["gene"])
+	shap_itx["Both_in_Piotrowski"] = shap_itx["Gene1_in_Piotrowski"] & shap_itx["Gene2_in_Piotrowski"]
+	# fix isolate names (some don't have the SACE_ prefix)
+	shap_itx.columns = fix_isolate_names(shap_itx, dist_snp)
+	# subset the pairs overlapping with Costanzo
+	shap_itx.drop(columns=['Feature1', 'Feature2', 'Gene1_in_Piotrowski', 'Gene2_in_Piotrowski'], inplace=True)
+	out_dfc = shap_itx.loc[(shap_itx.Gene1_sorted.isin(median_significant.Gene1_sorted)) & \
+				 (shap_itx.Gene2_sorted.isin(median_significant.Gene2_sorted))]
+	out_dfc = out_dfc.reset_index().merge(median_significant, left_on=["Gene1_sorted", "Gene2_sorted"], right_on=["Gene1_sorted", "Gene2_sorted"], how="inner")
+	out_dfc.rename(columns={"index":"ID"}, inplace=True)
+	out_dfc.drop(columns=["Gene1", "Gene2", "Both_in_Piotrowski"], inplace=True)
+	out_dfc.to_csv(f"Scripts/Data_Vis/_fig4a_{shap_dir}_local_shap_itx_Costanzo_pv05_overlap.csv", index=False)
+	print("Number of variant pairs that overlap with Costanzo:", len(out_dfc["ID"]))
+	print("Number of unique gene pairs represented:", len(out_dfc[["Gene1_sorted", "Gene2_sorted"]].drop_duplicates(keep="first")))
+	# subset the pairs overlapping with Piotrwoski
+	out_df = shap_itx.loc[shap_itx["Both_in_Piotrowski"]==True]
+	# insert the chemical-genetic interaction scores
+	out_df.insert(0, "Feature1.Cond-000085_Benomyl", out_df["Gene1"].map(chem_gen_ben.set_index("gene")["Cond-000085_Benomyl"].to_dict()))
+	out_df.insert(1, "Feature2.Cond-000085_Benomyl", out_df["Gene2"].map(chem_gen_ben.set_index("gene")["Cond-000085_Benomyl"].to_dict()))
+	out_df.insert(2, "Feature1.Cond-013962_Benomyl", out_df["Gene1"].map(chem_gen_ben.set_index("gene")["Cond-013962_Benomyl"].to_dict()))
+	out_df.insert(3, "Feature2.Cond-013962_Benomyl", out_df["Gene2"].map(chem_gen_ben.set_index("gene")["Cond-013962_Benomyl"].to_dict()))
+	out_df.drop(columns=["Gene1", "Gene2", "Both_in_Piotrowski"], inplace=True)
+	out_df.index.name = "ID"
+	out_df.to_csv(f"Scripts/Data_Vis/_fig4a_{shap_dir}_local_shap_itx_Piotrowski_overlap.csv", index=True)
+	print("Number of variant pairs that overlap with Piotrowski:", len(out_df.index))
+	print("Number of unique gene pairs represented:", len(out_df[["Gene1_sorted", "Gene2_sorted"]].drop_duplicates(keep="first")))
+	del shap_itx, out_dfc, out_df
+	gc.collect()
+
+
+'''
+Number of variant pairs that overlap with Costanzo: 59		# snp model
+Number of unique gene pairs represented: 59
+Number of variant pairs that overlap with Piotrowski: 259
+Number of unique gene pairs represented: 259
+
+Number of variant pairs that overlap with Costanzo: 0		# pav model
+Number of unique gene pairs represented: 0
+Number of variant pairs that overlap with Piotrowski: 28
+Number of unique gene pairs represented: 28
+
+Number of variant pairs that overlap with Costanzo: 2		# cnv model
+Number of unique gene pairs represented: 2
+Number of variant pairs that overlap with Piotrowski: 272
+Number of unique gene pairs represented: 272
+
+Number of variant pairs that overlap with Costanzo: 65		# snp_pav model
+Number of unique gene pairs represented: 65
+Number of variant pairs that overlap with Piotrowski: 859
+Number of unique gene pairs represented: 837
+
+Number of variant pairs that overlap with Costanzo: 79		# snp_cnv model
+Number of unique gene pairs represented: 79
+Number of variant pairs that overlap with Piotrowski: 1062
+Number of unique gene pairs represented: 1003
+
+Number of variant pairs that overlap with Costanzo: 4		# pav_cnv model
+Number of unique gene pairs represented: 4
+Number of variant pairs that overlap with Piotrowski: 498
+Number of unique gene pairs represented: 363
+
+Number of variant pairs that overlap with Costanzo: 495		# snp_pav_cnv model
+Number of unique gene pairs represented: 400
+Number of variant pairs that overlap with Piotrowski: 4878
+Number of unique gene pairs represented: 3494
+'''
+
+# Costanzo et al. 2021 single mutant fitness data
+# Note: the significant GI scores are subsetted on line 217 in the section above
+costanzo_smf = pd.read_excel(
+	"../../Data/Costanzo_2021/2021_Costanzo_Data File S1_Conditions_Strains_Fitness.xlsx",
+	engine="openpyxl", sheet_name="Mutant Fitness_Conditions")
+costanzo_smf = costanzo_smf[["Systematic Name", "Benomyl"]]
+costanzo_smf = costanzo_smf.groupby("Systematic Name").median().to_dict()
+
+# Include the single-mutant fitness data into out_dfc
+def get_smf(gene):
+	try:
+		return costanzo_smf["Benomyl"][gene]
+	except:
+		return None
+
+
+def polarize_smf(row):
+	if row["Gene1_costanzo_benomyl_fitness"] >= row["Gene2_costanzo_benomyl_fitness"]:
+		return pd.Series({
+			"Gene1_costanzo_benomyl_fitness": row["Gene1_costanzo_benomyl_fitness"],
+			"Gene2_costanzo_benomyl_fitness": row["Gene2_costanzo_benomyl_fitness"]})
+	else:
+		return pd.Series({
+			"Gene1_costanzo_benomyl_fitness": row["Gene2_costanzo_benomyl_fitness"],
+			"Gene2_costanzo_benomyl_fitness": row["Gene1_costanzo_benomyl_fitness"]})
+
+
+for shap_dir in shap_dirs:
+	out_dfc = pd.read_csv(f"_fig4a_{shap_dir}_local_shap_itx_Costanzo_pv05_overlap.csv")
+	if len(out_dfc) > 4:
+		out_dfc["Gene1"] = out_dfc["ID"].str.split(".").str[2]
+		out_dfc["Gene2"] = out_dfc["ID"].str.split(".").str[3]
+		out_dfc["Gene1_costanzo_benomyl_fitness"] = out_dfc.apply(lambda x: get_smf(x["Gene1"]), axis=1)
+		out_dfc["Gene2_costanzo_benomyl_fitness"] = out_dfc.apply(lambda x: get_smf(x["Gene2"]), axis=1)
+		out_dfc.drop(columns=['Gene1', 'Gene2'], inplace=True)
+		out_dfc[["Polarized1_costanzo_benomyl_fitness", "Polarized2_costanzo_benomyl_fitness"]] = out_dfc.apply(lambda x: polarize_smf(x), axis=1)
+		out_dfc.to_csv(f"_fig4a_{shap_dir}_local_shap_itx_Costanzo_pv05_overlap.csv", index=False)
+		del out_dfc
+		gc.collect()
+
+
+# Train RF models to predict SHAP Interaction scores using Piotrowski data as features.
+# See reviewer_1_responses.sb for the RF commands
+# See reviewer_1_responses_costanzo_feature_list.txt and ..._piotrowski_feature_list.txt for the features to include in the models
+
+
+# -----------------------------------------------------------------------------
+"""1. Determine the overlap between SHAP interactions and Costanzo et al., 2021 """
+# Costanzo et al. 2021 benomyl genetic interactions
+costanzo = pd.read_excel(
+	"Data/Costanzo_2021/2021_Costanzo_Data File S3_Raw interaction dataset.xlsx",
+	engine="openpyxl", sheet_name="Genome-scale_Benomyl")
+costanzo.head()
+
+# SHAP interaction data
+shap = pd.read_excel("Scripts/Data_Vis/S17_Table.xlsx", engine="openpyxl",
+					 sheet_name="Table S17") # same data as in Scripts/Data_Vis/Section_6/shap_interaction/Table_S17_benomyl_benchmark_RF_models_SHAP_interactions_expanded_pav_model_removed.xlsx
+shap.head()
+
+# Extract gene systematic identifiers from query_orf and array_orf columns
+costanzo["Gene1"] = costanzo["query_orf"].str.split("_").str[0]
+costanzo["Gene2"] = costanzo["array_orf"].str.split("_").str[0]
+
+# Sort gene pairs alphabetically to facilitate comparison between datasets
+def sort_genes(row, gene1_col, gene2_col):
+	gene1 = row[gene1_col]
+	gene2 = row[gene2_col]
+	sorted_genes = sorted([gene1, gene2])
+	return pd.Series(sorted_genes)
+
+costanzo[["Gene1_sorted", "Gene2_sorted"]] = costanzo.apply(
+	lambda row: sort_genes(row, "Gene1", "Gene2"), axis=1)
+shap[["Gene1_sorted", "Gene2_sorted"]] = shap.apply(
+	lambda row: sort_genes(row, "Gene1", "Gene2"), axis=1)
+
+# Determine overlap between Costanzo et al. 2021 and SHAP interaction data------
+costanzo_dict = set(costanzo[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1))
+len(costanzo_dict) # 92906
+
+shap_dict = set(shap[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1))
+len(shap_dict) # 69486
+
+overlap = costanzo_dict.intersection(shap_dict)
+len(overlap) # 188 overlapping unique gene pairs
+
+# how many of the gene pairs have significant p-values
+significant = costanzo.loc[(costanzo["Gene1_sorted"].isin(shap["Gene1_sorted"])) & (
+	costanzo["Gene2_sorted"].isin(shap["Gene2_sorted"])) & (
+	costanzo["condition_p_value"] < 0.05),:]
+significant.shape # (32, 29)
+
+significant[["Gene1_sorted", "Gene2_sorted"]].drop_duplicates().shape # (32, 2), no duplicates.
+
+# Determine the range of genetic interaction scores (epsilon) from Costanzo et al. 2021
+# for the overlapping gene pairs
+overlap_df = costanzo[
+	costanzo[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1).isin(overlap)]
+overlap_df.shape # (227, 29)
+
+# calculate summary statistics on the Costanzo et al. 2021 columns
+overlap_df_summary = overlap_df.groupby(["Gene1_sorted", "Gene2_sorted"]).describe()
+overlap_df_summary = overlap_df_summary.stack(level=0, future_stack=True)
+overlap_df_summary.index.names = ["Gene1_sorted", "Gene2_sorted", "Column"]
+overlap_df_summary.to_csv(
+	"Scripts/Data_Vis/_costanzo_benomyl_shap_interaction_overlap_summary.csv")
+
+# Do all 188 gene pairs have non-zero epsilon values?
+overlap_df_summary.loc[(overlap_df_summary.index.get_level_values("Column").str.contains("epsilon")) & (
+	overlap_df_summary["mean"] == 0.0),:].shape # (0, 8)
+
+# Do all 188 gene pairs have non-NaN epsilon values?
+has_nan = overlap_df_summary.loc[(overlap_df_summary.index.get_level_values("Column").str.contains("epsilon")) & (
+	overlap_df_summary["mean"].isna()),:]
+has_nan.index.droplevel("Column").shape # (8,) gene pairs have NaN epsilon_Costanzo et al 2016 values
+
+# do these 8 gene pairs have non-NaN or non-zero epsilon values in the other columns?
+pd.set_option('display.max_rows', None)
+overlap_df_summary.loc[(
+	overlap_df_summary.index.droplevel("Column").isin(has_nan.index.droplevel("Column"))) & (
+	overlap_df_summary.index.get_level_values("Column").str.contains("epsilon")),:]
+# no, they have non-zero and non-NaN values in the rep{1 or 2}_{condition/reference/differential}_epsilon columns
+
+# Determine the range of SHAP interaction values for the overlapping gene pairs
+shap_overlap_df = shap[
+	shap[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1).isin(overlap)]
+shap_overlap_df.shape # (574, 14)
+
+shap_overlap_summary = shap_overlap_df.groupby(["Gene1_sorted", "Gene2_sorted"])["SHAP Interaction Value"].describe()
+shap_overlap_summary.to_csv(
+	"Scripts/Data_Vis/_shap_interaction_values_overlap_summary.csv")
+
+# Plot SHAP interaction values and Costanzo et al. 2021 epsilon values
+# combine the two datasets
+combined_df = pd.merge(overlap_df, shap_overlap_df, how="outer",
+	on=["Gene1_sorted", "Gene2_sorted"], suffixes=("_Costanzo", "_SHAP"))
+combined_df["log10_shap_interaction_value"] = combined_df["SHAP Interaction Value"].apply(lambda x: np.log10(abs(x)))
+combined_df.shape # (692, 42)
+combined_df[["mean_condition_epsilon"]].isna().sum() # 0
+combined_df[combined_df["condition_p_value"] < 0.05].groupby(["Gene1_sorted", "Gene2_sorted"]).size().shape # (32,)
+
+combined_sign = combined_df[combined_df["condition_p_value"] < 0.05]
+combined_sign["log10_shap_interaction_value"] = combined_sign["SHAP Interaction Value"].apply(lambda x: np.log10(abs(x)))
+combined_sign.columns
+
+# scatterplots
+fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(8, 12))
+sns.scatterplot(data=combined_df, y="mean_condition_epsilon", x="SHAP Interaction Value", ax=ax[0,0], alpha=0.4)
+sns.scatterplot(data=combined_df, y="rep1_condition_epsilon", x="SHAP Interaction Value", ax=ax[1,0], alpha=0.4)
+sns.scatterplot(data=combined_df, y="mean_condition_epsilon", x="log10_shap_interaction_value", ax=ax[0,1], alpha=0.4)
+sns.scatterplot(data=combined_df, y="rep2_condition_epsilon", x="SHAP Interaction Value", ax=ax[1,1], alpha=0.4)
+sns.scatterplot(data=combined_df, y="sd_condition_epsilon", x="SHAP Interaction Value", ax=ax[2,0], alpha=0.4)
+sns.scatterplot(data=combined_df, y="condition_p_value", x="SHAP Interaction Value", ax=ax[2,1], alpha=0.4)
+plt.tight_layout()
+plt.savefig("Scripts/Data_Vis/_shap_interaction_vs_costanzo_benomyl_epsilon_overlap.pdf")
+plt.close("all")
+
+fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(8, 12))
+sns.scatterplot(data=combined_sign, y="mean_condition_epsilon", x="SHAP Interaction Value", ax=ax[0,0], alpha=0.4)
+sns.scatterplot(data=combined_sign, y="rep1_condition_epsilon", x="SHAP Interaction Value", ax=ax[1,0], alpha=0.4)
+sns.scatterplot(data=combined_sign, y="mean_condition_epsilon", x="log10_shap_interaction_value", ax=ax[0,1], alpha=0.4)
+sns.scatterplot(data=combined_sign, y="rep2_condition_epsilon", x="SHAP Interaction Value", ax=ax[1,1], alpha=0.4)
+sns.scatterplot(data=combined_sign, y="sd_condition_epsilon", x="SHAP Interaction Value", ax=ax[2,0], alpha=0.4)
+sns.scatterplot(data=combined_sign, y="condition_p_value", x="SHAP Interaction Value", ax=ax[2,1], alpha=0.4)
+plt.title("Significant interactions (p < 0.05)")
+plt.tight_layout()
+plt.savefig("Scripts/Data_Vis/_shap_interaction_vs_costanzo_benomyl_epsilon_overlap_pv05.pdf")
+plt.close("all")
+
+
+# ------------------------------------------------------------------------------
+"""1a. Estimate the correlation between local SHAP interaction values and epsilon"""
+
+import os, gc, re
+import datatable as dt
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statsmodels.api as sm
+import numpy as np
+from glob import glob
+from sklearn.preprocessing import StandardScaler
+from scipy.spatial.distance import pdist, squareform
+
+os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/")
+
+# Load the SNP and ORF to gene map files
+# (will need to map the row and column names of the SHAP interaction matrices to gene names for comparison with Costanzo et al. 2021)
+snp_map = pd.read_excel("S8_File.xlsx", engine="openpyxl")
+orf_map = pd.read_excel("S9_File.xlsx", engine="openpyxl")
+snp_map.set_index("snp", inplace=True)
+orf_map.set_index("orf", inplace=True)
+
+# Load the genetic distance matrices
+dist_snp = pd.read_excel("S13_File.xlsx", engine="openpyxl")
+dist_pav = pd.read_excel("S14_File.xlsx", engine="openpyxl")
+dist_snp.set_index("ID", inplace=True)
+dist_pav.set_index(dist_pav.columns[0], inplace=True)
+
+# Load the SNP & PAV matrices with S288C encodings
+# snp = dt.fread("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/geno_012_with_S288C_v2.csv").to_pandas() # S12 File
+snp = dt.fread("S12_File.csv").to_pandas()
+snp.set_index("ID", inplace=True)
+# fix the data types
+cols_tofix = snp.select_dtypes("object").columns.tolist()
+from setuptools._distutils.util import strtobool
+for col in cols_tofix:
+	snp[col] = snp[col].apply(lambda x: strtobool(x) if isinstance(x, str) else x)
+assert snp.select_dtypes("object").empty
+snp.to_csv("S12_File_fixed_dtypes.csv")
+pav = pd.read_csv("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/ORFs_pres_abs_with_S288C.csv", index_col=0)
+pav.index = pav.index.str.replace("^X", "", regex=True).str.replace("\.", "-", regex=True)
+pav = pav.T
+pav = pav.loc[snp.index, :] # ensure isolates are in the same order
+pav = pav.astype(int)
+
+
+def feat_itx_type(feature1, feature2, shap_dir):
+	"""Determine the type of feature interaction based on the feature names"""
+	if shap_dir == "snp":
+		return "SNP-SNP"
+	elif shap_dir == "cnv":
+		return "CNV-CNV"
+	else:
+		if "chromosome" in feature1:
+			feat1_type = "SNP"
+		if "chromosome" in feature2:
+			feat2_type = "SNP"
+		if ";PAV" in feature1:
+			feat1_type = "PAV"
+		if ";PAV" in feature2:
+			feat2_type = "PAV"
+		if ";CNV" in feature1:
+			feat1_type = "CNV"
+		if ";CNV" in feature2:
+			feat2_type = "CNV"
+		return f"{feat1_type}-{feat2_type}"
+
+
+def sort_genes(row, gene1_col, gene2_col):
+	"""Sort gene names alphabetically to facilitate comparison between datasets"""
+	gene1 = row[gene1_col]
+	gene2 = row[gene2_col]
+	sorted_genes = sorted([gene1, gene2])
+	return pd.Series(sorted_genes)
+
+
+def feat2gene(feature):
+	"""Map a feature name to a gene name"""
+	if "chromosome" in feature:
+		return snp_map.loc[feature, "gene"]
+	else:
+		if feature.startswith("X"):
+			fixed_feat = re.sub("^X", "", feature)
+			fixed_feat = re.sub("\.", "-", fixed_feat)
+			if ";" in fixed_feat:
+				fixed_feat = fixed_feat.split(";")[0]
+			return orf_map.loc[fixed_feat, "gene"]
+		if ";" in feature:
+			return orf_map.loc[feature.split(";")[0], "gene"]
+
+
+def fix_sample_names(rho, dist_snp, dist_pav):
+	"""Sample names do not match between the shap interaction matrices and
+	the genetic distance matrices for samples that begin with SACE_"""
+	new_idx = []
+	counter = 0
+	for idx in rho.index:
+		if idx in dist_snp["S288C"].index:
+			new_idx.append(idx)
+		elif idx in ["Interaction", "mean_condition_epsilon", "condition_p_value"]:
+			new_idx.append(idx)
+		else:
+			if f"SACE_{idx}" in dist_snp["S288C"].index:
+				new_idx.append(f"SACE_{idx}")
+				counter += 1
+	tmp = pd.merge(rho, dist_snp["S288C"], left_index=True, right_index=True, how="left")
+	tmp = pd.merge(tmp, dist_pav["S288C"], left_index=True, right_index=True, how="left")
+	try:
+		assert counter == tmp.isna().sum()["S288C_x"] - 1 # Interaction
+		assert counter == tmp.isna().sum()["S288C_y"] - 1
+	except AssertionError:
+		assert counter == tmp.isna().sum()["S288C_x"] - 3 # Interaction, mean_condition_epsilon, and condition_p_value
+		assert counter == tmp.isna().sum()["S288C_y"] - 3
+	return new_idx
+
+
+def add_genetic_distances(rho, name, dist_snp, dist_pav):
+	"""Add columns of SNP-based and PAV-based genetic distances between the
+	isolates and S288C (Euclidean distances). These distances were calculated
+	using the 118k SNPs and 7.7k PAVs"""
+	rho.name = name
+	rho.index = fix_sample_names(rho, dist_snp, dist_pav)
+	rho = pd.merge(rho, dist_snp["S288C"], left_index=True, right_index=True, how="left")
+	rho = pd.merge(rho, dist_pav["S288C"], left_index=True, right_index=True, how="left")
+	rho.rename(columns={"S288C_x": "All_SNPs_dist", "S288C_y": "All_PAVs_dist"}, inplace=True)
+	return rho
+
+
+def fit_line(data, x, y):
+	"""Fit a line to the data and return the slope, intercept, and R² value"""
+	data_nona = data.dropna(subset=[x, y])
+	X = sm.add_constant(data_nona[x])
+	model = sm.OLS(data_nona[y], X).fit()
+	m = model.params[1]
+	b = model.params[0]
+	adj_r2 = model.rsquared_adj
+	# return f"slope: {m:.4f}, intercept: {b:.4f}, adj R²: {adj_r2:.4f}"
+	return {x: {"y": y, "m": m, "b": b, "adj_r2": adj_r2}}
+
+
+def calc_local_shap_itx_corr(shap_dir, wdir, gi_df, dist_snp, dist_pav, snp, pav, save_name=None):
+	# Load SHAP interaction matrices, calculate correlations for each
+	shap_file = glob(os.path.join(wdir, shap_dir, "*interaction_summed.txt"))
+	shap_itx = dt.fread(shap_file[0]).to_pandas()
+	shap_itx.index = pd.MultiIndex.from_frame(shap_itx.iloc[:, :2])
+	shap_itx.drop(columns=shap_itx.columns[:2], inplace=True)
+	
+	# Get the feature interaction types for each gene pair
+	shap_itx["Interaction_Type"] = shap_itx.index.map(lambda x: feat_itx_type(x[0], x[1], shap_dir))
+	
+	# Map features to genes
+	shap_itx["Gene1"] = shap_itx.index.map(lambda x: feat2gene(x[0]))
+	shap_itx["Gene2"] = shap_itx.index.map(lambda x: feat2gene(x[1]))
+	
+	# Sort genes alphabetically
+	shap_itx[["Gene1_sorted", "Gene2_sorted"]] = shap_itx.apply(
+		lambda row: sort_genes(row, "Gene1", "Gene2"), axis=1)
+	shap_itx["Gene_Pair"] = shap_itx[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1)
+	
+	# 1. Determine overlap with significant Costanzo et al. 2021 benomyl genetic interactions
+	overlap = gi_df.loc[(gi_df["Gene_Pair"].isin(shap_itx["Gene_Pair"])) & (
+		gi_df["condition_p_value"] < 0.05),:]
+	shap_itx_overlap = shap_itx.loc[shap_itx["Gene_Pair"].isin(overlap["Gene_Pair"]),:]
+	
+	# 2. Calculate correlations between epsilon and local SHAP interaction values
+	# check for duplicate gene pairs before setting Gene_Pair as index
+	if overlap.Gene_Pair.nunique() == len(overlap):
+		overlap.set_index("Gene_Pair", inplace=True)
+	else:
+		print("Duplicate gene pairs in overlap, cannot set index to Gene_Pair.")
+	if shap_itx_overlap.Gene_Pair.nunique() == len(shap_itx_overlap):
+		shap_itx_overlap.reset_index(inplace=True)
+		shap_itx_overlap.set_index("Gene_Pair", inplace=True)
+		# ensure indices are the same order for both dataframes
+		shap_itx_overlap = shap_itx_overlap.loc[overlap.index,:]
+		# calculate spearman and pearson correlations
+		rho = shap_itx_overlap.select_dtypes("number").corrwith(overlap["mean_condition_epsilon"], method="spearman", axis=0)
+		pcc = shap_itx_overlap.select_dtypes("number").corrwith(overlap["mean_condition_epsilon"], method="pearson", axis=0)
+	else:
+		print("Duplicate gene pairs in shap_itx_overlap, cannot set index to Gene_Pair.")
+		shap_itx_overlap = pd.merge(shap_itx_overlap.reset_index(), overlap,
+			left_on="Gene_Pair", right_on="Gene_Pair", how="left")
+		# calculate spearman and pearson correlations
+		rho = shap_itx_overlap.select_dtypes("number").corrwith(shap_itx_overlap["mean_condition_epsilon"], method="spearman", axis=0)
+		pcc = shap_itx_overlap.select_dtypes("number").corrwith(shap_itx_overlap["mean_condition_epsilon"], method="pearson", axis=0)
+	
+	# # Load the feature table used to train the model from which SHAP interaction values were derived.
+	# if shap_dir == "cnv":
+	# 	features = pd.read_csv(f"{wdir}/Features_one_variant_per_gene_benomyl_500ugml_{shap_dir}_fixed.txt", header=None)
+	# 	features[0] = features[0].str.replace("^X", "", regex=True).str.replace("\.", "-", regex=True)
+	# elif shap_dir == "snp":
+	# 	features = pd.read_csv(f"{wdir}/Features_one_variant_per_gene_benomyl_500ugml_{shap_dir}.txt", header=None)
+	# else:
+	# 	features = pd.read_csv(f"{wdir}/Features_one_variant_per_gene_benomyl_500ugml_{shap_dir}.txt", index_col=0)
+	
+	# # 3. Estimate genetic distance using features with non-zero SHAP interaction values
+	# if shap_dir == "snp": # only feature names, no values
+	# 	snp_cols = features[0].tolist()
+	# 	pav_cols = []
+	# elif shap_dir == "cnv":
+	# 	pav_cols = features[0].tolist()
+	# 	snp_cols = []
+	# else: # integrated matrices have feature values
+	# 	snp_cols = [col for col in features.columns if "chromosome" in col]
+	# 	pav_cols = [col for col in features.columns if col.endswith("PAV")]
+	# print("shap_dir", shap_dir)
+	# print("snp_cols", len(snp_cols))
+	# print("pav_cols", len(pav_cols))
+	# if shap_dir in ["snp_pav", "snp_pav_cnv"]:
+	# 	# normalize snp and pav columns, ignore cnv features
+	# 	scaled_dfs = []
+	# 	snp_subset = snp[snp_cols]
+	# 	snp_scaled = StandardScaler().fit_transform(snp_subset)
+	# 	scaled_dfs.append(snp_scaled)
+	# 	pav_subset = pav[[c.replace(";PAV", "") for c in pav_cols]]
+	# 	# pav_subset["S288C"] = pav.loc["S288C", ].values
+	# 	pav_scaled = StandardScaler().fit_transform(pav_subset)
+	# 	scaled_dfs.append(pav_scaled)
+	# 	scaled_features = np.hstack(scaled_dfs)
+	# 	print("scaled_features", scaled_features.shape)
+	# 	assert sum(snp_subset.index == pav_subset.index) == len(snp_subset)
+	# 	dist = pd.DataFrame(squareform(pdist(scaled_features, metric="euclidean")),
+	# 		index=snp_subset.index.tolist(), columns=snp_subset.index.tolist())
+	# else:
+	# 	if shap_dir in ["snp", "snp_cnv"]:
+	# 		subset = snp[snp_cols]
+	# 	if shap_dir in ["cnv", "pav_cnv"]:
+	# 		subset = pav[[c.replace(";PAV", "") for c in pav_cols]]
+	# 	print("subset", subset.shape)
+	# 	dist = pd.DataFrame(squareform(pdist(subset, metric="euclidean")), index=subset.index, columns=subset.index)
+	# print("dist", dist.shape)
+	
+	# Load the feature importance values from the corresponding RF model
+	if shap_dir in ["snp", "cnv"]:
+		imp = pd.read_csv(f"{wdir}/{shap_dir}_one_variant_per_gene_benomyl_500ugml_imp", sep="\t", header=0, index_col=0)
+	elif shap_dir in ["snp_pav", "snp_cnv", "pav_cnv"]:
+		imp = pd.read_csv(f"{wdir}/integrated_{shap_dir}_one_variant_per_gene_benomyl_500ugml_imp", sep="\t", header=0, index_col=0)
+	else:
+		imp = pd.read_csv(f"{wdir}/integrated_one_variant_per_gene_benomyl_500ugml_imp", sep="\t", header=0, index_col=0)
+	imp = imp.loc[imp["mean_imp"] > 0, :].sort_values("mean_imp", ascending=False)
+	
+	# 3. Estimate genetic distances based on top feature subsets
+	for n_imp in [600, 500, 400, 300, 200, 100, 50, 10]:
+		# Add columns of genetic distances between the isolates and S288C based on the SNPs and PAVs
+		if n_imp == 600:
+			rho = add_genetic_distances(rho, "rho", dist_snp, dist_pav)
+			pcc = add_genetic_distances(pcc, "r", dist_snp, dist_pav)
+		if n_imp > len(imp):
+			continue
+		if shap_dir == "snp":
+			subset = snp[imp.iloc[:n_imp].index.tolist()]
+		elif shap_dir == "cnv":
+			pav_cols = imp.iloc[:n_imp].index.tolist()
+			pav_cols = [re.sub("^X", "", col) for col in pav_cols]
+			pav_cols = [re.sub("\.", "-", col) for col in pav_cols]
+			subset = pav[pav_cols]
+		elif shap_dir in ["snp_pav", "snp_cnv", "snp_pav_cnv"]:
+			snp_cols = [col for col in imp.iloc[:n_imp].index if "chromosome" in col]
+			pav_cols = [col for col in imp.iloc[:n_imp].index if ";" in col]
+			snp_scaled = StandardScaler().fit_transform(snp[snp_cols])
+			subset = snp_scaled.copy()
+			if len(pav_cols) > 0:
+				pav_cols = set([col.replace(";PAV", "").replace(";CNV", "") for col in pav_cols])
+				pav_scaled = StandardScaler().fit_transform(pav[list(pav_cols)])
+				subset = np.hstack([subset, pav_scaled])
+			subset = pd.DataFrame(subset, index=snp.index)
+		elif shap_dir in ["pav_cnv"]:
+			subset = pav[imp.iloc[:n_imp].index.str.replace("^X", "").str.replace(
+				"\.", "-").str.replace(";PAV", "").str.replace(";CNV", "").tolist()]
+		# calculate Euclidean distance
+		dist = pd.DataFrame(squareform(pdist(subset, metric="euclidean")), index=subset.index, columns=subset.index)
+		# insert column into rho
+		rho.insert(3, f"{shap_dir}_top{n_imp}_based_dist", rho.apply(lambda row: dist.loc[row.name, "S288C"] if row.name in dist.index else np.nan, axis=1))
+	
+	# 4. Save results and plot histogram of correlations
+	assert sum(rho.index==pcc.index) == len(rho)
+	rho.insert(1, "r", pcc["r"])
+	# rho.to_csv(save_name.replace(".pdf", "_with_genet_dist.csv"))
+	
+	# calculate regression lines
+	results = {}
+	for col in rho.columns[2:]:
+		# out = fit_line(rho, col, "rho")
+		out = fit_line(rho, col, "r")
+		results.update(out)
+		del out
+	# pd.DataFrame.from_dict(results, orient="index").to_csv(save_name.replace(".pdf", "_regression_results_rho.csv"))
+	pd.DataFrame.from_dict(results, orient="index").to_csv(save_name.replace(".pdf", "_regression_results_r.csv"))
+	
+	# fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(6, 3))
+	# try:
+	# 	ax[0].hist(rho.drop(["Interaction", "mean_condition_epsilon", "condition_p_value"])["rho"], bins=50)
+	# 	ax[1].hist(pcc.drop(["Interaction", "mean_condition_epsilon", "condition_p_value"])["r"], bins=50)
+	# except KeyError:
+	# 	ax[0].hist(rho.drop("Interaction")["rho"], bins=50)
+	# 	ax[1].hist(pcc.drop("Interaction")["r"], bins=50)
+	# ax[0].set_xlabel("Spearman's rho", fontsize=8)
+	# ax[0].set_ylabel("Number of isolates", fontsize=8)
+	# ax[0].tick_params(axis="both", labelsize=7)
+	# ax[1].set_xlabel("Pearson's r", fontsize=8)
+	# ax[1].set_ylabel("Number of isolates", fontsize=8)
+	# ax[1].tick_params(axis="both", labelsize=7)
+	# # 7. Fit a trendline to the rho, r, and genetic distances
+	# # sns.regplot(data=rho, x=f"{shap_dir}_based_dist", y="rho", ax=ax[0, 2], fit_reg=True, ci=95, n_boot=1000, seed=1602, scatter_kws={"s": 5, "alpha": 0.5})
+	# # ax[0, 2].text(0.05, 0.95, fit_line(rho, f"{shap_dir}_based_dist", "rho"), transform=ax[0, 2].transAxes, fontsize=6, verticalalignment="top")
+	# # sns.regplot(data=rho, x="All_SNPs_dist", y="rho", ax=ax[1, 0], fit_reg=True, ci=95, n_boot=1000, seed=1602, scatter_kws={"s": 5, "alpha": 0.5})
+	# # ax[1, 0].text(0.05, 0.95, fit_line(rho, "All_SNPs_dist", "rho"), transform=ax[1, 0].transAxes, fontsize=6, verticalalignment="top")
+	# # ax[1, 0].tick_params(axis="both", labelsize=7)
+	# # sns.regplot(data=rho, x="All_PAVs_dist", y="rho", ax=ax[1, 1], fit_reg=True, ci=95, n_boot=1000, seed=1602, scatter_kws={"s": 5, "alpha": 0.5})
+	# # ax[1, 1].text(0.05, 0.95, fit_line(rho, "All_PAVs_dist", "rho"), transform=ax[1, 1].transAxes, fontsize=6, verticalalignment="top")
+	# # ax[1, 1].tick_params(axis="both", labelsize=7)
+	# plt.suptitle(f"Correlation btwn local SHAP interaction values ({len(shap_itx_overlap)} feature pairs) &\n Costanzo benomyl GI scores ({len(overlap)} gene pairs); ({shap_dir} model)", fontsize=8)
+	# plt.tight_layout()
+	# plt.savefig(save_name)
+	# plt.close("all")
+	del shap_itx, shap_itx_overlap, overlap, rho, pcc #, results, imp
+	gc.collect()
+
+
+# Load genetic interaction scores from Costanzo et al. 2021
+costanzo_path = "/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Costanzo_2021/2021_Costanzo_Data File S3_Raw interaction dataset.xlsx"
+costanzo = pd.read_excel(costanzo_path, engine="openpyxl", sheet_name="Genome-scale_Benomyl")
+costanzo["Gene1"] = costanzo["query_orf"].str.split("_").str[0]
+costanzo["Gene2"] = costanzo["array_orf"].str.split("_").str[0]
+costanzo[["Gene1_sorted", "Gene2_sorted"]] = costanzo.apply(
+	lambda row: sort_genes(row, "Gene1", "Gene2"), axis=1)
+
+# benomyl genetic interactions
+ben_gi = costanzo[["Gene1_sorted", "Gene2_sorted", "mean_condition_epsilon", "condition_p_value"]].dropna()
+ben_gi["Gene_Pair"] = ben_gi[["Gene1_sorted", "Gene2_sorted"]].apply(tuple, axis=1)
+# gi_df = ben_gi.copy(deep=True)
+
+wdir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_rf"
+shap_dirs = ["snp", "cnv", "snp_pav", "snp_cnv", "pav_cnv", "snp_pav_cnv"]
+for shap_dir in shap_dirs:
+	save_name = f"_local_shap_interaction_corrs_benomyl_costanzo_{shap_dir}.pdf"
+	calc_local_shap_itx_corr(shap_dir, wdir, ben_gi, dist_snp, dist_pav, snp, pav, save_name)
+
+
+# Plot regression results
+# files = glob("_local_*_regression_results_rho.csv")
+files = glob("_local_*_regression_results_r.csv")
+reg_results = pd.concat([pd.read_csv(file).assign(
+	Model=file.split("costanzo_")[1].split("_reg")[0]) for file in files], axis=0)
+reg_results["Genetic_distance_type"] = reg_results["Unnamed: 0"].str.replace("^([snpavc_])+", "", regex=True)
+reg_results = reg_results.pivot(index="Model", columns="Genetic_distance_type", values="adj_r2")
+reg_results = reg_results[["All_PAVs_dist", "All_SNPs_dist"] + [f"top{n}_based_dist" for n in [600, 500, 400, 300, 200, 100, 50, 10]]]
+
+sns.heatmap(reg_results.T, annot=True, cmap="RdBu_r", vmin=-0.002, vmax=0.32)
+plt.tight_layout()
+# plt.savefig("_local_shap_interaction_corrs_benomyl_costanzo_regression_results_rho_heatmap.pdf")
+plt.savefig("_local_shap_interaction_corrs_benomyl_costanzo_regression_results_r_heatmap.pdf")
+plt.close("all")
+
+# What are the mean and standard deviations of the rho and r values between local SHAP interaction values and epsilon for the different models?
+for shap_dir in shap_dirs:
+	print(shap_dir)
+	res = pd.read_csv(f"/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis/_local_shap_interaction_corrs_benomyl_costanzo_{shap_dir}_with_genet_dist.csv")
+	res[["rho", "r"]].describe()
+
+
+# ------------------------------------------------------------------------------
+"""2. Determine the overlap between SHAP interactions and Piotrowski et al., 2018"""
+
+import os, re
+import pandas as pd
+import datatable as dt
+from glob import glob
+
+os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis")
+
+# Piotrowski et al. 2018 genetic interactions
+chem_gen = pd.read_excel("NIHMS884855-supplement-Suppl_Dataset_5.xlsx", engine="openpyxl", skiprows=2, index_col=0, header=0)
+# note: the NEGATIVE_DEGREE and POSITIVE_DEGREE columns in ...Suppl_Dataset_7.xlsx
+#       correspond to the number of chemical-genetic interactions with CG scores
+#       <= -2.5 and >= 2.5, respectively, in ...Suppl_Dataset_5.xlsx. For example,
+#       >>> sum(chem_gen.loc['PMT2'] >= 2.5
+#       61 (pmt2 mutant is resistant to 61 chemicals)
+#       >>> sum(chem_gen.loc['PMT2'] <= -2.5)
+#       111 (pmt2 mutant is hyper-sensitive to 111 chemicals)
+#       Thus, the values in ...Suppl_Dataset_7.xlsx are NOT FITNESS values.
+chem_gen_ben = chem_gen[[col for col in chem_gen.columns if ("Benomyl" in col)]]
+
+# add systematic gene IDs to chem_gen_ben
+# .sgd file was downloaded from the Saccharomyces Genome Database for S288C R64-3-1
+sgd_map = pd.read_csv("../../Data/S288C_reference_genome_R64-3-1_20210421/gene_association_R64-3-1_20210421.sgd",
+	sep="\t", header=None, skiprows=7)
+sgd_map = sgd_map.iloc[:, [2, 10]] # protein name and systematic gene ID
+sgd_map["gene"] = sgd_map[10].str.split("|").str[0]
+sgd_map.drop_duplicates(inplace=True)
+
+chem_gen_ben["gene"] = chem_gen_ben.index.map(
+	lambda x: sgd_map.loc[sgd_map[2] == x, "gene"].values[0] if (
+		x in sgd_map[2].values) and (len(
+			sgd_map.loc[sgd_map[2] == x, "gene"].values) == 1) else None)
+
+# some IDs were not retrieved
+chem_gen_ben[chem_gen_ben["gene"].isna()]
+#            Cond-000085_Benomyl  Cond-013962_Benomyl  gene
+# YAL058C-A             0.303822               0.2848  None
+# YDR186C               0.221850               0.1140  None
+# YHR003C               1.440267                  NaN  None
+# YKL027W               1.434335                  NaN  None
+chem_gen_ben.loc[chem_gen_ben["gene"].isna(), "gene"] = chem_gen_ben.loc[chem_gen_ben["gene"].isna(), :].index
+chem_gen_ben[chem_gen_ben["gene"].isna()] # empty DataFrame
+
+# Load the SNP and ORF to gene map files (to compare with SHAP interaction matrices)
+# (will need to map the row and column names of the SHAP interaction matrices to gene names for comparison with Costanzo et al. 2021)
+snp_map = pd.read_excel("S8_File.xlsx", engine="openpyxl")
+orf_map = pd.read_excel("S9_File.xlsx", engine="openpyxl")
+snp_map.set_index("snp", inplace=True)
+orf_map.set_index("orf", inplace=True)
+
+def feat2gene(feature):
+	"""Map a feature name to a gene name"""
+	if "chromosome" in feature:
+		return snp_map.loc[feature, "gene"]
+	else:
+		if feature.startswith("X"):
+			fixed_feat = re.sub("^X", "", feature)
+			fixed_feat = re.sub("\.", "-", fixed_feat)
+			if ";" in fixed_feat:
+				fixed_feat = fixed_feat.split(";")[0]
+			return orf_map.loc[fixed_feat, "gene"]
+		if ";" in feature:
+			return orf_map.loc[feature.split(";")[0], "gene"]
+
+
+def sort_genes(row, gene1_col, gene2_col):
+	"""Sort gene names alphabetically to facilitate comparison between datasets"""
+	gene1 = row[gene1_col]
+	gene2 = row[gene2_col]
+	sorted_genes = sorted([gene1, gene2])
+	return pd.Series(sorted_genes)
+
+
+# Determine the overlap between SHAP interactions and Piotrowski
+wdir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/benomyl_shap_int_rf"
+shap_dirs = ["snp", "cnv", "snp_pav", "snp_cnv", "pav_cnv", "snp_pav_cnv"]
+for shap_dir in shap_dirs:
+	# Load SHAP interaction matrices, calculate correlations for each
+	shap_file = glob(os.path.join(wdir, shap_dir, "*interaction_summed.txt"))
+	shap_itx = dt.fread(shap_file[0]).to_pandas()
+	shap_itx.index = pd.MultiIndex.from_frame(shap_itx.iloc[:, :2])
+	shap_itx.drop(columns=shap_itx.columns[:2], inplace=True)
+	
+	# Map features to genes
+	shap_itx["Gene1"] = shap_itx.index.map(lambda x: feat2gene(x[0]))
+	shap_itx["Gene2"] = shap_itx.index.map(lambda x: feat2gene(x[1]))
+	
+	# Sort genes alphabetically
+	shap_itx[["Gene1_sorted", "Gene2_sorted"]] = shap_itx.apply(
+		lambda row: sort_genes(row, "Gene1", "Gene2"), axis=1)
+	
+	# Determine if genes are in Piotrowski dataset
+	shap_itx["Gene1_in_Piotrowski"] = shap_itx["Gene1_sorted"].isin(chem_gen_ben["gene"])
+	shap_itx["Gene2_in_Piotrowski"] = shap_itx["Gene2_sorted"].isin(chem_gen_ben["gene"])
+	shap_itx["Both_in_Piotrowski"] = shap_itx["Gene1_in_Piotrowski"] & shap_itx["Gene2_in_Piotrowski"]
+	print(f"{shap_dir} model: {shap_itx['Both_in_Piotrowski'].sum()} out of {len(shap_itx)} interactions have both genes in Piotrowski dataset")
+	tmp = shap_itx[["Gene1_sorted", "Gene2_sorted", "Both_in_Piotrowski"]].reset_index(drop=True).drop_duplicates()
+	print(f"{sum(tmp['Both_in_Piotrowski'])} unique gene pairs") # number of interactions with both genes in Piotrowski dataset
+	del shap_itx, tmp
+
+'''Output:
+snp model: 497 out of 40780 interactions have both genes in Piotrowski dataset
+497 unique gene pairs
+
+cnv model: 220 out of 14430 interactions have both genes in Piotrowski dataset
+220 unique gene pairs
+
+snp_pav model: 489 out of 38916 interactions have both genes in Piotrowski dataset
+481 unique gene pairs
+
+snp_cnv model: 667 out of 48926 interactions have both genes in Piotrowski dataset
+500 unique gene pairs
+
+pav_cnv model: 259 out of 15656 interactions have both genes in Piotrowski dataset
+226 unique gene pairs
+
+snp_pav_cnv model: 2290 out of 151648 interactions have both genes in Piotrowski dataset
+960 unique gene pairs
+'''
+
+# ------------------------------------------------------------------------------
+"""3. How different are the SHAP values of genes experimentally validated to
+decrease fitness in S288C or W303 from important non-experimentally validated genes?"""
+# salloc -N 1 -c 30 --mem=5GB --time=8:00:00
+# conda activate /mnt/home/seguraab/miniconda3/envs/shap
+# /mnt/home/seguraab/miniconda3/envs/shap/bin/python
+
+"""Folders:
+reviewer_1_analysis/w303_SHAP_comparisons_old/
+	- Intergenic SNPs were included. w303 benchmark genes came from SGD benomyl-
+	sensitive phenotype annotations.
+
+reviewer_1_analysis/s288c_SHAP_comparisons_intergenic_included/
+	- I forgot to exclude the intergenic SNPs from the important non-benchmark
+	gene distribution. Also, I should have excluded genes that had no experimental
+	validation in the Costanzo data, which would say they have 0 or positive DRF values.
+
+reviewer_1_analysis/s288c_SHAP_comparisons_non_exp_verified_included/
+	- Intergenic SNPs were excluded. However, I still included genes that had no
+	experimental validation in the Costanzo data, which would say they have 0 or positive DRF values.
+	- These results have a mistake.       here :
+	cnv_shap_genes.insert(2, "Benomyl_DRF", pav_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
+
+reviewer_1_analysis/s288c_SHAP_comparisons_non_exp_verified_excluded/
+	- Intergenic SNPs were excluded. Also, I excluded genes that had no experimental
+	validation in the Costanzo data. So, I compared the benchmark gene SHAP
+	distributions (have negative DRF values) to the SHAP distributions of 
+	important non-benchmark genes (which have DRF values of 0 or positive).
+	- Only the SNP SHAP datasets had enough genes with non-negative DRF values
+	to perform the comparison. I did not run the PAVs and CNVs since there were
+	so few genes with non-negative DRF values.
+
+reviewer_1_analysis_s288c_SHAP_comparisons_unimportant_non_bench_included
+	- Intergenic SNPs were excluded. Also excluded genes with no experimental
+	DRF values in Costanzo data.
+	- I use the SNP-to-gene and ORF-to-gene maps to identify the non-benchmark
+	genes (which include both important [from the optimized models], and not
+	important
+"""
+
+import os, gc
+import pandas as pd
+import datatable as dt
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from glob import glob
+from scipy.stats import ks_2samp, mannwhitneyu
+
+os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis")
+
+# # Fitness data
+# pheno = pd.read_excel("S1_File.xlsx", engine="openpyxl")
+# pheno.set_index("ID", inplace=True)
+
+# # Genetic distance datafiles
+# dist_snp = pd.read_excel("S13_File.xlsx", engine="openpyxl")
+# dist_pav = pd.read_excel("S14_File.xlsx", engine="openpyxl")
+# dist_snp.set_index("ID", inplace=True)
+# dist_pav.set_index(dist_pav.columns[0], inplace=True)
+
+# SNP and ORF to gene map files
+snp_map = pd.read_excel("S8_File.xlsx", engine="openpyxl")
+orf_map = pd.read_excel("S9_File.xlsx", engine="openpyxl")
+snp_map[snp_map['gene'].str.contains(',')]
+orf_map[orf_map['gene'].str.contains(',')] # None
+snp_map["gene"] = snp_map["gene"].str.split(",") # split up the genes into a list
+snp_map = snp_map.explode(column="gene", ignore_index=True) # each gene gets its own row
+
+
+# S288C Costanzo benchmark genes --------------------
+# DRF: differential relative fitness values
+costanzo_drf = pd.read_excel("../../Data/Costanzo_2021/2021_Costanzo_Data File S1_Conditions_Strains_Fitness.xlsx",
+	engine="openpyxl", sheet_name="Diff. Mutant fitness_Conditions")
+assert costanzo_drf["Strain ID"].nunique() == len(costanzo_drf) # unique mutant identifiers
+costanzo_ben = costanzo_drf.set_index("Strain ID")[["Systematic Name", "Benomyl"]]
+costanzo_ben.describe().to_dict()
+# {'count': 4383.0, 'mean': -0.0430362051106548, 'std': 0.08260868299038501, 'min': -0.5325, '25%': -0.0815, '50%': -0.0385, '75%': 0.0, 'max': 0.3385}
+
+# check if there are overlapping genes for mutants whose DRF < 0 and DRF >= 0
+mask = costanzo_ben[costanzo_ben["Benomyl"] < 0]["Systematic Name"].isin(
+	costanzo_ben[costanzo_ben["Benomyl"] >= 0]["Systematic Name"])
+mask.sum() # 92 genes, calculate a median Benomyl DRF
+costanzo_ben_median = costanzo_ben.groupby("Systematic Name")["Benomyl"].median()
+costanzo_ben_median.dropna().shape # (4165,)
+# ---------------------------------------------------
+
+
+# # W303 SGD benchmark genes --------------------------
+# ben = pd.read_csv("../../Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes.txt", sep="\t")
+# caf = dt.fread("../../Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes.txt").to_pandas()
+# cuso = pd.read_csv("../../Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes.txt", sep="\t")
+# sma = pd.read_csv("../../Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes.txt", sep="\t")
+# ben_w303 = ben.loc[ben["Strain Background"] == "W303", ["Gene Systematic Name", "Chemical", "Phenotype", "Reference"]]
+# caf_w303 = caf.loc[caf["Strain Background"] == "W303", ["Gene Systematic Name", "Chemical", "Phenotype", "Reference"]]
+# cuso_w303 = cuso.loc[cuso["Strain Background"] == "W303", ["Gene Systematic Name", "Chemical", "Phenotype", "Reference"]]
+# sma_w303 = sma.loc[sma["Strain Background"] == "W303", ["Gene Systematic Name", "Chemical", "Phenotype", "Reference"]]
+
+# # Get the SNPs & ORFs that map to W303 benchmark genes
+# snp_map_ben_w303 = snp_map.loc[snp_map["gene"].isin(ben_w303["Gene Systematic Name"]), :]
+# snp_map_caf_w303 = snp_map.loc[snp_map["gene"].isin(caf_w303["Gene Systematic Name"]), :]
+# snp_map_cuso_w303 = snp_map.loc[snp_map["gene"].isin(cuso_w303["Gene Systematic Name"]), :]
+# snp_map_sma_w303 = snp_map.loc[snp_map["gene"].isin(sma_w303["Gene Systematic Name"]), :]
+
+# orf_map_ben_w303 = orf_map.loc[orf_map["gene"].isin(ben_w303["Gene Systematic Name"]), :]
+# orf_map_caf_w303 = orf_map.loc[orf_map["gene"].isin(caf_w303["Gene Systematic Name"]), :]
+# orf_map_cuso_w303 = orf_map.loc[orf_map["gene"].isin(cuso_w303["Gene Systematic Name"]), :]
+# orf_map_sma_w303 = orf_map.loc[orf_map["gene"].isin(sma_w303["Gene Systematic Name"]), :]
+# # ---------------------------------------------------
+
+
+# SNP, PAV, and CNV SHAP files ----------------------
+data_dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/"
+snp_shap_files = glob(os.path.join(data_dir, "SNP/fs/SHAP_values_sorted_Y*.txt"))
+pav_shap_files = glob(os.path.join(data_dir, "PAV/fs/SHAP_values_sorted_Y*.txt"))
+cnv_shap_files = glob(os.path.join(data_dir, "CNV/fs/SHAP_values_sorted_Y*.txt"))
+
+target_envs = ["YPDBENOMYL500", "YPDCAFEIN40", "YPDCAFEIN50", "YPDCUSO410MM", "YPDSODIUMMETAARSENITE"]
+snp_shap_files = [f for f in snp_shap_files if any(env in f for env in target_envs)]
+pav_shap_files = [f for f in pav_shap_files if any(env in f for env in target_envs)]
+cnv_shap_files = [f for f in cnv_shap_files if any(env in f for env in target_envs)]
+snp_shap_files = sorted(snp_shap_files)
+pav_shap_files = sorted(pav_shap_files)
+cnv_shap_files = sorted(cnv_shap_files)
+
+# SNP identifier mapping file
+snp_id_map = pd.read_csv(
+	"../../Data/Peter_2018/0_raw_data/mapping_of_geno.csv_feature_names_to_actual_feature_names_09102025.csv",
+	index_col=0)
+
+def fix_snp_ids(snp_shap_file):
+	"""Fix the SNP feature names in the SHAP files to match the actual SNP
+	identifiers"""
+	snp_shap = pd.read_csv(snp_shap_file, sep="\t", index_col=0)
+	snp_shap.columns = snp_shap.columns.map(snp_id_map["actual_feature"])
+	return snp_shap
+
+
+def fix_orf_ids(orf_shap_file):
+	"""Fix the ORF feature names in the SHAP files to match the actual ORF
+	identifiers"""
+	orf_shap = pd.read_csv(orf_shap_file, sep="\t", index_col=0)
+	orf_shap.columns = orf_shap.columns.str.replace("^X", "", regex=True).str.replace("\.", "-", regex=True)
+	return orf_shap
+
+# ---------------------------------------------------
+# read in SHAP files for the YPDBENOMYL500 environment
+snp_shap = fix_snp_ids(snp_shap_files[0]) # 6000 features
+pav_shap = fix_orf_ids(pav_shap_files[0]) # 128 features
+cnv_shap = fix_orf_ids(cnv_shap_files[0]) # 128 features
+
+benchmark = costanzo_ben_median[costanzo_ben_median < 0] # mutants with negative differential relative fitness (DRF)
+len(benchmark) # 3101 single mutants
+non_benchmark = costanzo_ben_median[costanzo_ben_median >= 0] # mutants with non-negative DRF values
+len(non_benchmark) # 1064 single mutants
+assert set(benchmark.index).isdisjoint(set(non_benchmark.index)) # no overlapping genes between benchmark and non-benchmark sets
+
+# how many of the optimized model features (and genes) have negative DRF values?
+snp_shap_genes = snp_map.loc[snp_map.snp.isin(snp_shap.columns), ["snp", "gene"]]
+pav_shap_genes = orf_map.loc[orf_map.orf.isin(pav_shap.columns), ["orf", "gene"]]
+cnv_shap_genes = orf_map.loc[orf_map.orf.isin(cnv_shap.columns), ["orf", "gene"]]
+
+benchmark_dict = benchmark.to_dict()
+non_benchmark_dict = non_benchmark.to_dict()
+def get_drf_value(row, benchmark=benchmark_dict):
+	if row["gene"] in benchmark.keys():
+		return benchmark[row["gene"]]
+	else:
+		return None
+
+snp_shap_genes.insert(2, "Benomyl_DRF", snp_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
+pav_shap_genes.insert(2, "Benomyl_DRF", pav_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
+cnv_shap_genes.insert(2, "Benomyl_DRF", cnv_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
+snp_shap_genes.insert(3, "Non_benchmark", snp_shap_genes.apply(lambda x: get_drf_value(x, non_benchmark_dict), axis=1))
+pav_shap_genes.insert(3, "Non_benchmark", pav_shap_genes.apply(lambda x: get_drf_value(x, non_benchmark_dict), axis=1))
+cnv_shap_genes.insert(3, "Non_benchmark", cnv_shap_genes.apply(lambda x: get_drf_value(x, non_benchmark_dict), axis=1))
+
+print("Number of SNP features with negative DRF values:", snp_shap_genes.isna().value_counts())
+'''results for s288c_SHAP_comparisons_non_exp_verified_included/
+# snp    gene   Benomyl_DRF
+# False  False  True           4205    4205+1857 = 6062 SNPs, 62 SNPs mapped to multiple genes
+#               False          1857 <- have negative DRF values
+
+results for s288c_SHAP_comparisons_non_exp_verified_excluded/
+snp    gene   Benomyl_DRF  Non_benchmark
+False  False  True         True             3528    3528+677=4205
+              False        True             1857
+              True         False             677
+'''
+snp_shap_genes['snp'].duplicated().sum() # 62 snps
+print("Number of PAV features with negative DRF values:", pav_shap_genes.isna().value_counts())
+'''results for s288c_SHAP_comparisons_non_exp_verified_included/
+# orf    gene   Benomyl_DRF
+# False  False  True           21    128-21-19 = 88 ORFs do not have a gene mapping
+#               False          19 <- have negative DRF values
+
+results for s288c_SHAP_comparisons_non_exp_verified_excluded/
+orf    gene   Benomyl_DRF  Non_benchmark
+False  False  False        True             19
+              True         True             18
+                           False             3
+'''
+print("Number of CNV features with negative DRF values:", cnv_shap_genes.isna().value_counts())
+'''results for s288c_SHAP_comparisons_non_exp_verified_included/
+# orf    gene   Benomyl_DRF
+# False  False  True           43    128-43-9 = 76 ORFs do not have a gene mapping
+#               False           9 <- have negative DRF values
+
+results for s288c_SHAP_comparisons_non_exp_verified_excluded/
+orf    gene   Benomyl_DRF  Non_benchmark
+False  False  True         True             34    these numbers don't match the above because pav was used instead of cnv
+              False        True             16
+              True         False             2
+
+'''
+print("Number of unique genes represented in SNP features:", snp_shap_genes.gene.nunique()) # 2158
+print("Number of unique genes with negative DRF values:", snp_shap_genes.groupby("gene")["Benomyl_DRF"].median().isna().value_counts())
+# Benomyl_DRF
+# False    1088 <- genes that have negative DRF values
+# True     1070
+print("Number of unique genes with non-negative DRF values:", snp_shap_genes.groupby("gene")["Non_benchmark"].median().isna().value_counts())
+# Non_benchmark
+# True     1767
+# False     391  <- genes that have non-negative DRF values
+print("Number of unique genes represented in PAV features:", pav_shap_genes.gene.nunique()) # 40
+print("Number of unique genes with negative DRF values:", pav_shap_genes.groupby("gene")["Benomyl_DRF"].median().isna().value_counts())
+# Benomyl_DRF
+# True     21
+# False    19  <- genes that have negative DRF values
+print("Number of unique genes with non-negative DRF values:", pav_shap_genes.groupby("gene")["Non_benchmark"].median().isna().value_counts())
+# True     37
+# False     3  <- genes that have non-negative DRF values
+print("Number of unique genes represented in CNV features:", cnv_shap_genes.gene.nunique()) # 52
+print("Number of unique genes with negative DRF values:", cnv_shap_genes.groupby("gene")["Benomyl_DRF"].median().isna().value_counts())
+# Benomyl_DRF  <- results using the pav genes instead of cnv genes
+# True     43
+# False     9 <- genes that have negative DRF values
+# Benomyl_DRF  <- the correct result using the cnv genes
+# True     36
+# False    16
+print("Number of unique genes with non-negative DRF values:", cnv_shap_genes.groupby("gene")["Non_benchmark"].median().isna().value_counts())
+# Non_benchmark
+# True     50
+# False     2  <- genes that have non-negative DRF values
+
+
+# functions to compare local SHAP value distributions of benchmark genes to that of the important non-benchmark genes
+def plot_shap_violin(data1, data2, title, save_name, strain="W303"):
+	"""Plot a violin plot comparing the distributions of two sets of SHAP values
+	Args:
+		data1 (np.ndarray) : SHAP values of genes that map to W303 benchmark genes
+		data2 (np.ndarray): SHAP values of genes that do NOT map to W303 benchmark genes
+	Note: data1 and data2 may have different lengths.
+	"""
+	df1 = pd.DataFrame({"Gene_type": f"{strain}_genes", "SHAP_value": data1})
+	df2 = pd.DataFrame({"Gene_type": f"Non_{strain}_genes", "SHAP_value": data2})
+	df_melted = pd.concat([df1, df2], axis=0)
+	# plot distribution of values
+	fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(6, 6))
+	sns.violinplot(data=df_melted, x="Gene_type", y="SHAP_value", inner="quart", ax=ax[0, 0])
+	sns.violinplot(data=df_melted, x="Gene_type", y="SHAP_value", inner="quart", ax=ax[0, 1])
+	ax[0, 1].set_yscale("symlog", linthresh=1e-4)
+	ax[0, 1].set_ylabel("SHAP value (symlog scale)", fontsize=7)
+	fig.suptitle(title, fontsize=8)
+	ax[0, 0].set_xlabel("")
+	ax[0, 1].set_xlabel("")
+	ax[0, 0].set_ylabel("SHAP value", fontsize=7)
+	ax[0, 0].tick_params(axis="both", labelsize=6)
+	ax[0, 1].tick_params(axis="both", labelsize=6)
+	# plot CDF of values
+	sns.ecdfplot(data=df1, x="SHAP_value", ax=ax[1, 0], label=f"{strain}_genes")
+	sns.ecdfplot(data=df2, x="SHAP_value", ax=ax[1, 0], label=f"Non_{strain}_genes")
+	ax[1, 0].set_xlabel("SHAP value", fontsize=7)
+	ax[1, 0].set_ylabel("Cumulative density", fontsize=7)
+	ax[1, 0].tick_params(axis="both", labelsize=6)
+	ax[1, 0].legend(fontsize=6)
+	plt.tight_layout()
+	plt.savefig(save_name)
+	plt.close("all")
+	gc.collect()
+	gc.collect()
+
+
+def ks_2samp_shap(data1, data2, strain="w303", env="YPDBENOMYL500", vtype="SNP", tag=""):
+	# Separate SHAP values by type or use absolute values
+	if len(data1.shape) == 1: # global SHAP values
+		raw_strain = data1.copy(deep=True)
+		raw_non_strain = data2.copy(deep=True)
+		abs_strain = data1.abs()
+		abs_non_strain = data2.abs()
+		pos_strain = data1.mask(data1 <= 0, None).dropna()
+		pos_non_strain = data2.mask(data2 <= 0, None).dropna()
+		neg_strain = data1.mask(data1 >= 0, None).dropna()
+		neg_non_strain = data2.mask(data2 >= 0, None).dropna()
+	else: # local SHAP values
+		raw_strain = data1["shap_value"].copy(deep=True)
+		raw_non_strain = data2["shap_value"].copy(deep=True)
+		abs_strain = raw_strain.abs()
+		abs_non_strain = raw_non_strain.abs()
+		pos_strain = raw_strain.mask(raw_strain <= 0, None).dropna()
+		pos_non_strain = raw_non_strain.mask(raw_non_strain <= 0, None).dropna()
+		neg_strain = raw_strain.mask(raw_strain >= 0, None).dropna()
+		neg_non_strain = raw_non_strain.mask(raw_non_strain >= 0, None).dropna()
+	
+	# store results
+	out_ks = {}
+	out_stats = {}
+	if len(raw_strain) > 0:
+		# raw SHAP values
+		out_ks[("ks_test", "raw")] = list(ks_2samp(
+			data1=raw_strain, data2=raw_non_strain, alternative="greater", method="asymp"))
+		# plot
+		plot_shap_violin(data1=raw_strain, data2=raw_non_strain, strain=strain.upper(),
+			title=f"{env} {tag} {vtype} SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_raw_SHAP_violin.pdf")
+		# summary statistics
+		out_stats[("summary_stats", f"raw_{strain}")] = raw_strain.describe()
+		out_stats[("summary_stats", f"raw_non_{strain}")] = raw_non_strain.describe()
+		del raw_strain, raw_non_strain
+	if len(abs_strain) > 0:
+		# absolute SHAP values
+		out_ks[("ks_test", "absolute")] = list(ks_2samp(
+			data1=abs_strain, data2=abs_non_strain, alternative="greater", method="asymp"))
+		# plot
+		plot_shap_violin(data1=abs_strain, data2=abs_non_strain, strain=strain.upper(),
+			title=f"{env} {tag} {vtype} absolute SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_abs_SHAP_violin.pdf")
+		out_stats[("summary_stats", f"abs_{strain}")] = abs_strain.describe()
+		out_stats[("summary_stats", f"abs_non_{strain}")] = abs_non_strain.describe()
+		del abs_strain, abs_non_strain
+	if len(pos_strain) > 0:
+		# positive SHAP values only
+		out_ks[("ks_test", "positive")] = list(ks_2samp(
+			data1=pos_strain, data2=pos_non_strain, alternative="greater", method="asymp"))
+		plot_shap_violin(data1=pos_strain, data2=pos_non_strain, strain=strain.upper(),
+			title=f"{env} {tag} {vtype} Positive SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_pos_SHAP_violin.pdf")
+		out_stats[("summary_stats", f"pos_{strain}")] = pos_strain.describe()
+		out_stats[("summary_stats", f"pos_non_{strain}")] = pos_non_strain.describe()
+		del pos_strain, pos_non_strain
+	if len(neg_strain) > 0:
+		# negative SHAP values only
+		out_ks[("ks_test", "negative")] = list(ks_2samp(
+			data1=neg_strain, data2=neg_non_strain, alternative="greater", method="asymp"))
+		plot_shap_violin(data1=neg_strain, data2=neg_non_strain, strain=strain.upper(),
+			title=f"{env} {tag} {vtype} Negative SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_neg_SHAP_violin.pdf")
+		out_stats[("summary_stats", f"neg_{strain}")] = neg_strain.describe()
+		out_stats[("summary_stats", f"neg_non_{strain}")] = neg_non_strain.describe()
+		del neg_strain, neg_non_strain
+	gc.collect()
+	gc.collect()
+	return out_ks, out_stats
+
+
+def mwu_shap(data1, data2):
+	"""Mann-Whitney U test.
+	Null Ho: both distributions come from the same underlying distribution
+	Alt ha: values in data1 tend to be greater than values in data2
+	"""
+	# Separate SHAP values by type or use absolute values
+	if len(data1.shape) == 1: # global SHAP values
+		raw_strain = data1.copy(deep=True)
+		raw_non_strain = data2.copy(deep=True)
+		abs_strain = data1.abs()
+		abs_non_strain = data2.abs()
+		pos_strain = data1.mask(data1 <= 0, None).dropna()
+		pos_non_strain = data2.mask(data2 <= 0, None).dropna()
+		neg_strain = data1.mask(data1 >= 0, None).dropna()
+		neg_non_strain = data2.mask(data2 >= 0, None).dropna()
+	else: # local SHAP values
+		raw_strain = data1["shap_value"].copy(deep=True)
+		raw_non_strain = data2["shap_value"].copy(deep=True)
+		abs_strain = raw_strain.abs()
+		abs_non_strain = raw_non_strain.abs()
+		pos_strain = raw_strain.mask(raw_strain <= 0, None).dropna()
+		pos_non_strain = raw_non_strain.mask(raw_non_strain <= 0, None).dropna()
+		neg_strain = raw_strain.mask(raw_strain >= 0, None).dropna()
+		neg_non_strain = raw_non_strain.mask(raw_non_strain >= 0, None).dropna()
+	
+	# store results
+	out_mwu = {}
+	if len(raw_strain) > 0:
+		# raw SHAP values
+		out_mwu[("mwu_test", "raw")] = list(mannwhitneyu(
+			x=raw_strain, y=raw_non_strain, alternative="greater"))
+		del raw_strain, raw_non_strain
+	if len(abs_strain) > 0:
+		# absolute SHAP values
+		out_mwu[("mwu_test", "absolute")] = list(mannwhitneyu(
+			x=abs_strain, y=abs_non_strain, alternative="greater"))
+		del abs_strain, abs_non_strain
+	if len(pos_strain) > 0:
+		# positive SHAP values only
+		out_mwu[("mwu_test", "positive")] = list(mannwhitneyu(
+			x=pos_strain, y=pos_non_strain, alternative="greater"))
+		del pos_strain, pos_non_strain
+	if len(neg_strain) > 0:
+		# negative SHAP values only
+		out_mwu[("mwu_test", "negative")] = list(mannwhitneyu(
+			x=neg_strain, y=neg_non_strain, alternative="greater"))
+		del neg_strain, neg_non_strain
+	gc.collect()
+	gc.collect()
+	return out_mwu
+
+
+# S288C benchmark genes: compare local SHAP distributions ---------------
+def get_shap_subsets(shap_df, map_ben_s288c, map_df, vtype="snp", non_bench_map=None):
+	if vtype == "snp":
+		# SNPs that map to S288C benchmark genes
+		shap_s288c = shap_df.loc[:, shap_df.columns.isin(map_ben_s288c["snp"])]
+		n_shap_s288c_genes = map_ben_s288c.loc[map_ben_s288c["snp"].isin(shap_s288c.columns), "gene"].nunique()
+		n_shap_s288c_features = shap_s288c.shape[1]
+		# SNPs that do not map to S288C benchmark genes
+		if non_bench_map is None:
+			shap_non = shap_df.loc[:, ~shap_df.columns.isin(map_ben_s288c["snp"])] # used to get results in s288c_SHAP_comparisons_non_exp_verified_included/
+		else:
+			shap_non = shap_df.loc[:, shap_df.columns.isin(non_bench_map["snp"])] # used to get results in s288c_SHAP_comparisons_non_exp_verified_excluded/
+		# drop intergenic SNPs
+		shap_non_map = map_df.loc[map_df["snp"].isin(shap_non.columns), ["snp", "gene"]].set_index("snp")
+		shap_non = shap_non.loc[:, shap_non_map[shap_non_map.gene != "intergenic"].index.unique()]
+		n_shap_non_genes = map_df.loc[map_df["snp"].isin(shap_non.columns), "gene"].nunique()
+		n_shap_non_features = shap_non.shape[1]
+	else:
+		# ORFs that map to S288C benchmark genes
+		shap_s288c = shap_df.loc[:, shap_df.columns.isin(map_ben_s288c["orf"])]
+		n_shap_s288c_features = shap_s288c.shape[1]
+		if shap_s288c.shape[1] > 0:
+			n_shap_s288c_genes = map_ben_s288c.loc[map_ben_s288c["orf"].isin(shap_s288c.columns), "gene"].nunique()
+		else:
+			n_shap_s288c_genes = 0
+		# ORFs that do not map to S288C benchmark genes
+		shap_non = shap_df.loc[:, ~shap_df.columns.isin(map_ben_s288c["orf"])] # used to get results in s288c_SHAP_comparisons_non_exp_verified_included/
+		n_shap_non_genes = map_df.loc[map_df["orf"].isin(shap_non.columns), "gene"].nunique()
+		n_shap_non_features = shap_non.shape[1]
+	print(f"{n_shap_s288c_genes} genes with {vtype} SHAP values that map to S288C benchmark genes")
+	print(f"{n_shap_s288c_features} {vtype} features that map to S288C benchmark genes")
+	print(f"{n_shap_non_genes} genes with {vtype} SHAP values that do NOT map to S288C benchmark genes")
+	print(f"{n_shap_non_features} {vtype} features that do NOT map to S288C benchmark genes")
+	return shap_s288c, shap_non, [n_shap_s288c_genes, n_shap_s288c_features, n_shap_non_genes, n_shap_non_features]
+
+
+def get_global_shap(shap_df, map_ben_s288c, map_df, vtype="snp", is_non=False):
+	"""Calculate the global SHAP value for each feature by summing the SHAP values across all isolates"""
+	gl_shap = shap_df.sum(axis=0)
+	gl_shap = gl_shap[gl_shap != 0] # remove un-important features
+	print(f"{len(gl_shap)} {vtype} features with non-zero global SHAP values")
+	n_shap_features = gl_shap.shape[0]
+	if vtype == "snp": # re-count genes and features after removing un-important features
+		if not is_non:
+			n_shap_genes = map_ben_s288c.loc[map_ben_s288c["snp"].isin(gl_shap.index), "gene"].nunique()
+		else:
+			n_shap_genes = map_df.loc[map_df["snp"].isin(gl_shap.index), "gene"].nunique()
+	else:
+		if not is_non:
+			n_shap_genes = map_ben_s288c.loc[map_ben_s288c["orf"].isin(gl_shap.index), "gene"].nunique()
+		else:
+			n_shap_genes = map_df.loc[map_df["orf"].isin(gl_shap.index), "gene"].nunique()
+	return gl_shap, [n_shap_genes, n_shap_features]
+
+
+def reshape_local_shap(s288c_shap_df, non_shap_df, map_df, strain="s288c", map_type="orf"):
+	"""Re-arrange the local SHAP values into long format for plotting & performing ks-tests"""
+	s288c_shap_long = s288c_shap_df.reset_index().melt(id_vars="ID", var_name="feature", value_name="shap_value")
+	# s288c_shap_long["gene_type"] = f"{strain}_bench_genes"
+	non_shap_long = non_shap_df.reset_index().melt(id_vars="ID", var_name="feature", value_name="shap_value")
+	# non_shap_long["gene_type"] = f"non_{strain}_bench_genes"
+	# drop un-important local SHAP values
+	s288c_shap_long = s288c_shap_long[s288c_shap_long["shap_value"] != 0]
+	non_shap_long = non_shap_long[non_shap_long["shap_value"] != 0]
+	n_shap_s288c_genes = map_df.loc[map_df[map_type].isin(s288c_shap_long["feature"].unique()), "gene"].nunique()
+	n_shap_non_genes = map_df.loc[map_df[map_type].isin(non_shap_long["feature"].unique()), "gene"].nunique()
+	return s288c_shap_long, non_shap_long, [n_shap_s288c_genes, s288c_shap_long["feature"].nunique(), n_shap_non_genes, non_shap_long["feature"].nunique()]
+
+
+ks_res = {}
+mwu_res = {}
+stats_res = {}
+counts_res = {}
+for q in [1, .0005, .005, .01, .025, .05, .1, .2, .3, .4, .5, .6, .7, .8, .9]:
+	# Get the SNPs & ORFs that map to S288C benchmark genes
+	# benchmark genes are those whose mutants have decreased fitness in benomyl compared to the reference condition
+	# use the quantile to define mutants that are sufficiently negatively affected by benomyl
+	print()
+	if q == 1:
+		print("Using all negative Benomyl DRF values to define benchmark genes")
+		snp_map_ben_s288c = snp_map.loc[snp_map["gene"].isin(benchmark.index), :] # SNP benchmark genes
+		# orf_map_ben_s288c = orf_map.loc[orf_map["gene"].isin(benchmark.index), :] # ORF benchmark genes
+	else:
+		drf_thresh = benchmark.quantile(q, interpolation="linear")
+		print(f"Benomyl DRF threshold for top {q*100}% of mutants: {drf_thresh}")
+		benchmark_q = benchmark[benchmark <= drf_thresh] # the top q (%) of mutants most negatively affected by benomyl
+		snp_map_ben_s288c = snp_map.loc[snp_map["gene"].isin(benchmark_q.index), :] # SNP benchmark genes
+		# orf_map_ben_s288c = orf_map.loc[orf_map["gene"].isin(benchmark_q.index), :] # ORF benchmark genes
+	
+	# subset the SHAP values of S288C benchmark genes and non-benchmark genes
+	non_bench_map = snp_map.loc[snp_map["gene"].isin(non_benchmark.index), :]
+	snp_shap_s288c, snp_shap_non, snp_shap_counts = get_shap_subsets(snp_shap, snp_map_ben_s288c, snp_map, vtype="snp", non_bench_map=non_bench_map)
+	# pav_shap_s288c, pav_shap_non, pav_shap_counts = get_shap_subsets(pav_shap, orf_map_ben_s288c, orf_map, vtype="pav")
+	# cnv_shap_s288c, cnv_shap_non, cnv_shap_counts = get_shap_subsets(cnv_shap, orf_map_ben_s288c, orf_map, vtype="cnv")
+	
+	# calculate the global SHAP value (sum across isolates); drop un-important features
+	snp_gl_shap_s288c, snp_gl_shap_s288c_counts = get_global_shap(snp_shap_s288c, snp_map_ben_s288c, snp_map, vtype="snp", is_non=False)
+	snp_gl_shap_non, snp_gl_shap_non_counts = get_global_shap(snp_shap_non, snp_map_ben_s288c, snp_map, vtype="snp", is_non=True)
+	# pav_gl_shap_s288c, pav_gl_shap_s288c_counts = get_global_shap(pav_shap_s288c, orf_map_ben_s288c, orf_map, vtype="pav", is_non=False)
+	# pav_gl_shap_non, pav_gl_shap_non_counts = get_global_shap(pav_shap_non, orf_map_ben_s288c, orf_map, vtype="pav", is_non=True)
+	# cnv_gl_shap_s288c, cnv_gl_shap_s288c_counts = get_global_shap(cnv_shap_s288c, orf_map_ben_s288c, orf_map, vtype="cnv", is_non=False)
+	# cnv_gl_shap_non, cnv_gl_shap_non_counts = get_global_shap(cnv_shap_non, orf_map_ben_s288c, orf_map, vtype="cnv", is_non=True)
+	
+	# re-arrange the local SHAP values into long format for plotting & performing ks-tests
+	snp_lc_shap_s288c, snp_lc_shap_non, snp_lc_shap_counts = reshape_local_shap(snp_shap_s288c, snp_shap_non, snp_map, strain="s288c", map_type="snp")
+	# pav_lc_shap_s288c, pav_lc_shap_non, pav_lc_shap_counts = reshape_local_shap(pav_shap_s288c, pav_shap_non, orf_map, strain="s288c", map_type="orf")
+	# cnv_lc_shap_s288c, cnv_lc_shap_non, cnv_lc_shap_counts = reshape_local_shap(cnv_shap_s288c, cnv_shap_non, orf_map, strain="s288c", map_type="orf")
+	
+	# perform the ks test and plot distributions
+	ks_snp_gl, stats_snp_gl = ks_2samp_shap(snp_gl_shap_s288c, snp_gl_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="SNP", tag=f"top_{q*100}pct_global")
+	# ks_pav_gl, stats_pav_gl = ks_2samp_shap(pav_gl_shap_s288c, pav_gl_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="PAV", tag=f"top_{q*100}pct_global")
+	# ks_cnv_gl, stats_cnv_gl = ks_2samp_shap(cnv_gl_shap_s288c, cnv_gl_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="CNV", tag=f"top_{q*100}pct_global")
+	ks_snp_lc, stats_snp_lc = ks_2samp_shap(snp_lc_shap_s288c, snp_lc_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="SNP", tag=f"top_{q*100}pct_local")
+	# ks_pav_lc, stats_pav_lc = ks_2samp_shap(pav_lc_shap_s288c, pav_lc_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="PAV", tag=f"top_{q*100}pct_local")
+	# ks_cnv_lc, stats_cnv_lc = ks_2samp_shap(cnv_lc_shap_s288c, cnv_lc_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="CNV", tag=f"top_{q*100}pct_local")
+	
+	# perform mann-whitney u test
+	mwu_snp_gl = mwu_shap(snp_gl_shap_s288c, snp_gl_shap_non)
+	# mwu_pav_gl = mwu_shap(pav_gl_shap_s288c, pav_gl_shap_non)
+	# mwu_cnv_gl = mwu_shap(cnv_gl_shap_s288c, cnv_gl_shap_non)
+	mwu_snp_lc = mwu_shap(snp_lc_shap_s288c, snp_lc_shap_non)
+	# mwu_pav_lc = mwu_shap(pav_lc_shap_s288c, pav_lc_shap_non)
+	# mwu_cnv_lc = mwu_shap(cnv_lc_shap_s288c, cnv_lc_shap_non)
+	
+	# store results
+	ks_res[("SNP", "global", q)] = pd.DataFrame.from_dict(ks_snp_gl, orient="index", columns=["statistic", "pvalue"])
+	stats_res[("SNP", "global", q)] = pd.DataFrame.from_dict(stats_snp_gl, orient="index")
+	# ks_res[("PAV", "global", q)] = pd.DataFrame.from_dict(ks_pav_gl, orient="index", columns=["statistic", "pvalue"])
+	# stats_res[("PAV", "global", q)] = pd.DataFrame.from_dict(stats_pav_gl, orient="index")
+	# ks_res[("CNV", "global", q)] = pd.DataFrame.from_dict(ks_cnv_gl, orient="index", columns=["statistic", "pvalue"])
+	# stats_res[("CNV", "global", q)] = pd.DataFrame.from_dict(stats_cnv_gl, orient="index")
+	
+	ks_res[("SNP", "local", q)] = pd.DataFrame.from_dict(ks_snp_lc, orient="index", columns=["statistic", "pvalue"])
+	stats_res[("SNP", "local", q)] = pd.DataFrame.from_dict(stats_snp_lc, orient="index")
+	# ks_res[("PAV", "local", q)] = pd.DataFrame.from_dict(ks_pav_lc, orient="index", columns=["statistic", "pvalue"])
+	# stats_res[("PAV", "local", q)] = pd.DataFrame.from_dict(stats_pav_lc, orient="index")
+	# ks_res[("CNV", "local", q)] = pd.DataFrame.from_dict(ks_cnv_lc, orient="index", columns=["statistic", "pvalue"])
+	# stats_res[("CNV", "local", q)] = pd.DataFrame.from_dict(stats_cnv_lc, orient="index")
+	
+	mwu_res[("SNP", "global", q)] = pd.DataFrame.from_dict(mwu_snp_gl, orient="index", columns=["statistic", "pvalue"])
+	# mwu_res[("PAV", "global", q)] = pd.DataFrame.from_dict(mwu_pav_gl, orient="index", columns=["statistic", "pvalue"])
+	# mwu_res[("CNV", "global", q)] = pd.DataFrame.from_dict(mwu_cnv_gl, orient="index", columns=["statistic", "pvalue"])
+	mwu_res[("SNP", "local", q)] = pd.DataFrame.from_dict(mwu_snp_lc, orient="index", columns=["statistic", "pvalue"])
+	# mwu_res[("PAV", "local", q)] = pd.DataFrame.from_dict(mwu_pav_lc, orient="index", columns=["statistic", "pvalue"])
+	# mwu_res[("CNV", "local", q)] = pd.DataFrame.from_dict(mwu_cnv_lc, orient="index", columns=["statistic", "pvalue"])
+	
+	counts_res[("SNP", "before_filtering", q)] = snp_shap_counts
+	# counts_res[("PAV", "before_filtering", q)] = pav_shap_counts
+	# counts_res[("CNV", "before_filtering", q)] = cnv_shap_counts
+	counts_res[("SNP", "global", q)] = snp_gl_shap_s288c_counts + snp_gl_shap_non_counts
+	# counts_res[("PAV", "global", q)] = pav_gl_shap_s288c_counts + pav_gl_shap_non_counts
+	# counts_res[("CNV", "global", q)] = cnv_gl_shap_s288c_counts + cnv_gl_shap_non_counts
+	counts_res[("SNP", "local", q)] = snp_lc_shap_counts
+	# counts_res[("PAV", "local", q)] = pav_lc_shap_counts
+	# counts_res[("CNV", "local", q)] = cnv_lc_shap_counts
+	del snp_shap_s288c, snp_shap_non, snp_shap_counts, snp_gl_shap_s288c, snp_gl_shap_non, snp_gl_shap_s288c_counts, snp_gl_shap_non_counts, snp_lc_shap_s288c, snp_lc_shap_non, snp_lc_shap_counts, mwu_snp_gl, mwu_snp_lc #, ks_snp_lc, stats_snp_lc, ks_snp_gl, stats_snp_gl
+	# del pav_shap_s288c, pav_shap_non, pav_shap_counts, pav_gl_shap_s288c, pav_gl_shap_non, pav_gl_shap_s288c_counts, pav_gl_shap_non_counts, pav_lc_shap_s288c, pav_lc_shap_non, pav_lc_shap_counts, mwu_pav_gl, mwu_pav_lc #, ks_pav_lc, stats_pav_lc, ks_pav_gl, stats_pav_gl
+	# del cnv_shap_s288c, cnv_shap_non, cnv_shap_counts, cnv_gl_shap_s288c, cnv_gl_shap_non, cnv_gl_shap_s288c_counts, cnv_gl_shap_non_counts, cnv_lc_shap_s288c, cnv_lc_shap_non, cnv_lc_shap_counts, mwu_cnv_gl, mwu_cnv_lc #, ks_cnv_lc, stats_cnv_lc, ks_cnv_gl, stats_cnv_gl
+
+# Save the KS-test results
+df_list = []
+num_empty = 0
+for key in ks_res.keys():
+	if key == ('CNV', 'local', 0.95):
+		continue
+	if not ks_res[key].empty:
+		new_idx = [list(key) + list(x) for x in ks_res[key].reset_index()["index"]]
+		ks_res[key].index = pd.MultiIndex.from_tuples(new_idx)
+		df_list.append(ks_res[key])
+	else:
+		num_empty += 1
+
+ks_res_df = pd.concat(df_list)
+ks_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile", "remove", "SHAP_Subset"]
+ks_res_df.reset_index(inplace=True)
+ks_res_df.drop(columns="remove", inplace=True)
+ks_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_ks_test_results.csv", index=False)
+
+assert len(df_list) + num_empty == len(ks_res.keys()) # pass!
+
+# Save the Mann-Whitney U test results
+df_list = []
+num_empty = 0
+for key in mwu_res.keys():
+	if not mwu_res[key].empty:
+		new_idx = [list(key) + list(x) for x in mwu_res[key].reset_index()["index"]]
+		mwu_res[key].index = pd.MultiIndex.from_tuples(new_idx)
+		df_list.append(mwu_res[key])
+	else:
+		num_empty += 1
+
+mwu_res_df = pd.concat(df_list)
+mwu_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile", "remove", "SHAP_Subset"]
+mwu_res_df.reset_index(inplace=True)
+mwu_res_df.drop(columns="remove", inplace=True)
+mwu_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_mwu_test_results.csv", index=False)
+
+# apply multiple-testing correction
+from statsmodels.stats.multitest import multipletests
+mwu_res_df = mwu_res_df.pivot(index=["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type"], columns="SHAP_Subset", values="pvalue")
+mwu_res_df.reset_index(inplace=True)
+
+mwu_res_df[["raw_q", "absolute_q", "positive_q", "negative_q"]] = np.nan
+for shap_type in mwu_res_df["SHAP_Type"].unique():
+	for variant_type in mwu_res_df["Variant_Type"].unique():
+		mask = (mwu_res_df["SHAP_Type"] == shap_type) & (mwu_res_df["Variant_Type"] == variant_type)
+		sub = mwu_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]]
+		sub = mwu_res_df.loc[mask, ["raw", "absolute", "positive", "negative"]].apply(lambda x:multipletests(x, alpha=0.05, method='fdr_bh')[1], axis=0)
+		mwu_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]] = sub.values
+
+mwu_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_mwu_test_results_with_qvals.csv", index=False)
+
+# Save the distribution descriptive statistics
+df_list = {k: v for k, v in stats_res.items() if not v.empty}
+stats_res_df = pd.concat(df_list)
+stats_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile", "remove", "SHAP_Subset"]
+stats_res_df.reset_index(inplace=True)
+stats_res_df.drop(columns="remove", inplace=True)
+stats_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_shap_summary_stats.csv", index=False)
+
+counts_res_df = pd.DataFrame(counts_res).T
+counts_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile"]
+counts_res_df.columns = ["Num_S288C_Bench_Genes", "Num_S288C_Bench_Features", "Num_Non_S288C_Bench_Genes", "Num_Non_S288C_Bench_Features"]
+counts_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_feature_gene_counts.csv", index=True)
+
+# Plot summary figure of ks_res_df and msu_res_df
+ks_res_df = pd.read_csv("_s288c_costanzo_benomyl_benchmark_ks_test_results.csv")
+ks_res_df = ks_res_df.pivot(index=["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type"], columns="SHAP_Subset", values="pvalue")
+ks_res_df.reset_index(inplace=True)
+
+# apply multiple testing correction to the p-values
+ks_res_df[["raw_q", "absolute_q", "positive_q", "negative_q"]] = np.nan
+for shap_type in ks_res_df["SHAP_Type"].unique():
+	for variant_type in ks_res_df["Variant_Type"].unique():
+		mask = (ks_res_df["SHAP_Type"] == shap_type) & (ks_res_df["Variant_Type"] == variant_type)
+		sub = ks_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]]
+		sub = ks_res_df.loc[mask, ["raw", "absolute", "positive", "negative"]].apply(lambda x:multipletests(x, alpha=0.05, method='fdr_bh')[1], axis=0)
+		ks_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]] = sub.values
+
+ks_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_ks_test_results_with_qvals.csv", index=False)
+
+mwu_res_df = pd.read_csv("_s288c_costanzo_benomyl_benchmark_mwu_test_results_with_qvals.csv")
+
+# plot
+def plot_ks_results(res_df, ylabel,save_name):
+	fig, ax = plt.subplots(figsize=(11, 8), nrows=3, ncols=2, sharey=True, sharex=True)
+	res_df[(res_df["SHAP_Type"] == "global") & (res_df["Variant_Type"] == "SNP")].plot(
+		x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[0, 0], title="SNP global SHAP values", linewidth=.8, ms=4, grid=True)
+	res_df[(res_df["SHAP_Type"] == "local") & (res_df["Variant_Type"] == "SNP")].plot(
+		x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[0, 1], title="SNP local SHAP values", linewidth=.8, ms=4, grid=True)
+	# res_df[(res_df["SHAP_Type"] == "global") & (res_df["Variant_Type"] == "PAV")].plot(
+	# 	x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[1, 0], title="PAV global SHAP values", linewidth=.8, ms=4, grid=True)
+	# res_df[(res_df["SHAP_Type"] == "local") & (res_df["Variant_Type"] == "PAV")].plot(
+	# 	x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[1, 1], title="PAV local SHAP values", linewidth=.8, ms=4, grid=True)
+	# res_df[(res_df["SHAP_Type"] == "global") & (res_df["Variant_Type"] == "CNV")].plot(
+	# 	x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[2, 0], title="CNV global SHAP values", linewidth=.8, ms=4, grid=True)
+	# res_df[(res_df["SHAP_Type"] == "local") & (res_df["Variant_Type"] == "CNV")].plot(
+	# 	x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[2, 1], title="CNV local SHAP values", linewidth=.8, ms=4, grid=True)
+	# plot horizontal line at y=0.05
+	for i in range(3):
+		for j in range(2):
+			ax[i, j].axhline(y=0.05, color="red", linestyle="--", linewidth=.8)
+			ax[i, j].tick_params(axis="both", labelsize=7)
+			ax[i, j].set_ylabel(ylabel)
+	plt.savefig(save_name)
+	plt.close("all")
+
+plot_ks_results(ks_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute", "negative", "positive", "raw"]], "P-value", save_name='_s288c_costanzo_benomyl_benchmark_ks_test_results_pvals.pdf')
+plot_ks_results(ks_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute_q", "negative_q", "positive_q", "raw_q"]], "Q-value", save_name='_s288c_costanzo_benomyl_benchmark_ks_test_results_qvals.pdf')
+plot_ks_results(mwu_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute", "negative", "positive", "raw"]], "P-value", save_name='_s288c_costanzo_benomyl_benchmark_mwu_test_results_pvals.pdf')
+plot_ks_results(mwu_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute_q", "negative_q", "positive_q", "raw_q"]], "Q-value", save_name='_s288c_costanzo_benomyl_benchmark_mwu_test_results_qvals.pdf')
+
+
+# W303 benchmark genes: compare local SHAP distributions ---------------
+snp_ben_w303_list = [snp_map_ben_w303["snp"].tolist(), snp_map_caf_w303["snp"].tolist(), 
+					 snp_map_caf_w303["snp"].tolist(), snp_map_cuso_w303["snp"].tolist(),
+					 snp_map_sma_w303["snp"].tolist()]
+orf_ben_w303_list = [orf_map_ben_w303["orf"].tolist(), orf_map_caf_w303["orf"].tolist(), 
+					 orf_map_caf_w303["orf"].tolist(), orf_map_cuso_w303["orf"].tolist(),
+					 orf_map_sma_w303["orf"].tolist()]
+
+corr_res = {}
+for i in range(5):
+	print(snp_shap_files[i])
+	print(pav_shap_files[i])
+	print(cnv_shap_files[i])
+	snp_shap = fix_snp_ids(snp_shap_files[i])
+	pav_shap = fix_orf_ids(pav_shap_files[i])
+	cnv_shap = fix_orf_ids(cnv_shap_files[i])
+	
+	# Subset the SHAP matrices to only include features that map to W303 benchmark genes
+	snp_shap_w303 = snp_shap.loc["SACE_GAV", snp_shap.columns.isin(snp_ben_w303_list[i])]
+	pav_shap_w303 = pav_shap.loc["SACE_GAV", pav_shap.columns.isin(orf_ben_w303_list[i])]
+	cnv_shap_w303 = cnv_shap.loc["SACE_GAV", cnv_shap.columns.isin(orf_ben_w303_list[i])]
+	
+	# Are the SHAP values of W303 genes greater than those of non-W303 genes?
+	if len(snp_shap_w303) > 0:
+		# Subset the SHAP matrices to only include features that do NOT map to W303 genes
+		snp_shap_non = snp_shap.loc["SACE_GAV", ~snp_shap.columns.isin(snp_ben_w303_list[i])]
+		corr_res[(target_envs[i], "SNP")] = ks_2samp_shap(snp_shap_w303, snp_shap_non, env=target_envs[i])
+	if len(pav_shap_w303) > 0:
+		pav_shap_non = pav_shap.loc["SACE_GAV", ~pav_shap.columns.isin(orf_ben_w303_list[i])]
+		corr_res[(target_envs[i], "PAV")] = ks_2samp_shap(pav_shap_w303, pav_shap_non, env=target_envs[i])
+	if len(cnv_shap_w303) > 0:
+		cnv_shap_non = cnv_shap.loc["SACE_GAV", ~cnv_shap.columns.isin(orf_ben_w303_list[i])]
+		corr_res[(target_envs[i], "CNV")] = ks_2samp_shap(cnv_shap_w303, cnv_shap_non, env=target_envs[i])
+	
+	# # Calculate the pearson correlation between SHAP values and fitness values of W303 benchmark genes
+	# if len(snp_shap_w303.columns) > 0:
+	# 	corr_res[(target_envs[i], "SNP")] = snp_shap_w303.apply(
+	# 		lambda col: col.corr(pheno.loc[col.index, f"{target_envs[i]}"], method="pearson"))
+	# if len(pav_shap_w303.columns) > 0:
+	# 	corr_res[(target_envs[i], "PAV")] = pav_shap_w303.apply(
+	# 		lambda col: col.corr(pheno.loc[col.index, f"{target_envs[i]}"], method="pearson"))
+	# if len(cnv_shap_w303.columns) > 0:
+	# 	corr_res[(target_envs[i], "CNV")] = cnv_shap_w303.apply(
+	# 		lambda col: col.corr(pheno.loc[col.index, f"{target_envs[i]}"], method="pearson"))
+	del snp_shap_w303, pav_shap_w303, cnv_shap_w303, snp_shap, pav_shap, cnv_shap
+
+# Store KS test results
+pd.DataFrame.from_dict({tuple(list(k)+list(i)): j for i,j in v.items() for k, v in corr_res.items()}, orient="index")
+
+
+# Store the pearson correlations between SHAP values and fitness values of W303 benchmark genes
+# pd.DataFrame(corr_res).to_csv("_w303_benchmark_genes_shap_fitness_corr.csv")
+
+# ------------------------------------------------------------------------------
+"""4. Analyze the fitness effects in S288C (Costanzo et al. 2016) of genes with
+broad SHAP effects across isolates.
+
+Questions to explore:
+- How well do SHAP values of an isolate correlate with the fitness effects across
+genes in S288C?
+- What is the relationship between the degree of variation in SHAP values across
+isolates for a given gene and the deletion-mutant fitness effect of said gene in S288C?
+
+"""
+
+
+
+
+# ------------------------------------------------------------------------------
+"""5. Examine gene variant number (1, 2, 3, etc) and fitness under different
+environmental conditions."""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+cnv = pd.read_excel("Scripts/Data_Vis/S6_File.xlsx", engine="openpyxl")
+cnv.set_index("ID", inplace=True)
+
+# variance in copy number across isolates
+orf_var = cnv.var().sort_values(ascending=False)
+orf_stats = cnv.describe().T
+orf_nuniq = pd.DataFrame(cnv.apply(lambda x: x.unique().tolist()))
+orf_nuniq["nunique"] = cnv.nunique()
+
+# variance in copy number across ORFs
+iso_var = cnv.T.var().sort_values(ascending=False)
+iso_stats = cnv.T.describe().T
+iso_nuniq = pd.DataFrame(cnv.T.apply(lambda x: x.unique().tolist()))
+iso_nuniq["nunique"] = cnv.T.nunique()
+
+# fitness data (associate with isolate-level variance across CNVs)
+pheno = pd.read_csv("Data/Peter_2018/pheno.csv", index_col=0)
+
+# Environmental conditions
+envs = pd.read_excel("Scripts/Data_Vis/S1_Table.xlsx", engine="openpyxl")
+envs["Full Name"] = envs["Full Name"].str.replace(r'[\u03BC\u00B5]', '\u00B5', regex=True) # mu unicode to micro sign
+envs = envs.set_index("Full Name")["Short Name"].to_dict()
+
+# RF model performances (Figure 2)
+models = pd.read_excel(
+	"Scripts/Data_Vis/S2_Table.xlsx", engine="openpyxl", sheet_name="Table S2")
+models = models.loc[(models["Model Type"] == "Optimized") & (models["Algorithm"] == "RF"), :]
+models["Environment"] = models["Environment"].str.replace('YPD 6-Azauracile 600 µg/ml', 'YPD 6-Azauracil 600 µg/ml')
+models["Environment"] = models["Environment"].str.replace('YPD Sodium metaarsenite 2.5 mM', 'YPD Sodium meta-arsenite 2.5 mM')
+models["Short Name"] = models["Environment"].map(envs)
+models[models["Short Name"].isna()].shape # (0, 21)
+
+# Heritability estimates
+factors = pd.read_excel(
+	"Scripts/Data_Vis/S4_Table.xlsx", engine="openpyxl", sheet_name="Features")
+
+# plot frequency of ORF-level variance in CNV values
+# how varied are CNV values across isolates?
+fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(8, 12))
+sns.ecdfplot(orf_nuniq["nunique"], stat="count", complementary=False, ax=ax[0,0])
+sns.ecdfplot(orf_nuniq[orf_nuniq["nunique"] < 50]["nunique"], stat="count", complementary=False, ax=ax[1,0])
+ax[0,0].set_xlabel("Number of unique CNV values")
+ax[0,0].set_ylabel("Number of ORFs")
+ax[0,0].set_title("ORF-level CNV variance across isolates")
+ax[1,0].set_xlabel("Number of unique CNV values (zoomed in)")
+ax[1,0].set_ylabel("Number of ORFs")
+ax[1,0].set_title("ORF-level CNV variance across isolates")
+
+# plot frequency of isolate-level variance in CNV values
+# how varied are CNV values across ORFs?
+sns.ecdfplot(iso_nuniq["nunique"], stat="count", complementary=False, ax=ax[0,1])
+ax[0,1].set_xlabel("Number of unique CNV values")
+ax[0,1].set_ylabel("Number of isolates")
+ax[0,1].set_title("Isolate-level CNV variance across ORFs")
+
+# associate fitness in different environments with isolate-level CNV variance and with model performance
+# iso_var = pd.concat([iso_var, pheno], axis=1, ignore_index=False)
+# iso_var = iso_var.rename(columns={0: "variance"})
+# iso_var_corr = iso_var.corr(method="spearman")
+# iso_var_corr.sort_values(by="variance", inplace=True)
+# cnv_models = models[models["Data"] == "CNV"].set_index("Short Name")
+# cnv_models = pd.concat([iso_var_corr["variance"][:-1], cnv_models["r2_test"]], axis=1, ignore_index=False)
+# how correlated is CNV variance (across ORFs) with fitness in different environments?
+sns.barplot(y=iso_var_corr.sort_values(by="variance")["variance"][:-1], x=iso_var_corr.sort_values(by="variance").index[:-1], ax=ax[2,0])
+ax[2,0].set_ylabel("Spearman's rho")
+ax[2,0].set_xticklabels(ax[2,0].get_xticklabels(), ha="right", rotation=45, size=6)
+ax[2,0].set_xlabel(None)
+ax[2,0].set_title("Correlation btwn CNV variance & fitness")
+# what is the association between the rho values and model performance?
+sns.scatterplot(data=cnv_models, x="variance", y="r2_test", ax=ax[1,1])
+for idx, row in cnv_models.iterrows():
+	ax[1,1].text(row["variance"], row["r2_test"], str(idx), fontsize=5, ha="left", alpha=0.5)
+
+ax[1,1].set_xlabel("rho between CNV variance and fitness")
+ax[1,1].set_ylabel("Model performance (R² on test data)")
+ax[1,1].set_title("Relationship between model performance\n& cnv variance-fitness correlation")
+plt.tight_layout()
+plt.savefig("Scripts/Data_Vis/_cnv_variance_across_isolates_orfs.pdf")
+plt.close("all")
+
+# how is gene variant number related to fitness?
+cnv_flat = cnv.reset_index().melt(id_vars="ID", value_name="CNV_value", var_name="ORF")
+cnv_flat = pd.merge(cnv_flat, pheno, left_on="ID", right_index=True, how="inner")
+# fig, ax = plt.subplots(nrows=7, ncols=5, figsize=(10, 15), sharey=True)
+for i,env in enumerate(pheno.columns):
+	# ridx = i // 5
+	# cidx = i % 5
+	fig, ax = plt.subplots(figsize=(4, 4))
+	sns.scatterplot(data=cnv_flat, x="CNV_value", y=env, alpha=0.3)
+	ax.set_title(env)
+	ax.tick_params(labelsize=6)
+	ax.set_xlabel("CNV value", fontsize=7)
+	ax.set_ylabel("Fitness", fontsize=7)
+	plt.tight_layout()
+	plt.savefig(f"Scripts/Data_Vis/_cnv_values_all_ORFs_vs_fitness_{env}.pdf")
+	plt.close("all")
+
+# plot the CNVs for a few key genes (e.g., 4306-YHR055C-NumOfGenes_4 (CUP1-2))
+# how do the CNV values for CUP1-2 relate to fitness in different environments?
+cup12 = pd.concat([cnv[["X4306.YHR055C_NumOfGenes_4"]], pheno], axis=1, ignore_index=False)
+cup12 = cup12.melt(id_vars="X4306.YHR055C_NumOfGenes_4")
+sns.lineplot(data=cup12, x="X4306.YHR055C_NumOfGenes_4", y="value", hue="variable", linewidth=0.8)#, ax=ax[2,1])
+plt.ylabel("Fitness")
+plt.xlabel("CNV values for CUP1-2 (YHR055C)")
+plt.legend(fontsize=5, title_fontsize=5, title="Environment")
+plt.tight_layout()
+plt.savefig("Scripts/Data_Vis/_cnv_cup1-2_vs_fitness_v2.pdf")
+
+cup12 = pd.concat([cnv[["X4306.YHR055C_NumOfGenes_4"]], pheno], axis=1, ignore_index=False)
+fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(12, 8))
+ordered = cup12.sort_values(by="X4306.YHR055C_NumOfGenes_4", ascending=True)
+sns.heatmap(data=ordered[["X4306.YHR055C_NumOfGenes_4"]], cmap="viridis", yticklabels=False, xticklabels=True, ax=ax[0])
+sns.heatmap(data=ordered.iloc[:, 1:], cmap="viridis", yticklabels=False, xticklabels=True, ax=ax[1])
+ax[1].set_xticklabels(ax[1].get_xticklabels(), size=6, rotation=55, ha="right")
+plt.tight_layout()
+plt.savefig("Scripts/Data_Vis/_cnv_cup1-2_vs_fitness_v2.pdf")
+plt.close("all")
+
+fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(12, 12))
+sns.heatmap(data=cup12.sort_values(by="X4306.YHR055C_NumOfGenes_4", ascending=True).iloc[:, 1:], cmap="viridis_r", yticklabels=False, xticklabels=True, ax=ax[0])
+sns.heatmap(data=cup12.sort_values(by="X4306.YHR055C_NumOfGenes_4", ascending=True)[["X4306.YHR055C_NumOfGenes_4"]], cmap="mako_r", yticklabels=False, ax=ax[1])
+ax[0].set_xticklabels(ax[0].get_xticklabels(), size=6, rotation=55, ha="right")
+plt.tight_layout()
+plt.savefig("Scripts/Data_Vis/_cnv_cup1-2_vs_fitness_v3.pdf")
+plt.close("all")
+
+import gc
+from scipy.spatial.distance import pdist
+from scipy.cluster.hierarchy import linkage, leaves_list
+cup12_rowlink = linkage(pdist(cup12.iloc[:, 1:], metric="euclidean"), method="average", optimal_ordering=True)
+cup12_collink = linkage(pdist(cup12.iloc[:, 1:].T, metric="euclidean"), method="average", optimal_ordering=True)
+cup12_row_order = leaves_list(cup12_rowlink)
+cup12_col_order = leaves_list(cup12_collink)
+cup12_clustered = cup12.iloc[cup12_row_order, 1:].iloc[:, cup12_col_order]
+fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(12, 12))
+sns.heatmap(data=cup12_clustered.iloc[:, 1:], cmap="viridis", yticklabels=False, xticklabels=True, ax=ax[0])
+ax[0].set_xticklabels(ax[0].get_xticklabels(), size=6, rotation=55, ha="right")
+sns.heatmap(data=cup12.loc[cup12_clustered.index,:][["X4306.YHR055C_NumOfGenes_4"]], cmap="mako_r", yticklabels=False, ax=ax[1])
+plt.savefig("Scripts/Data_Vis/_cnv_cup1-2_vs_fitness_v4.pdf")
+plt.close("all")
+gc.collect()
+
+# cluster fitness values within the isolates with different CNV values for CUP1-2
+# fig, ax = plt.subplots(nrows=36, ncols=1, figsize=(8, 72))
+for cnv_val in sorted(cup12["X4306.YHR055C_NumOfGenes_4"].unique()):
+	subset = cup12[cup12["X4306.YHR055C_NumOfGenes_4"] == cnv_val].iloc[:, 1:]
+	if len(subset) > 1:
+		rowlink = linkage(pdist(subset, metric="euclidean"), method="average", optimal_ordering=True)
+		collink = linkage(pdist(subset.T, metric="euclidean"), method="average", optimal_ordering=True)
+		row_order = leaves_list(rowlink)
+		col_order = leaves_list(collink)
+		subset = subset.iloc[row_order, col_order]
+		f = sns.heatmap(data=subset, cmap="viridis", yticklabels=False, xticklabels=True)
+		f.set_ylabel(f"CUP1-2 CNV value: {cnv_val}", fontsize=8)
+		f.set_xticklabels(f.get_xticklabels(), size=5, rotation=55, ha="right")
+		plt.tight_layout()
+		plt.savefig(f"Scripts/Data_Vis/_cnv{cnv_val}_cup1-2_vs_fitness.pdf")
+		plt.close("all")
+		del subset
+		gc.collect()
+		gc.collect()
+	else:
+		continue
+
+
+# calculate OLS between CUP1-2 CNV value and fitness in each environment
+import statsmodels.api as sm
+cup12_ols_results = {}
+x = cup12["X4306.YHR055C_NumOfGenes_4"]
+for env in pheno.columns:
+	y = cup12[env]
+	x = sm.add_constant(x)  # Adds a constant term to the predictor
+	model = sm.OLS(y, x, hasconst=True).fit()
+	rsq = model.rsquared
+	adj_rsq = model.rsquared_adj
+	tvals = model.tvalues
+	pvals = model.pvalues
+	ci = model.conf_int()
+	results = pd.concat([model.params, model.bse, tvals, pvals, ci], axis=1)
+	results.reset_index(inplace=True)
+	results.columns = ["variable", "coef", "std err", "t", "P>|t|", "[0.025", "0.975]"]
+	results.insert(0, "environment", env)
+	results.insert(1, "r_squared", rsq)
+	results.insert(2, "adj_r_squared", adj_rsq)
+	cup12_ols_results[env] = results
+	del model, y, rsq, adj_rsq, tvals, pvals, ci, results
+
+cup12_ols_summary = pd.concat(cup12_ols_results.values(), axis=0, ignore_index=True)
+cup12_ols_summary.to_csv(
+	"Scripts/Data_Vis/_cnv_cup1-2_vs_fitness_ols_summary.csv", index=False)
+
+
+# ------------------------------------------------------------------------------
+"""6. Examining CNVs 
+- How do the effects of CNV features (SHAP values) differ across environments?
+	- A feature's CNVs across isolates--> compare to (pearson)--> local SHAP vals
+		- calculate for all 625 training isolates combined
+		- calculate for each SHAP cluster of isolates
+	- Compare differences in pearson correlations across environments
+- How do the correlations change with median absolute feature importance?
+
+Paulo's comment:
+You already did this, what the reviewer is asking is what additional insight your
+study provides to the field. You compared SHAP values with CNVs and showed how
+they influence fitness prediction. So you may want to expand a bit more in the
+Results and Discussion on whether having more copies increases or decreases
+fitness, and how those patterns appear in your analysis.
+
+"""
+
+import re, gc
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import statsmodels.api as sm
+from glob import glob
+from scipy.stats import pearsonr
+from matplotlib import ticker
+
+# Subset training CNV data
+test = pd.read_csv("Data/Peter_2018/Test.txt", header=None)
+cnv = pd.read_excel("Scripts/Data_Vis/S6_File.xlsx", engine="openpyxl")
+cnv.set_index("ID", inplace=True)
+cnv = cnv[~cnv.index.isin(test[0])]
+cnv_var = cnv.var()
+
+# Local SHAP values from the optimized RF models
+shap_dir = "/mnt/ufs18/rs-049/glbrc_group/shiulab/kenia/yeast_project/SHAP/CNV/fs/"
+shap_files = sorted(glob(f"{shap_dir}/SHAP_values_sorted_YP*"))
+
+# Fitness data (for plotting cnv values, local shap values, and fitness)
+pheno = pd.read_excel("Scripts/Data_Vis/S1_File.xlsx", engine="openpyxl")
+pheno.set_index("ID", inplace=True)
+pheno = pheno[~pheno.index.isin(test[0])]
+pheno = pheno.loc[cnv.index,:]
+
+# Calculate the pearson correlation between each CNV feature's values & SHAP values
+def shap_subplots(top20, shap_df, save_name):
+	fig, ax = plt.subplots(nrows=5, ncols=4, figsize=(12, 11), sharex=False, sharey=True)
+	for i, feat_tuple in enumerate(top20.iterrows()):
+		row_idx = i // 4
+		col_idx = i % 4
+		# create colorbar gradient
+		g = ax[row_idx, col_idx].scatter(
+			x=cnv[feat_tuple[0]], y=pheno[env], c=shap_df[feat_tuple[0]],
+			cmap="RdBu_r", s=40, alpha=0.6, marker=".", linewidths=.8,
+			edgecolors="black")
+		cbar = fig.colorbar(g, ax=ax[row_idx, col_idx], shrink=.6)
+		cbar.set_label(label="SHAP", y=1.15, rotation=0, labelpad=-22)
+		cbar.ax.tick_params(labelsize=6)
+		cbar.ax.minorticks_on()
+		ax[row_idx, col_idx].set_title(feat_tuple[0], fontsize=7, fontweight="bold", fontstyle="italic")
+		# ax[row_idx, col_idx].set_xscale("log")
+		# ax[row_idx, col_idx].set_xticks(sorted(cnv[feat_tuple[0]].unique()))
+		ax[row_idx, col_idx].get_xaxis().set_major_formatter(ticker.ScalarFormatter())
+		ax[row_idx, col_idx].get_xaxis().set_minor_formatter(ticker.ScalarFormatter())
+		ax[row_idx, col_idx].tick_params(axis="both", labelsize=7)
+		# ax[row_idx, col_idx].tick_params(axis="y", labelsize=7)
+		# ax[row_idx, col_idx].tick_params(axis="x", which="minor", labelsize=6, rotation=45)
+		ax[row_idx, col_idx].set_xlabel("CNV value", fontsize=7, fontweight="bold", fontstyle="italic")
+		ax[row_idx, col_idx].set_ylabel("Fitness", fontsize=7, fontweight="bold", fontstyle="italic")
+		ax[row_idx, col_idx].set_box_aspect(1)
+	
+	plt.tight_layout()
+	plt.savefig(save_name)
+	plt.close('all')
+	gc.collect()
+	gc.collect()
+
+
+def calc_shap_cnv_corr(shap_file, cnv=cnv, pheno=pheno, plot=True):
+	# read in local shap values
+	shap_df = pd.read_csv(shap_file, sep="\t", index_col=0)
+	# ensure isolates are in the same order as in the CNV matrix
+	shap_df = shap_df.loc[cnv.index, :]
+	# for each feature in shap_df, calculate pearson r with CNV values
+	r_res = shap_df.apply(lambda f: pearsonr(f, cnv[f.name]), axis=0).T
+	r_res.columns = ["r_shap_vs_cnv", "pvalue_shap_vs_cnv"]
+	# insert summary statistics of the local shap values for each feature
+	r_res = r_res.merge(shap_df.describe().T.add_suffix("_shap"),
+						left_index=True, right_index=True)
+	r_res.insert(10, "median_abs_shap", shap_df.abs().median())
+	r_res.insert(11, "mean_abs_shap", shap_df.abs().mean())
+	# r_res.insert(12, "variance_cnv", r_res.apply(
+	# 	lambda f: cnv[f.name].var(), axis=1))
+	r_res.insert(12, "variance_cnv", [cnv[col].var() for col in shap_df.columns])
+	r_res = r_res.merge(cnv[shap_df.columns].describe().T.add_suffix("_cnv"),
+						left_index=True, right_index=True)
+	# sort features by median absolute shap values
+	r_res.sort_values(by="median_abs_shap", ascending=False)
+	# get environment to subset the fitness values for plotting
+	env = re.search("YP[A-Z0-9]+(?!cnv)", shap_file).group()
+	# add the correlation between CNV values and fitness into r_res
+	r_res2 = shap_df.apply(lambda f: pearsonr(cnv[f.name], pheno[env]), axis=0).T
+	r_res2.columns = ["r_cnv_vs_fitness", "pvalue_cnv_vs_fitness"]
+	r_res = pd.concat([r_res, r_res2], ignore_index=False, axis=1)
+	# plot the cnv values vs local SHAP values scatterplots of the top 20 features
+	if plot:
+		top20 = r_res.iloc[:20,:]
+		shap_subplots(top20, shap_df, f"Scripts/Data_Vis/_cnv_{env}_shap_scatter.pdf")
+	# clear memory
+	del r_res2, shap_df, env
+	gc.collect()
+	return r_res
+
+
+target_envs = ["YPDBENOMYL500", "YPDCAFEIN40", "YPDCAFEIN50", "YPDCUSO410MM", "YPDSODIUMMETAARSENITE"]
+for shap_file in shap_files:
+	env = re.search("YP[A-Z0-9]+(?!cnv)", shap_file).group()
+	if env not in target_envs:
+		env_r_res = calc_shap_cnv_corr(shap_file, plot=False)
+	if env in target_envs:
+		# calculate the correlations between cnv values, local SHAP values, and fitness
+		env_r_res = calc_shap_cnv_corr(shap_file)
+	# How do the correlations change with median absolute feature importance?
+	env_r_res["median_abs_shap_bins"] = pd.qcut(env_r_res.median_abs_shap, q=20, retbins=True)[0]
+	out = env_r_res.groupby("median_abs_shap_bins", observed=False)[["variance_cnv",
+		"r_shap_vs_cnv", "pvalue_shap_vs_cnv", "r_cnv_vs_fitness", "pvalue_cnv_vs_fitness"]].describe()
+	# save env_r_res and out into an excel file
+	with pd.ExcelWriter(f"Scripts/Data_Vis/_cnv_{env}_shap_corrwith_cnv_and_fitness.xlsx", engine="openpyxl") as writer:
+		env_r_res.to_excel(writer, sheet_name="shap_corr_summary", index=True)
+		out.to_excel(writer, sheet_name="shap_corr_summary_binned", index=True)
+		env_r_res[['r_shap_vs_cnv', 'median_abs_shap', 'mean_abs_shap', 'variance_cnv',
+				   'mean_cnv', '50%_cnv', 'max_cnv', 'r_cnv_vs_fitness']].corr().to_excel(
+			writer, sheet_name="shap_corr_summary_comparisons", index=True)
+	del env_r_res, out
+
+
+# Aggregate the results from "shap_corr_summary_comparisons" for all env
+excel_files = glob("Scripts/Data_Vis/_cnv_*_shap_corrwith_cnv_and_fitness.xlsx")
+df_list = []
+for file in excel_files:
+	env = re.search("YP[A-Z0-9]+(?!cnv)", file).group()
+	df = pd.read_excel(file, sheet_name="shap_corr_summary_comparisons", index_col=0)
+	# pivot into long format
+	df_long = df.stack().reset_index()
+	df_long.columns = ["var1", "var2", "correlation"]
+	df_long["env"] = env
+	df_list.append(df_long)
+
+
+# combine all environments
+all_env_corr = pd.concat(df_list, ignore_index=True)
+# pivot to compare envs side-by-side
+all_env_corr = all_env_corr.pivot_table(
+	index=["var1", "var2"], columns="env", values="correlation")
+all_env_corr.to_csv("Scripts/Data_Vis/_cnv_all_envs_shap_corr_summary_comparisons.csv", index=True)
+
+
+# Aggregate the r_x_vs_y results from "shap_corr_summary" for all env
+# Also fit a trendline to see how the r_cnv_vs_fitness association changes with feature importance
+df_list = []
+line_fits = []
+for file in excel_files:
+	env = re.search("YP[A-Z0-9]+(?!cnv)", file).group()
+	df = pd.read_excel(file, sheet_name="shap_corr_summary", index_col=0)
+	# Fit a line to compare r_cnv_vs_fitness as median_abs_shap_bins increases
+	medians = df.groupby("median_abs_shap_bins")["r_cnv_vs_fitness"].median() # boxplot medians
+	x = np.arange(1, len(medians) + 1)  # boxplot positions are 1-based
+	X = sm.add_constant(x)
+	model = sm.OLS(medians.values, X).fit()
+	b = model.params[0]
+	m = model.params[1]
+	r2_adj = model.rsquared_adj
+	y_pred = model.predict(X)
+	line_fits.append([env, m, b, r2_adj])
+	if env in target_envs:
+		# plot r_cnv_vs_fitness correlations based on bins of median abs shap
+		ax = df.boxplot(column="r_cnv_vs_fitness", by="median_abs_shap_bins", fontsize=7)
+		ax.set_ylabel("pearson r (CNV value vs fitness)")
+		ax.set_xlabel("median absolute SHAP value bin")
+		# plot the linear trendline
+		ax.plot(x, y_pred, color="red", linestyle="--", linewidth=1) # plot
+		eq_text = f"y = {m:.3f}x + {b:.3f}"
+		ax.text(0.05, 0.95, eq_text, transform=ax.transAxes, fontsize=8, verticalalignment='top')
+		plt.xticks(rotation=45, ha="right")
+		plt.title("")
+		plt.suptitle("")
+		plt.tight_layout()
+		plt.savefig(f"Scripts/Data_Vis/_cnv_{env}_r_cnv_vs_fitness_by_shap_bin.pdf")
+		plt.close("all")
+		gc.collect()
+	df_sub = df[["r_shap_vs_cnv", "r_cnv_vs_fitness"]].copy()
+	# preserve feature identity (index → column)
+	df_sub = df_sub.reset_index().rename(columns={"index": "feature"})
+	# pivot into long format
+	df_long = df_sub.melt(
+		id_vars="feature", value_vars=["r_shap_vs_cnv", "r_cnv_vs_fitness"], var_name="metric", value_name="correlation")
+	df_long["env"] = env
+	df_list.append(df_long)
+
+# combine all envs
+line_fits = pd.DataFrame(line_fits, columns=["environment", "coef", "intercept", "adjusted_r2"])
+all_env_corr = pd.concat(df_list, ignore_index=True)
+wide_df = all_env_corr.pivot_table(
+	index=["feature", "metric"], columns="env", values="correlation")
+
+# save
+with pd.ExcelWriter("Scripts/Data_Vis/_cnv_all_envs_shap_corr_summary.xlsx", engine="openpyxl") as writer:
+	all_env_corr.to_excel(writer, sheet_name="long_format", index=False)
+	wide_df.to_excel(writer, sheet_name="wide_format")
+	wide_df.groupby("metric").describe().stack().T.to_excel(writer, sheet_name="mean_r_across_features")
+	line_fits.to_excel(writer, sheet_name="linear_fit_r_cnv_vs_fitness")
+

@@ -1,0 +1,107 @@
+#!/bin/bash --login
+#SBATCH --time=1:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=2
+#SBATCH --cpus-per-task=12
+#SBATCH --mem-per-cpu=3G
+# SBATCH --job-name=fig4a_shap_itx_piotrowski_rf
+# SBATCH --job-name=fig4a_shap_itx_costanzo_rf
+#SBATCH --output=logs/%x_%j.out
+
+module purge
+conda activate ml-pipeline
+cd /mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis
+
+pipe=/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/ML-Pipeline
+# ISOLATES=
+# label=${ISOLATES[$SLURM_ARRAY_TASK_ID]}
+
+# SNP model interactions, Piotrowski overlap
+python ${pipe}/ML_regression.py \
+	-df _fig4a_snp_local_shap_itx_Piotrowski_overlap.csv \
+	-y_name Interaction -split t -sep , \
+	-feat reviewer_1_responses_piotrowski_feature_list.txt \
+	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+	-tag _fig4a_snp_local_shap_itx_Piotrowski_overlap \
+	-save _fig4a_snp_local_shap_itx_Piotrowski_overlap
+
+# CNV model interactions, Piotrowski overlap
+python ${pipe}/ML_regression.py \
+	-df _fig4a_cnv_local_shap_itx_Piotrowski_overlap.csv \
+	-y_name Interaction -split t -sep , \
+	-feat reviewer_1_responses_piotrowski_feature_list.txt \
+	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+	-tag _fig4a_cnv_local_shap_itx_Piotrowski_overlap \
+	-save _fig4a_cnv_local_shap_itx_Piotrowski_overlap
+
+# SNP_PAV model interactions, Piotrowski overlap
+python ${pipe}/ML_regression.py \
+	-df _fig4a_snp_pav_local_shap_itx_Piotrowski_overlap.csv \
+	-y_name Interaction -split t -sep , \
+	-feat reviewer_1_responses_piotrowski_feature_list.txt \
+	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+	-tag _fig4a_snp_pav_local_shap_itx_Piotrowski_overlap \
+	-save _fig4a_snp_pav_local_shap_itx_Piotrowski_overlap
+
+# SNP_CNV model interactions, Piotrowski overlap
+python ${pipe}/ML_regression.py \
+	-df _fig4a_snp_cnv_local_shap_itx_Piotrowski_overlap.csv \
+	-y_name Interaction -split t -sep , \
+	-feat reviewer_1_responses_piotrowski_feature_list.txt \
+	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+	-tag _fig4a_snp_cnv_local_shap_itx_Piotrowski_overlap \
+	-save _fig4a_snp_cnv_local_shap_itx_Piotrowski_overlap
+
+# PAV_CNV model interactions, Piotrwoski overlap
+python ${pipe}/ML_regression.py \
+	-df _fig4a_pav_cnv_local_shap_itx_Piotrowski_overlap.csv \
+	-y_name Interaction -split t -sep , \
+	-feat reviewer_1_responses_piotrowski_feature_list.txt \
+	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+	-tag _fig4a_pav_cnv_local_shap_itx_Piotrowski_overlap \
+	-save _fig4a_pav_cnv_local_shap_itx_Piotrowski_overlap
+
+# SNP_PAV_CNV model interactions, Piotrowski overlap
+python ${pipe}/ML_regression.py \
+	-df _fig4a_snp_pav_cnv_local_shap_itx_Piotrowski_overlap.csv \
+	-y_name Interaction -split t -sep , \
+	-feat reviewer_1_responses_piotrowski_feature_list.txt \
+	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+	-tag _fig4a_snp_pav_cnv_local_shap_itx_Piotrowski_overlap \
+	-save _fig4a_snp_pav_cnv_local_shap_itx_Piotrowski_overlap
+
+# SNP model interactions, Costanzo overlap
+python ${pipe}/ML_regression.py \
+	-df _fig4a_snp_local_shap_itx_Costanzo_pv05_overlap.csv \
+	-y_name Interaction -split t -sep , -drop_na t \
+	-feat reviewer_1_responses_costanzo_feature_list.txt \
+	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+	-tag _fig4a_snp_local_shap_itx_Costanzo_pv05_overlap \
+	-save _fig4a_snp_local_shap_itx_Costanzo_pv05_overlap
+
+# SNP_PAV model interactions, Costanzo overlap
+python ${pipe}/ML_regression.py \
+	-df _fig4a_snp_pav_local_shap_itx_Costanzo_pv05_overlap.csv \
+	-y_name Interaction -split t -sep , -drop_na t \
+	-feat reviewer_1_responses_costanzo_feature_list.txt \
+	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+	-tag _fig4a_snp_pav_local_shap_itx_Costanzo_pv05_overlap \
+	-save _fig4a_snp_pav_local_shap_itx_Costanzo_pv05_overlap
+
+# SNP_CNV model interactions, Costanzo overlap
+python ${pipe}/ML_regression.py \
+	-df _fig4a_snp_cnv_local_shap_itx_Costanzo_pv05_overlap.csv \
+	-y_name Interaction -split t -sep , -drop_na t \
+	-feat reviewer_1_responses_costanzo_feature_list.txt \
+	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+	-tag _fig4a_snp_cnv_local_shap_itx_Costanzo_pv05_overlap \
+	-save _fig4a_snp_cnv_local_shap_itx_Costanzo_pv05_overlap
+
+# SNP_PAV_CNV model interactions, Costanzo overlap
+python ${pipe}/ML_regression.py \
+	-df _fig4a_snp_pav_cnv_local_shap_itx_Costanzo_pv05_overlap.csv \
+	-y_name Interaction -split t -sep , -drop_na t \
+	-feat reviewer_1_responses_costanzo_feature_list.txt \
+	-alg RF -n_jobs 12 -n 20 -cv_num 5 -plots f \
+	-tag _fig4a_snp_pav_cnv_local_shap_itx_Costanzo_pv05_overlap \
+	-save _fig4a_snp_pav_cnv_local_shap_itx_Costanzo_pv05_overlap
