@@ -34,6 +34,13 @@ write.csv(pCorEnvs, "Data/Peter_2018/pheno_corr_envs.csv", quote=F, row.names=T)
 pCorIso <- cor(as.matrix(t(pheno)), method="pearson")
 write.csv(pCorIso, "Data/Peter_2018/pheno_corr_isolates.csv", quote=F, row.names=T)
 
+pCorEnvs <- read.csv(
+        "/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Data/Peter_2018/pheno_corr_envs.csv",
+        header=T, row.names=1)
+values <- reshape2::melt(pCorEnvs[lower.tri(pCorEnvs)])
+mean(c(values)$value) # 0.240395
+sd(c(values)$value) # 0.1893282
+
 pheno <- reshape2::melt(pheno) # pivot longer
 pheno <- left_join(conds, pheno, by=c("cond"="variable")) # add condition labels
 
