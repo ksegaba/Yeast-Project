@@ -1,6 +1,19 @@
 #! /usr/bin/env python3
 """
-0. Calculate SHAP interaction values for the Figure 4A models.
+Additional analysis to supplement our responses to reviewer 1.
+
+0. How many SGD benchmark genes did I use in the original analysis?
+	- What percentage of SGD benchmark genes were represented by the optimized YPD Benomyl 500 ug/ml models?
+
+1. Do SGD benchmark genes have greater SHAP values than non-benchmark genes?
+
+2. To what extent do the SHAP values of SGD benchmark genes agree with Costanzo
+   et al., 2021 differential relative fitness (DRF) values?
+	- How many benchmark genes are recovered in different percentiles by SHAP or by DRF?
+	- How does the agreement between SHAP and DRF values of benchmark genes compare to non-benchmark genes?
+	- Based on the findings, how suitable is the Costanzo DRF for validating our models?
+
+3. Analysis of SHAP interaction values from the Figure 4A models.
 	a. Combine SNP, PAV, and CNV "important non-benchmark gene features + 
 	   benchmark genes" feature tables to train models on the integrated features.
 	b. Calculate the SHAP interaction values for SNP, PAV, CNV, SNP + PAV, SNP +
@@ -9,6 +22,10 @@
 	   values of the overlapping gene pairs.
 	d. Prepare feature table to predict SHAP interaction values.
 
+4. Examine gene CNV values (1, 2, 3, etc) and fitness under different environmental
+conditions.
+
+------- Additional analysis I tried, but didn't yield useful results:
 1. Determine the overlap between predicted benomyl genetic interactions (based
 on SHAP interaction values) and the experimentally determined benomyl genetic
 interactions from Costanzo et al. 2021, regardless of genetic interaction score
@@ -36,8 +53,7 @@ across isolates.
 	effects of their study.
 - https://academic.oup.com/mbe/article/34/10/2486/3797322#521502883
 	
-5. Examine gene CNV values (1, 2, 3, etc) and fitness under different environmental
-conditions.
+
 
 salloc -N 1 -c 10 --mem=80GB --time=8:00:00
 conda activate /mnt/home/seguraab/miniconda3/envs/shap
@@ -53,6 +69,1141 @@ import seaborn as sns
 
 os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project")
 
+# ------------------------------------------------------------------------------
+# 0. How many SGD benchmark genes did I use in the original analysis?
+# ------------------------------------------------------------------------------
+# read SNP and ORF gene maps
+map_snps = pd.read_excel("Scripts/Data_Vis/S8_File.xlsx", engine="openpyxl")
+map_orfs = pd.read_excel("Scripts/Data_Vis/S9_File.xlsx", engine="openpyxl")
+map_snps.shape # (118382, 8)
+map_orfs.shape # (5902, 7)
+
+map_snps["gene"] = map_snps["gene"].str.split(",") # split up the genes into a list
+map_snps = map_snps.explode(column="gene", ignore_index=True) # each gene gets its own row
+map_snps.shape # (119616, 8)
+
+map_snps["benchmark"] = map_snps[["Benomyl", "Caffeine", "CuSO4", "Sodium_meta-arsenite"]].sum(axis=1)
+map_orfs["benchmark"] = map_orfs[["Benomyl", "Caffeine", "CuSO4", "Sodium_meta-arsenite"]].sum(axis=1)
+
+map_snps.loc[map_snps["benchmark"] > 0, "gene"].nunique() # 1196 genes
+map_orfs.loc[map_orfs["benchmark"] > 0, "gene"].nunique() # 1136 genes
+len(set(map_snps.loc[map_snps["benchmark"] > 0, "gene"]).union(set(map_orfs.loc[map_orfs["benchmark"] > 0, "gene"]))) # 1213 genes
+len(set(map_snps.loc[map_snps["Benomyl"] > 0, "gene"]).union(set(map_orfs.loc[map_orfs["Benomyl"] > 0, "gene"]))) # 376 SGD benomyl benchmark genes that mapped to SNPs and/or ORFs
+len(set(map_snps.loc[map_snps["Caffeine"] > 0, "gene"]).union(set(map_orfs.loc[map_orfs["Caffeine"] > 0, "gene"]))) # 735 SGD caffeine benchmark genes
+len(set(map_snps.loc[map_snps["CuSO4"] > 0, "gene"]).union(set(map_orfs.loc[map_orfs["CuSO4"] > 0, "gene"]))) # 158 SGD CuSO4 benchmark genes
+len(set(map_snps.loc[map_snps["Sodium_meta-arsenite"] > 0, "gene"]).union(set(map_orfs.loc[map_orfs["Sodium_meta-arsenite"] > 0, "gene"]))) # 280 SGD Sodium_meta-arsenite benchmark genes
+
+# What percentage of SGD benchmark genes were represented by the optimized YPD Benomyl 500 ug/ml SNP model?
+opt_snp = pd.read_excel("Scripts/Data_Vis/S9_Table.xlsx", engine="openpyxl", sheet_name="shap_snp")
+opt_pav = pd.read_excel("Scripts/Data_Vis/S9_Table.xlsx", engine="openpyxl", sheet_name="shap_pav")
+opt_cnv = pd.read_excel("Scripts/Data_Vis/S9_Table.xlsx", engine="openpyxl", sheet_name="shap_cnv")
+
+ypdbeno500_opt_snp = opt_snp.loc[~opt_snp["YPDBENOMYL500"].isna(),
+	["SNP Feature", "Gene", "Benomyl", "YPDBENOMYL500"]] # has 6000 rows (all features are unique)
+ypdbeno500_opt_pav = opt_pav.loc[~opt_pav["YPDBENOMYL500"].isna(),
+	["ORF Feature", "Gene", "Benomyl", "YPDBENOMYL500"]] # has 128 rows (all features are unique)
+ypdbeno500_opt_cnv = opt_cnv.loc[~opt_cnv["YPDBENOMYL500"].isna(),
+	["ORF Feature", "Gene", "Benomyl", "YPDBENOMYL500"]] # has 128 rows (all features are unique)
+
+ypdbeno500_opt_snp.groupby("Gene")["Benomyl"].max().value_counts()
+# Benomyl
+# 0    2002 <- includes "intergenic" group
+# 1     128 <-- regardless if the average absolute SHAP value is 0, there are 128 benchmarks in the optimized model features
+map_snps.loc[map_snps.snp.isin(ypdbeno500_opt_snp["SNP Feature"]), ["gene", "Benomyl"]].groupby("gene").max().value_counts()
+# Benomyl
+# 0          2030 <- the additional genes come from those delimeted by , and "intergenic" group
+# 1           128 <- sanity check. 128/1213 = 10.55%
+
+sub = ypdbeno500_opt_snp.loc[ypdbeno500_opt_snp["YPDBENOMYL500"] != 0,:]
+sub.groupby("Gene")["Benomyl"].max().value_counts()
+# Benomyl
+# 0    1987 <- includes "intergenic" group
+# 1     128
+
+
+# ------------------------------------------------------------------------------
+# 1. Do SGD benchmark genes have greater SHAP values than non-benchmark genes?
+# ------------------------------------------------------------------------------
+I need to tweak it since I defined benchmark using Costanzo DRF and not SGD.
+I think SH wants me to compare the SGD shap values to the non-benchmark shap values.
+# salloc -N 1 -c 20 --mem=5GB --time=8:00:00
+# conda activate /mnt/home/seguraab/miniconda3/envs/shap
+# /mnt/home/seguraab/miniconda3/envs/shap/bin/python
+
+"""Folders:
+reviewer_1_analysis/w303_SHAP_comparisons_old/
+	- Intergenic SNPs were included. w303 benchmark genes came from SGD benomyl-
+	sensitive phenotype annotations.
+
+reviewer_1_analysis/s288c_SHAP_comparisons_intergenic_included/
+	- I forgot to exclude the intergenic SNPs from the important non-benchmark
+	gene distribution. Also, I should have excluded genes that had no experimental
+	validation in the Costanzo data, which would say they have 0 or positive DRF values.
+	 - Has an error. I summed the SHAP across instances instead of taking a median for
+	each feature (global). SHAP values are only additive across features for one instance.
+
+reviewer_1_analysis/s288c_SHAP_comparisons_non_exp_verified_included/
+	- Intergenic SNPs were excluded. However, I still included genes that had no
+	experimental validation in the Costanzo data, which would say they have 0 or positive DRF values.
+	- These results have a mistake.       here :
+	cnv_shap_genes.insert(2, "Benomyl_DRF", pav_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
+	- Has an error. I summed the SHAP across instances instead of taking a median for
+	each feature (global). SHAP values are only additive across features for one instance.
+
+reviewer_1_analysis/s288c_SHAP_comparisons_non_exp_verified_excluded/
+	- Intergenic SNPs were excluded. Also, I excluded genes that had no experimental
+	validation in the Costanzo data. So, I compared the benchmark gene SHAP
+	distributions (have negative DRF values) to the SHAP distributions of 
+	important non-benchmark genes (which have DRF values of 0 or positive).
+	- Only the SNP SHAP datasets had enough genes with non-negative DRF values
+	to perform the comparison. I did not run the PAVs and CNVs since there were
+	so few genes with non-negative DRF values.
+	- Has an error. I summed the SHAP across instances instead of taking a median for
+	each feature (global). SHAP values are only additive across features for one instance. (will fix this)
+		- fixed, I deleted the files in the folder and re-ran the analysis.
+
+reviewer_1_analysis/_s288c_SHAP_comparisons_unimportant_non_bench_included <<<<<< re-do, I read in the wrong env shap files
+	- Intergenic SNPs were excluded. Also excluded genes with no experimental
+	DRF values in Costanzo data.
+	- I used the SHAP values from the RF models trained on the complete feature sets.
+	- Global SHAP values were estimated by taking the median across instances. 
+
+reviewer_1_analysis/_s288c_SHAP_comparisons_sgd_vs_imp_non_bench
+	- Intergenic SNPs were excluded.
+	- Optimized YPD Benomyl 500 ug/ml model was used to obtain the set of
+	important non-benchmark features and a subset of the sgd benchmarks.
+	- The SNP optimized model only has about 1/3 of the 376 benomyl sgd benchmark
+	genes.
+	- The PAV and CNV optimized models had 0 sgd benchmarks.
+"""
+
+import os, gc
+import pandas as pd
+import datatable as dt
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from glob import glob
+from scipy.stats import ks_2samp, mannwhitneyu
+
+os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis")
+
+# SNP and ORF to gene map files
+snp_map = pd.read_excel("S8_File.xlsx", engine="openpyxl")
+orf_map = pd.read_excel("S9_File.xlsx", engine="openpyxl")
+snp_map[snp_map['gene'].str.contains(',')]
+orf_map[orf_map['gene'].str.contains(',')] # None
+snp_map["gene"] = snp_map["gene"].str.split(",") # split up the genes into a list
+snp_map = snp_map.explode(column="gene", ignore_index=True) # each gene gets its own row
+
+# SGD Benomyl benchmark genes -----------------------
+sgd_benchmark = set(snp_map.loc[snp_map.Benomyl==1, "gene"]).union(
+	set(orf_map.loc[orf_map.Benomyl==1, "gene"]))
+len(sgd_benchmark) # 376 genes mapped to SNPs and/or ORFs
+# ---------------------------------------------------
+
+# S288C Costanzo benchmark genes --------------------
+# DRF: differential relative fitness values
+costanzo_drf = pd.read_excel("../../Data/Costanzo_2021/2021_Costanzo_Data File S1_Conditions_Strains_Fitness.xlsx",
+	engine="openpyxl", sheet_name="Diff. Mutant fitness_Conditions")
+assert costanzo_drf["Strain ID"].nunique() == len(costanzo_drf) # unique mutant identifiers
+costanzo_ben = costanzo_drf.set_index("Strain ID")[["Systematic Name", "Benomyl"]]
+costanzo_ben.describe().to_dict()
+# {'count': 4383.0, 'mean': -0.0430362051106548, 'std': 0.08260868299038501, 'min': -0.5325, '25%': -0.0815, '50%': -0.0385, '75%': 0.0, 'max': 0.3385}
+
+# check if there are overlapping genes for mutants whose DRF < 0 and DRF >= 0
+mask = costanzo_ben[costanzo_ben["Benomyl"] < 0]["Systematic Name"].isin(
+	costanzo_ben[costanzo_ben["Benomyl"] >= 0]["Systematic Name"])
+mask.sum() # 92 genes, calculate a median Benomyl DRF
+costanzo_ben_median = costanzo_ben.groupby("Systematic Name")["Benomyl"].median()
+costanzo_ben_median.dropna().shape # (4165,)
+
+# define benchmark and non-benchmark sets
+benchmark = costanzo_ben_median[costanzo_ben_median < 0] # mutants with negative differential relative fitness (DRF)
+len(benchmark) # 3101 single mutants
+non_benchmark = costanzo_ben_median[costanzo_ben_median >= 0] # mutants with non-negative DRF values
+len(non_benchmark) # 1064 single mutants
+assert set(benchmark.index).isdisjoint(set(non_benchmark.index)) # no overlapping genes between benchmark and non-benchmark sets
+# ---------------------------------------------------
+
+# SNP, PAV, and CNV SHAP files ----------------------
+data_dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/"
+snp_shap_files = glob(os.path.join(data_dir, "SNP/fs/SHAP_values_sorted_Y*.txt"))
+pav_shap_files = glob(os.path.join(data_dir, "PAV/fs/SHAP_values_sorted_Y*.txt"))
+cnv_shap_files = glob(os.path.join(data_dir, "CNV/fs/SHAP_values_sorted_Y*.txt"))
+# snp_shap_files = glob(os.path.join(data_dir, "SNP/baseline/SHAP_values_sorted_Y*.txt"))
+# pav_shap_files = glob(os.path.join(data_dir, "PAV/baseline/SHAP_values_sorted_Y*.txt"))
+# cnv_shap_files = glob(os.path.join(data_dir, "CNV/baseline/SHAP_values_sorted_Y*.txt"))
+
+snp_shap_file = [f for f in snp_shap_files if "YPDBENOMYL500" in f]
+pav_shap_file = [f for f in pav_shap_files if "YPDBENOMYL500" in f]
+cnv_shap_file = [f for f in cnv_shap_files if "YPDBENOMYL500" in f]
+
+# SNP identifier mapping file
+snp_id_map = pd.read_csv(
+	"../../Data/Peter_2018/0_raw_data/mapping_of_geno.csv_feature_names_to_actual_feature_names_09102025.csv",
+	index_col=0)
+
+def fix_snp_ids(snp_shap_file):
+	"""Fix the SNP feature names in the SHAP files to match the actual SNP
+	identifiers"""
+	snp_shap = dt.fread(snp_shap_file).to_pandas()
+	snp_shap.set_index(snp_shap.columns[0], inplace=True)
+	snp_shap.columns = snp_shap.columns.map(snp_id_map["actual_feature"])
+	return snp_shap
+
+
+def fix_orf_ids(orf_shap_file):
+	"""Fix the ORF feature names in the SHAP files to match the actual ORF
+	identifiers"""
+	orf_shap = pd.read_csv(orf_shap_file, sep="\t", index_col=0)
+	orf_shap.columns = orf_shap.columns.str.replace("^X", "", regex=True).str.replace("\.", "-", regex=True)
+	return orf_shap
+
+# read in SHAP files for the YPDBENOMYL500 environment
+snp_shap = fix_snp_ids(snp_shap_file[0]) # 118,382 features (complete model); 6k features (optimized model)
+pav_shap = fix_orf_ids(pav_shap_file[0]) # 7708 features (complete); 128 (optimized
+cnv_shap = fix_orf_ids(cnv_shap_file[0]) # 7708 features (complete; 128 (optimized)
+# ---------------------------------------------------
+
+# determine which SNPs and ORFs map to benchmark and non_benchmark sets
+snp_shap_genes = pd.DataFrame(snp_shap.columns, columns=["snp"]).merge(
+	snp_map[["snp", "gene"]], left_on="snp", right_on="snp", how="left")
+pav_shap_genes = pd.DataFrame(pav_shap.columns, columns=["orf"]).merge(
+	orf_map[["orf", "gene"]], left_on="orf", right_on="orf", how="left")
+cnv_shap_genes = pd.DataFrame(cnv_shap.columns, columns=["orf"]).merge(
+	orf_map[["orf", "gene"]], left_on="orf", right_on="orf", how="left")
+
+benchmark_dict = benchmark.to_dict()
+non_benchmark_dict = non_benchmark.to_dict()
+def get_drf_value(row, benchmark=benchmark_dict):
+	if row["gene"] in benchmark.keys():
+		return benchmark[row["gene"]]
+	else:
+		return None
+
+snp_shap_genes.insert(2, "Benomyl_DRF", snp_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
+pav_shap_genes.insert(2, "Benomyl_DRF", pav_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
+cnv_shap_genes.insert(2, "Benomyl_DRF", cnv_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
+snp_shap_genes.insert(3, "Non_benchmark", snp_shap_genes.apply(lambda x: get_drf_value(x, non_benchmark_dict), axis=1))
+pav_shap_genes.insert(3, "Non_benchmark", pav_shap_genes.apply(lambda x: get_drf_value(x, non_benchmark_dict), axis=1))
+cnv_shap_genes.insert(3, "Non_benchmark", cnv_shap_genes.apply(lambda x: get_drf_value(x, non_benchmark_dict), axis=1))
+snp_shap_genes.insert(4, "SGD_benchmark", snp_shap_genes.apply(lambda x: 1 if x["gene"] in sgd_benchmark else 0, axis=1))
+pav_shap_genes.insert(4, "SGD_benchmark", pav_shap_genes.apply(lambda x: 1 if x["gene"] in sgd_benchmark else 0, axis=1))
+cnv_shap_genes.insert(4, "SGD_benchmark", cnv_shap_genes.apply(lambda x: 1 if x["gene"] in sgd_benchmark else 0, axis=1))
+
+# how many SGD benchmark genes are in optimized SNP YPD Benomyl 500 ug/ml model?
+snp_shap_genes.groupby("gene")["SGD_benchmark"].max().value_counts()
+# SGD_benchmark --> looks like this command is doing something weird.
+# 0    2025
+# 1     133 --> i can trust 128, but not 133
+snp_map.loc[snp_map.snp.isin(snp_shap_genes["snp"]), ["gene", "Benomyl"]].groupby("gene").max().value_counts()
+# SGD_benchmark
+# 0.0    2030
+# 1.0     128
+set(snp_shap_genes.groupby("gene")["SGD_benchmark"].max().index).isdisjoint(
+	set(snp_map.loc[snp_map.snp.isin(snp_shap_genes["snp"]), ["gene", "Benomyl"]].groupby("gene").max().index)) # False
+sum(snp_shap_genes.groupby("gene")["SGD_benchmark"].max().index == \
+	snp_map.loc[snp_map.snp.isin(snp_shap_genes["snp"]), ["gene", "Benomyl"]].groupby("gene").max().index) # 2158, index is completely the same
+sum(snp_shap_genes.groupby("gene")["SGD_benchmark"].max().to_numpy() == \
+	snp_map.loc[snp_map.snp.isin(snp_shap_genes["snp"]), ["gene", "Benomyl"]].groupby("gene").max().to_numpy().flatten()) # 2153, 5 values are not completely the same
+snp_shap_genes.groupby("gene")["SGD_benchmark"].max().index[snp_shap_genes.groupby("gene")["SGD_benchmark"].max().to_numpy() != \
+	snp_map.loc[snp_map.snp.isin(snp_shap_genes["snp"]), ["gene", "Benomyl"]].groupby("gene").max().to_numpy().flatten()] # output in tocheck
+tocheck = ['YBR089W', 'YDR442W', 'YLR322W', 'YNL204C', 'YNL205C']
+[g in set(snp_map.loc[snp_map.Benomyl==1, "gene"]) for g in tocheck] # all true
+[g in set(orf_map.loc[orf_map.Benomyl==1, "gene"]) for g in tocheck] # [False, False, False, True, False]
+
+snp_shap_genes.groupby("gene")["SGD_benchmark"].max()[tocheck]
+# gene            somehow, these values got reversed. update: the problem is that some snps mapped to both a benchmark and a non-benchmark gene
+# YBR089W    1                                                using .explode() messed it up so that the genes sometimes had a 0 and other times a 1
+# YDR442W    1
+# YLR322W    1
+# YNL204C    1
+# YNL205C    1
+
+snp_map.loc[snp_map.snp.isin(snp_shap_genes["snp"]), ["gene", "Benomyl"]].groupby("gene").max().loc[tocheck,:]
+#          Benomyl
+# gene            
+# YBR089W        0
+# YDR442W        0
+# YLR322W        0
+# YNL204C        0
+# YNL205C        0
+
+# fix the SGD_benchmark values
+snp_shap_genes.loc[snp_shap_genes.gene.isin(tocheck), :]
+[g in sgd_benchmark for g in tocheck] # all are in sgd_benchmark
+orf_map.loc[orf_map.gene.isin(tocheck)]
+# 4659  6595-YNL204C_NumOfGenes_2  YNL204C  Saccharomyces cerevisiae S288C        1         1      0                     0
+snp_map.loc[snp_map.gene.isin(tocheck)]
+#                        snp           chr      pos     gene  Benomyl  Caffeine  CuSO4  Sodium_meta-arsenite
+# 7108    chromosome2_425188   chromosome2   425188  YBR089W        0         0      0                     0
+# 7110    chromosome2_425449   chromosome2   425449  YBR089W        0         0      0                     0
+# 7112    chromosome2_425500   chromosome2   425500  YBR089W        0         0      0                     0
+# 7114    chromosome2_425596   chromosome2   425596  YBR089W        0         0      0                     0
+# 7115    chromosome2_425780   chromosome2   425780  YBR089W        1         0      0                     0
+# 26474  chromosome4_1345654   chromosome4  1345654  YDR442W        1         0      0                     0
+# 26475  chromosome4_1345664   chromosome4  1345664  YDR442W        1         0      0                     0
+# 26476  chromosome4_1345811   chromosome4  1345811  YDR442W        0         0      0                     0
+# 26478  chromosome4_1345853   chromosome4  1345853  YDR442W        0         0      0                     0
+# 80069  chromosome12_777678  chromosome12   777678  YLR322W        0         0      0                     0
+# 80071  chromosome12_777784  chromosome12   777784  YLR322W        0         0      0                     0
+# 80072  chromosome12_777868  chromosome12   777868  YLR322W        1         0      0                     0
+# 80073  chromosome12_777907  chromosome12   777907  YLR322W        1         0      0                     0
+# 94084  chromosome14_258241  chromosome14   258241  YNL205C        1         0      0                     0
+# 94085  chromosome14_258266  chromosome14   258266  YNL205C        1         0      0                     0
+# 94086  chromosome14_258392  chromosome14   258392  YNL205C        0         0      0                     0
+# 94087  chromosome14_258392  chromosome14   258392  YNL204C        0         0      0                     0
+# 94088  chromosome14_258399  chromosome14   258399  YNL205C        0         0      0                     0
+# 94089  chromosome14_258399  chromosome14   258399  YNL204C        0         0      0                     0
+# 94090  chromosome14_258474  chromosome14   258474  YNL205C        0         0      0                     0
+# 94091  chromosome14_258474  chromosome14   258474  YNL204C        0         0      0                     0
+# 94092  chromosome14_258504  chromosome14   258504  YNL205C        0         0      0                     0
+# 94093  chromosome14_258504  chromosome14   258504  YNL204C        0         0      0                     0
+# 94094  chromosome14_258735  chromosome14   258735  YNL204C        1         1      0                     0
+# 94095  chromosome14_258883  chromosome14   258883  YNL204C        1         1      0                     0
+# 94096  chromosome14_259198  chromosome14   259198  YNL204C        1         1      0                     0
+snp_map2 = pd.read_excel("S8_File.xlsx", engine="openpyxl") # do not expand the ','
+snp_map2.loc[snp_map2.gene.isin(tocheck)]
+#                        snp           chr      pos     gene  Benomyl  Caffeine  CuSO4  Sodium_meta-arsenite
+# 7030    chromosome2_425780   chromosome2   425780  YBR089W        1         0      0                     0
+# 26214  chromosome4_1345654   chromosome4  1345654  YDR442W        1         0      0                     0
+# 26215  chromosome4_1345664   chromosome4  1345664  YDR442W        1         0      0                     0
+# 79231  chromosome12_777868  chromosome12   777868  YLR322W        1         0      0                     0
+# 79232  chromosome12_777907  chromosome12   777907  YLR322W        1         0      0                     0
+# 93119  chromosome14_258241  chromosome14   258241  YNL205C        1         0      0                     0
+# 93120  chromosome14_258266  chromosome14   258266  YNL205C        1         0      0                     0
+# 93125  chromosome14_258735  chromosome14   258735  YNL204C        1         1      0                     0
+# 93126  chromosome14_258883  chromosome14   258883  YNL204C        1         1      0                     0
+# 93127  chromosome14_259198  chromosome14   259198  YNL204C        1         1      0                     0
+
+
+pav_shap_genes["SGD_benchmark"].value_counts()
+# SGD_benchmark
+# False    127
+# True       1
+cnv_shap_genes["SGD_benchmark"].value_counts()
+# SGD_benchmark
+# False    127
+# True       1
+
+print("Number of SNP features with negative DRF values:", snp_shap_genes.isna().value_counts())
+'''results for s288c_SHAP_comparisons_non_exp_verified_included/
+# snp    gene   Benomyl_DRF
+# False  False  True           4205    4205+1857 = 6062 SNPs, 62 SNPs mapped to multiple genes
+#               False          1857 <- have negative DRF values
+
+results for s288c_SHAP_comparisons_non_exp_verified_excluded/
+snp    gene   Benomyl_DRF  Non_benchmark
+False  False  True         True             3528    3528+677=4205
+              False        True             1857
+              True         False             677
+
+results for s288c_SHAP_comparisons_unimportant_non_bench_included
+snp    gene   Benomyl_DRF  Non_benchmark
+False  False  True         True             67758   67758+38524+13334 = 119,616 (1,234 mapped to multiple genes)
+              False        True             38524
+              True         False            13334
+'''
+snp_shap_genes['snp'].duplicated().sum() # 62 snps; 1234 snps
+
+print("Number of PAV features with negative DRF values:", pav_shap_genes.isna().value_counts())
+'''results for s288c_SHAP_comparisons_non_exp_verified_included/
+# orf    gene   Benomyl_DRF
+# False  False  True           21    128-21-19 = 88 ORFs do not have a gene mapping
+#               False          19 <- have negative DRF values
+
+results for s288c_SHAP_comparisons_non_exp_verified_excluded/
+orf    gene   Benomyl_DRF  Non_benchmark
+False  False  False        True             19
+              True         True             18
+                           False             3
+
+results for s288c_SHAP_comparisons_unimportant_non_bench_included
+orf    gene   Benomyl_DRF  Non_benchmark
+False  False  False        True             2789   benchmark
+              True         True             2150   excluded (no S288C gene mapping or have not DRF value or did not meet DRF criteria)
+                           False             955   non-benchmark
+'''
+
+print("Number of CNV features with negative DRF values:", cnv_shap_genes.isna().value_counts())
+'''results for s288c_SHAP_comparisons_non_exp_verified_included/
+# orf    gene   Benomyl_DRF
+# False  False  True           43    128-43-9 = 76 ORFs do not have a gene mapping
+#               False           9 <- have negative DRF values
+
+results for s288c_SHAP_comparisons_non_exp_verified_excluded/
+orf    gene   Benomyl_DRF  Non_benchmark
+False  False  True         True             34    these numbers don't match the above because pav was used instead of cnv
+              False        True             16
+              True         False             2
+
+results for s288c_SHAP_comparisons_unimportant_non_bench_included
+False  False  False        True             2789
+              True         True             2150
+                           False             955
+'''
+print("Number of unique genes represented in SNP features:", snp_shap_genes.gene.nunique()) # 2158 (...non_exp_verified_excluded); 6286 (...unimportant_non_bench_included)
+print("Number of unique genes with negative DRF values:", snp_shap_genes.groupby("gene")["Benomyl_DRF"].median().isna().value_counts())
+# Benomyl_DRF (...non_exp_verified_excluded)
+# False    1088 <- genes that have negative DRF values
+# True     1070
+# Benomyl_DRF (...unimportant_non_bench_included)
+# True     3264
+# False    3022
+print("Number of unique genes with non-negative DRF values:", snp_shap_genes.groupby("gene")["Non_benchmark"].median().isna().value_counts())
+# Non_benchmark (...non_exp_verified_excluded)
+# True     1767
+# False     391  <- genes that have non-negative DRF values
+# Non_benchmark (...unimportant_non_bench_included)
+# True     5244
+# False    1042
+print("Number of unique genes represented in PAV features:", pav_shap_genes.gene.nunique()) # 40 (...non_exp_verified_excluded); 5866 (...unimportant_non_bench_included)
+print("Number of unique genes with negative DRF values:", pav_shap_genes.groupby("gene")["Benomyl_DRF"].median().isna().value_counts())
+# Benomyl_DRF (...non_exp_verified_excluded)
+# True     21
+# False    19  <- genes that have negative DRF values
+# Benomyl_DRF (...unimportant_non_bench_included)
+# True     3095
+# False    2771
+print("Number of unique genes with non-negative DRF values:", pav_shap_genes.groupby("gene")["Non_benchmark"].median().isna().value_counts())
+# Non_benchmark (...non_exp_verified_excluded)
+# True     37
+# False     3  <- genes that have non-negative DRF values
+# Non_benchmark (...unimportant_non_bench_included)
+# True     4914
+# False     952
+print("Number of unique genes represented in CNV features:", cnv_shap_genes.gene.nunique()) # 52 (...non_exp_verified_excluded); 5866 (...unimportant_non_bench_included)
+print("Number of unique genes with negative DRF values:", cnv_shap_genes.groupby("gene")["Benomyl_DRF"].median().isna().value_counts())
+# Benomyl_DRF  <- results using the pav genes instead of cnv genes, so this is incorrect
+# True     43
+# False     9 <- genes that have negative DRF values
+# Benomyl_DRF  <- the correct result using the cnv genes (...non_exp_verified_excluded)
+# True     36
+# False    16
+# Benomyl_DRF (...unimportant_non_bench_included)
+# True     3095
+# False    2771
+print("Number of unique genes with non-negative DRF values:", cnv_shap_genes.groupby("gene")["Non_benchmark"].median().isna().value_counts())
+# Non_benchmark (...non_exp_verified_excluded)
+# True     50
+# False     2  <- genes that have non-negative DRF values
+# Non_benchmark (...unimportant_non_bench_included)
+# True     4914
+# False     952
+
+# functions to compare local SHAP value distributions of benchmark genes to that of the important non-benchmark genes
+def plot_shap_violin(data1, data2, title, save_name, strain="W303"):
+	"""Plot a violin plot comparing the distributions of two sets of SHAP values
+	Args:
+		data1 (np.ndarray) : SHAP values of genes that map to W303 benchmark genes
+		data2 (np.ndarray): SHAP values of genes that do NOT map to W303 benchmark genes
+	Note: data1 and data2 may have different lengths.
+	"""
+	df1 = pd.DataFrame({"Gene_type": f"{strain}_genes", "SHAP_value": data1})
+	df2 = pd.DataFrame({"Gene_type": f"Non_{strain}_genes", "SHAP_value": data2})
+	df_melted = pd.concat([df1, df2], axis=0)
+	# plot distribution of values
+	fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(6, 6))
+	sns.violinplot(data=df_melted, x="Gene_type", y="SHAP_value", inner="quart", ax=ax[0, 0])
+	sns.violinplot(data=df_melted, x="Gene_type", y="SHAP_value", inner="quart", ax=ax[0, 1])
+	ax[0, 1].set_yscale("symlog", linthresh=1e-4)
+	ax[0, 1].set_ylabel("SHAP value (symlog scale)", fontsize=7)
+	fig.suptitle(title, fontsize=8)
+	ax[0, 0].set_xlabel("")
+	ax[0, 1].set_xlabel("")
+	ax[0, 0].set_ylabel("SHAP value", fontsize=7)
+	ax[0, 0].tick_params(axis="both", labelsize=6)
+	ax[0, 1].tick_params(axis="both", labelsize=6)
+	# plot CDF of values
+	sns.ecdfplot(data=df1, x="SHAP_value", ax=ax[1, 0], label=f"{strain}_genes")
+	sns.ecdfplot(data=df2, x="SHAP_value", ax=ax[1, 0], label=f"Non_{strain}_genes")
+	ax[1, 0].set_xlabel("SHAP value", fontsize=7)
+	ax[1, 0].set_ylabel("Cumulative density", fontsize=7)
+	ax[1, 0].tick_params(axis="both", labelsize=6)
+	ax[1, 0].legend(fontsize=6)
+	plt.tight_layout()
+	plt.savefig(save_name)
+	plt.close("all")
+	gc.collect()
+	gc.collect()
+
+
+def ks_2samp_shap(data1, data2, strain="w303", env="YPDBENOMYL500", vtype="SNP", tag=""):
+	# Separate SHAP values by type or use absolute values
+	if len(data1.shape) == 1: # global SHAP values
+		raw_strain = data1.copy(deep=True)
+		raw_non_strain = data2.copy(deep=True)
+		abs_strain = data1.abs()
+		abs_non_strain = data2.abs()
+		pos_strain = data1.mask(data1 <= 0, None).dropna()
+		pos_non_strain = data2.mask(data2 <= 0, None).dropna()
+		neg_strain = data1.mask(data1 >= 0, None).dropna()
+		neg_non_strain = data2.mask(data2 >= 0, None).dropna()
+	else: # local SHAP values
+		raw_strain = data1["shap_value"].copy(deep=True)
+		raw_non_strain = data2["shap_value"].copy(deep=True)
+		abs_strain = raw_strain.abs()
+		abs_non_strain = raw_non_strain.abs()
+		pos_strain = raw_strain.mask(raw_strain <= 0, None).dropna()
+		pos_non_strain = raw_non_strain.mask(raw_non_strain <= 0, None).dropna()
+		neg_strain = raw_strain.mask(raw_strain >= 0, None).dropna()
+		neg_non_strain = raw_non_strain.mask(raw_non_strain >= 0, None).dropna()
+	
+	# store results
+	out_ks = {}
+	out_stats = {}
+	if len(raw_strain) > 0:
+		# raw SHAP values
+		out_ks[("ks_test", "raw")] = list(ks_2samp(
+			data1=raw_strain, data2=raw_non_strain, alternative="greater", method="asymp"))
+		# plot
+		# plot_shap_violin(data1=raw_strain, data2=raw_non_strain, strain=strain.upper(),
+		# 	title=f"{env} {tag} {vtype} SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_raw_SHAP_violin.pdf")
+		# summary statistics
+		out_stats[("summary_stats", f"raw_{strain}")] = raw_strain.describe()
+		out_stats[("summary_stats", f"raw_non_{strain}")] = raw_non_strain.describe()
+		del raw_strain, raw_non_strain
+	if len(abs_strain) > 0:
+		# absolute SHAP values
+		out_ks[("ks_test", "absolute")] = list(ks_2samp(
+			data1=abs_strain, data2=abs_non_strain, alternative="greater", method="asymp"))
+		# plot
+		# plot_shap_violin(data1=abs_strain, data2=abs_non_strain, strain=strain.upper(),
+		# 	title=f"{env} {tag} {vtype} absolute SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_abs_SHAP_violin.pdf")
+		out_stats[("summary_stats", f"abs_{strain}")] = abs_strain.describe()
+		out_stats[("summary_stats", f"abs_non_{strain}")] = abs_non_strain.describe()
+		del abs_strain, abs_non_strain
+	if len(pos_strain) > 0:
+		# positive SHAP values only
+		out_ks[("ks_test", "positive")] = list(ks_2samp(
+			data1=pos_strain, data2=pos_non_strain, alternative="greater", method="asymp"))
+		# plot_shap_violin(data1=pos_strain, data2=pos_non_strain, strain=strain.upper(),
+		# 	title=f"{env} {tag} {vtype} Positive SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_pos_SHAP_violin.pdf")
+		out_stats[("summary_stats", f"pos_{strain}")] = pos_strain.describe()
+		out_stats[("summary_stats", f"pos_non_{strain}")] = pos_non_strain.describe()
+		del pos_strain, pos_non_strain
+	if len(neg_strain) > 0:
+		# negative SHAP values only
+		out_ks[("ks_test", "negative")] = list(ks_2samp(
+			data1=neg_strain, data2=neg_non_strain, alternative="greater", method="asymp"))
+		# plot_shap_violin(data1=neg_strain, data2=neg_non_strain, strain=strain.upper(),
+		# 	title=f"{env} {tag} {vtype} Negative SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_neg_SHAP_violin.pdf")
+		out_stats[("summary_stats", f"neg_{strain}")] = neg_strain.describe()
+		out_stats[("summary_stats", f"neg_non_{strain}")] = neg_non_strain.describe()
+		del neg_strain, neg_non_strain
+	gc.collect()
+	gc.collect()
+	return out_ks, out_stats
+
+
+def mwu_shap(data1, data2):
+	"""Mann-Whitney U test.
+	Null Ho: both distributions come from the same underlying distribution
+	Alt ha: values in data1 tend to be greater than values in data2
+	"""
+	# Separate SHAP values by type or use absolute values
+	if len(data1.shape) == 1: # global SHAP values
+		raw_strain = data1.copy(deep=True)
+		raw_non_strain = data2.copy(deep=True)
+		abs_strain = data1.abs()
+		abs_non_strain = data2.abs()
+		pos_strain = data1.mask(data1 <= 0, None).dropna()
+		pos_non_strain = data2.mask(data2 <= 0, None).dropna()
+		neg_strain = data1.mask(data1 >= 0, None).dropna()
+		neg_non_strain = data2.mask(data2 >= 0, None).dropna()
+	else: # local SHAP values
+		raw_strain = data1["shap_value"].copy(deep=True)
+		raw_non_strain = data2["shap_value"].copy(deep=True)
+		abs_strain = raw_strain.abs()
+		abs_non_strain = raw_non_strain.abs()
+		pos_strain = raw_strain.mask(raw_strain <= 0, None).dropna()
+		pos_non_strain = raw_non_strain.mask(raw_non_strain <= 0, None).dropna()
+		neg_strain = raw_strain.mask(raw_strain >= 0, None).dropna()
+		neg_non_strain = raw_non_strain.mask(raw_non_strain >= 0, None).dropna()
+	
+	# store results
+	out_mwu = {}
+	if len(raw_strain) > 0:
+		# raw SHAP values
+		out_mwu[("mwu_test", "raw")] = list(mannwhitneyu(
+			x=raw_strain, y=raw_non_strain, alternative="greater"))
+		del raw_strain, raw_non_strain
+	if len(abs_strain) > 0:
+		# absolute SHAP values
+		out_mwu[("mwu_test", "absolute")] = list(mannwhitneyu(
+			x=abs_strain, y=abs_non_strain, alternative="greater"))
+		del abs_strain, abs_non_strain
+	if len(pos_strain) > 0:
+		# positive SHAP values only
+		out_mwu[("mwu_test", "positive")] = list(mannwhitneyu(
+			x=pos_strain, y=pos_non_strain, alternative="greater"))
+		del pos_strain, pos_non_strain
+	if len(neg_strain) > 0:
+		# negative SHAP values only
+		out_mwu[("mwu_test", "negative")] = list(mannwhitneyu(
+			x=neg_strain, y=neg_non_strain, alternative="greater"))
+		del neg_strain, neg_non_strain
+	gc.collect()
+	gc.collect()
+	return out_mwu
+
+
+# S288C benchmark genes: compare local SHAP distributions ---------------
+def get_shap_subsets(shap_df, map_ben_s288c, map_df, vtype="snp", non_bench_map=None):
+	if vtype == "snp":
+		# SNPs that map to S288C benchmark genes
+		shap_s288c = shap_df.loc[:, shap_df.columns.isin(map_ben_s288c["snp"])]
+		n_shap_s288c_genes = map_ben_s288c.loc[map_ben_s288c["snp"].isin(shap_s288c.columns), "gene"].nunique()
+		n_shap_s288c_features = shap_s288c.shape[1]
+		# SNPs that do not map to S288C benchmark genes
+		if non_bench_map is None:
+			shap_non = shap_df.loc[:, ~shap_df.columns.isin(map_ben_s288c["snp"])] # used to get results in s288c_SHAP_comparisons_non_exp_verified_included/
+		else:
+			shap_non = shap_df.loc[:, shap_df.columns.isin(non_bench_map["snp"])] # used to get results in s288c_SHAP_comparisons_non_exp_verified_excluded/
+		# drop intergenic SNPs
+		shap_non_map = map_df.loc[map_df["snp"].isin(shap_non.columns), ["snp", "gene"]].set_index("snp")
+		shap_non = shap_non.loc[:, shap_non_map[shap_non_map.gene != "intergenic"].index.unique()]
+		n_shap_non_genes = map_df.loc[map_df["snp"].isin(shap_non.columns), "gene"].nunique()
+		n_shap_non_features = shap_non.shape[1]
+	else:
+		# ORFs that map to S288C benchmark genes
+		shap_s288c = shap_df.loc[:, shap_df.columns.isin(map_ben_s288c["orf"])]
+		n_shap_s288c_features = shap_s288c.shape[1]
+		if shap_s288c.shape[1] > 0:
+			n_shap_s288c_genes = map_ben_s288c.loc[map_ben_s288c["orf"].isin(shap_s288c.columns), "gene"].nunique()
+		else:
+			n_shap_s288c_genes = 0
+		# ORFs that do not map to S288C benchmark genes
+		shap_non = shap_df.loc[:, ~shap_df.columns.isin(map_ben_s288c["orf"])] # used to get results in s288c_SHAP_comparisons_non_exp_verified_included/
+		n_shap_non_genes = map_df.loc[map_df["orf"].isin(shap_non.columns), "gene"].nunique()
+		n_shap_non_features = shap_non.shape[1]
+	print(f"{n_shap_s288c_genes} genes with {vtype} SHAP values that map to S288C benchmark genes")
+	print(f"{n_shap_s288c_features} {vtype} features that map to S288C benchmark genes")
+	print(f"{n_shap_non_genes} genes with {vtype} SHAP values that do NOT map to S288C benchmark genes")
+	print(f"{n_shap_non_features} {vtype} features that do NOT map to S288C benchmark genes")
+	return shap_s288c, shap_non, [n_shap_s288c_genes, n_shap_s288c_features, n_shap_non_genes, n_shap_non_features]
+
+
+def get_global_shap(shap_df, map_ben_s288c, map_df, vtype="snp", is_non=False):
+	"""Calculate the global SHAP value for each feature by summing the SHAP values across all isolates"""
+	# gl_shap = shap_df.sum(axis=0) # this is incorrect. the features should be summed for one instance; not sum across instances for one feature.
+	gl_shap = shap_df.abs().median(axis=0)
+	gl_shap = gl_shap[gl_shap != 0] # remove un-important features
+	print(f"{len(gl_shap)} {vtype} features with non-zero global SHAP values")
+	n_shap_features = gl_shap.shape[0]
+	if vtype == "snp": # re-count genes and features after removing un-important features
+		if not is_non:
+			n_shap_genes = map_ben_s288c.loc[map_ben_s288c["snp"].isin(gl_shap.index), "gene"].nunique()
+		else:
+			n_shap_genes = map_df.loc[map_df["snp"].isin(gl_shap.index), "gene"].nunique()
+	else:
+		if not is_non:
+			n_shap_genes = map_ben_s288c.loc[map_ben_s288c["orf"].isin(gl_shap.index), "gene"].nunique()
+		else:
+			n_shap_genes = map_df.loc[map_df["orf"].isin(gl_shap.index), "gene"].nunique()
+	return gl_shap, [n_shap_genes, n_shap_features]
+
+
+def reshape_local_shap(s288c_shap_df, non_shap_df, map_df, strain="s288c", map_type="orf"):
+	"""Re-arrange the local SHAP values into long format for plotting & performing ks-tests"""
+	s288c_shap_long = s288c_shap_df.reset_index().melt(id_vars="ID", var_name="feature", value_name="shap_value")
+	non_shap_long = non_shap_df.reset_index().melt(id_vars="ID", var_name="feature", value_name="shap_value")
+	# drop un-important local SHAP values
+	s288c_shap_long = s288c_shap_long[s288c_shap_long["shap_value"] != 0]
+	non_shap_long = non_shap_long[non_shap_long["shap_value"] != 0]
+	n_shap_s288c_genes = map_df.loc[map_df[map_type].isin(s288c_shap_long["feature"].unique()), "gene"].nunique()
+	n_shap_non_genes = map_df.loc[map_df[map_type].isin(non_shap_long["feature"].unique()), "gene"].nunique()
+	return s288c_shap_long, non_shap_long, [n_shap_s288c_genes, s288c_shap_long["feature"].nunique(), n_shap_non_genes, non_shap_long["feature"].nunique()]
+
+
+ks_res = {}
+mwu_res = {}
+stats_res = {}
+counts_res = {}
+for q in [1, .0005, .005, .01, .025, .05, .1, .2, .3, .4, .5, .6, .7, .8, .9]:
+	# Get the SNPs & ORFs that map to S288C benchmark genes
+	# benchmark genes are those whose mutants have decreased fitness in benomyl compared to the reference condition
+	# use the quantile to define mutants that are sufficiently negatively affected by benomyl
+	print()
+	if q == 1:
+		print("Using all negative Benomyl DRF values to define benchmark genes")
+		snp_map_ben_s288c = snp_map.loc[snp_map["gene"].isin(benchmark.index), :] # SNP benchmark genes
+		orf_map_ben_s288c = orf_map.loc[orf_map["gene"].isin(benchmark.index), :] # ORF benchmark genes
+	else:
+		drf_thresh = benchmark.quantile(q, interpolation="linear")
+		print(f"Benomyl DRF threshold for top {q*100}% of mutants: {drf_thresh}")
+		benchmark_q = benchmark[benchmark <= drf_thresh] # the top q (%) of mutants most negatively affected by benomyl
+		snp_map_ben_s288c = snp_map.loc[snp_map["gene"].isin(benchmark_q.index), :] # SNP benchmark genes
+		orf_map_ben_s288c = orf_map.loc[orf_map["gene"].isin(benchmark_q.index), :] # ORF benchmark genes
+	
+	# subset the SHAP values of S288C benchmark genes and non-benchmark genes
+	non_bench_map = snp_map.loc[snp_map["gene"].isin(non_benchmark.index), :]
+	snp_shap_s288c, snp_shap_non, snp_shap_counts = get_shap_subsets(snp_shap, snp_map_ben_s288c, snp_map, vtype="snp", non_bench_map=non_bench_map)
+	pav_shap_s288c, pav_shap_non, pav_shap_counts = get_shap_subsets(pav_shap, orf_map_ben_s288c, orf_map, vtype="pav")
+	cnv_shap_s288c, cnv_shap_non, cnv_shap_counts = get_shap_subsets(cnv_shap, orf_map_ben_s288c, orf_map, vtype="cnv")
+	
+	# calculate the global SHAP value (sum across isolates); drop un-important features
+	snp_gl_shap_s288c, snp_gl_shap_s288c_counts = get_global_shap(snp_shap_s288c, snp_map_ben_s288c, snp_map, vtype="snp", is_non=False)
+	snp_gl_shap_non, snp_gl_shap_non_counts = get_global_shap(snp_shap_non, snp_map_ben_s288c, snp_map, vtype="snp", is_non=True)
+	pav_gl_shap_s288c, pav_gl_shap_s288c_counts = get_global_shap(pav_shap_s288c, orf_map_ben_s288c, orf_map, vtype="pav", is_non=False)
+	pav_gl_shap_non, pav_gl_shap_non_counts = get_global_shap(pav_shap_non, orf_map_ben_s288c, orf_map, vtype="pav", is_non=True)
+	cnv_gl_shap_s288c, cnv_gl_shap_s288c_counts = get_global_shap(cnv_shap_s288c, orf_map_ben_s288c, orf_map, vtype="cnv", is_non=False)
+	cnv_gl_shap_non, cnv_gl_shap_non_counts = get_global_shap(cnv_shap_non, orf_map_ben_s288c, orf_map, vtype="cnv", is_non=True)
+	
+	# re-arrange the local SHAP values into long format for plotting & performing ks-tests
+	snp_lc_shap_s288c, snp_lc_shap_non, snp_lc_shap_counts = reshape_local_shap(snp_shap_s288c, snp_shap_non, snp_map, strain="s288c", map_type="snp")
+	pav_lc_shap_s288c, pav_lc_shap_non, pav_lc_shap_counts = reshape_local_shap(pav_shap_s288c, pav_shap_non, orf_map, strain="s288c", map_type="orf")
+	cnv_lc_shap_s288c, cnv_lc_shap_non, cnv_lc_shap_counts = reshape_local_shap(cnv_shap_s288c, cnv_shap_non, orf_map, strain="s288c", map_type="orf")
+	
+	# perform the ks test and plot distributions
+	ks_snp_gl, stats_snp_gl = ks_2samp_shap(snp_gl_shap_s288c, snp_gl_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="SNP", tag=f"top_{q*100}pct_global")
+	ks_pav_gl, stats_pav_gl = ks_2samp_shap(pav_gl_shap_s288c, pav_gl_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="PAV", tag=f"top_{q*100}pct_global")
+	ks_cnv_gl, stats_cnv_gl = ks_2samp_shap(cnv_gl_shap_s288c, cnv_gl_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="CNV", tag=f"top_{q*100}pct_global")
+	ks_snp_lc, stats_snp_lc = ks_2samp_shap(snp_lc_shap_s288c, snp_lc_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="SNP", tag=f"top_{q*100}pct_local")
+	ks_pav_lc, stats_pav_lc = ks_2samp_shap(pav_lc_shap_s288c, pav_lc_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="PAV", tag=f"top_{q*100}pct_local")
+	ks_cnv_lc, stats_cnv_lc = ks_2samp_shap(cnv_lc_shap_s288c, cnv_lc_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="CNV", tag=f"top_{q*100}pct_local")
+	
+	# perform mann-whitney u test
+	mwu_snp_gl = mwu_shap(snp_gl_shap_s288c, snp_gl_shap_non)
+	mwu_pav_gl = mwu_shap(pav_gl_shap_s288c, pav_gl_shap_non)
+	mwu_cnv_gl = mwu_shap(cnv_gl_shap_s288c, cnv_gl_shap_non)
+	mwu_snp_lc = mwu_shap(snp_lc_shap_s288c, snp_lc_shap_non)
+	mwu_pav_lc = mwu_shap(pav_lc_shap_s288c, pav_lc_shap_non)
+	mwu_cnv_lc = mwu_shap(cnv_lc_shap_s288c, cnv_lc_shap_non)
+	
+	# store results
+	ks_res[("SNP", "global", q)] = pd.DataFrame.from_dict(ks_snp_gl, orient="index", columns=["statistic", "pvalue"])
+	stats_res[("SNP", "global", q)] = pd.DataFrame.from_dict(stats_snp_gl, orient="index")
+	ks_res[("PAV", "global", q)] = pd.DataFrame.from_dict(ks_pav_gl, orient="index", columns=["statistic", "pvalue"])
+	stats_res[("PAV", "global", q)] = pd.DataFrame.from_dict(stats_pav_gl, orient="index")
+	ks_res[("CNV", "global", q)] = pd.DataFrame.from_dict(ks_cnv_gl, orient="index", columns=["statistic", "pvalue"])
+	stats_res[("CNV", "global", q)] = pd.DataFrame.from_dict(stats_cnv_gl, orient="index")
+	
+	ks_res[("SNP", "local", q)] = pd.DataFrame.from_dict(ks_snp_lc, orient="index", columns=["statistic", "pvalue"])
+	stats_res[("SNP", "local", q)] = pd.DataFrame.from_dict(stats_snp_lc, orient="index")
+	ks_res[("PAV", "local", q)] = pd.DataFrame.from_dict(ks_pav_lc, orient="index", columns=["statistic", "pvalue"])
+	stats_res[("PAV", "local", q)] = pd.DataFrame.from_dict(stats_pav_lc, orient="index")
+	ks_res[("CNV", "local", q)] = pd.DataFrame.from_dict(ks_cnv_lc, orient="index", columns=["statistic", "pvalue"])
+	stats_res[("CNV", "local", q)] = pd.DataFrame.from_dict(stats_cnv_lc, orient="index")
+	
+	mwu_res[("SNP", "global", q)] = pd.DataFrame.from_dict(mwu_snp_gl, orient="index", columns=["statistic", "pvalue"])
+	mwu_res[("PAV", "global", q)] = pd.DataFrame.from_dict(mwu_pav_gl, orient="index", columns=["statistic", "pvalue"])
+	mwu_res[("CNV", "global", q)] = pd.DataFrame.from_dict(mwu_cnv_gl, orient="index", columns=["statistic", "pvalue"])
+	mwu_res[("SNP", "local", q)] = pd.DataFrame.from_dict(mwu_snp_lc, orient="index", columns=["statistic", "pvalue"])
+	mwu_res[("PAV", "local", q)] = pd.DataFrame.from_dict(mwu_pav_lc, orient="index", columns=["statistic", "pvalue"])
+	mwu_res[("CNV", "local", q)] = pd.DataFrame.from_dict(mwu_cnv_lc, orient="index", columns=["statistic", "pvalue"])
+	
+	counts_res[("SNP", "before_filtering", q)] = snp_shap_counts
+	counts_res[("PAV", "before_filtering", q)] = pav_shap_counts
+	counts_res[("CNV", "before_filtering", q)] = cnv_shap_counts
+	counts_res[("SNP", "global", q)] = snp_gl_shap_s288c_counts + snp_gl_shap_non_counts
+	counts_res[("PAV", "global", q)] = pav_gl_shap_s288c_counts + pav_gl_shap_non_counts
+	counts_res[("CNV", "global", q)] = cnv_gl_shap_s288c_counts + cnv_gl_shap_non_counts
+	counts_res[("SNP", "local", q)] = snp_lc_shap_counts
+	counts_res[("PAV", "local", q)] = pav_lc_shap_counts
+	counts_res[("CNV", "local", q)] = cnv_lc_shap_counts
+	del snp_shap_s288c, snp_shap_non, snp_shap_counts, snp_gl_shap_s288c, snp_gl_shap_non, snp_gl_shap_s288c_counts, snp_gl_shap_non_counts, snp_lc_shap_s288c, snp_lc_shap_non, snp_lc_shap_counts, mwu_snp_gl, mwu_snp_lc #, ks_snp_lc, stats_snp_lc, ks_snp_gl, stats_snp_gl
+	del pav_shap_s288c, pav_shap_non, pav_shap_counts, pav_gl_shap_s288c, pav_gl_shap_non, pav_gl_shap_s288c_counts, pav_gl_shap_non_counts, pav_lc_shap_s288c, pav_lc_shap_non, pav_lc_shap_counts, mwu_pav_gl, mwu_pav_lc #, ks_pav_lc, stats_pav_lc, ks_pav_gl, stats_pav_gl
+	del cnv_shap_s288c, cnv_shap_non, cnv_shap_counts, cnv_gl_shap_s288c, cnv_gl_shap_non, cnv_gl_shap_s288c_counts, cnv_gl_shap_non_counts, cnv_lc_shap_s288c, cnv_lc_shap_non, cnv_lc_shap_counts, mwu_cnv_gl, mwu_cnv_lc #, ks_cnv_lc, stats_cnv_lc, ks_cnv_gl, stats_cnv_gl
+
+# Save the KS-test results
+df_list = []
+num_empty = 0
+for key in ks_res.keys():
+	if key == ('CNV', 'local', 0.95):
+		continue
+	if not ks_res[key].empty:
+		new_idx = [list(key) + list(x) for x in ks_res[key].reset_index()["index"]]
+		ks_res[key].index = pd.MultiIndex.from_tuples(new_idx)
+		df_list.append(ks_res[key])
+	else:
+		num_empty += 1
+
+ks_res_df = pd.concat(df_list)
+ks_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile", "remove", "SHAP_Subset"]
+ks_res_df.reset_index(inplace=True)
+ks_res_df.drop(columns="remove", inplace=True)
+ks_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_ks_test_results.csv", index=False)
+
+assert len(df_list) + num_empty == len(ks_res.keys()) # pass!
+
+# Save the Mann-Whitney U test results
+df_list = []
+num_empty = 0
+for key in mwu_res.keys():
+	if not mwu_res[key].empty:
+		new_idx = [list(key) + list(x) for x in mwu_res[key].reset_index()["index"]]
+		mwu_res[key].index = pd.MultiIndex.from_tuples(new_idx)
+		df_list.append(mwu_res[key])
+	else:
+		num_empty += 1
+
+mwu_res_df = pd.concat(df_list)
+mwu_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile", "remove", "SHAP_Subset"]
+mwu_res_df.reset_index(inplace=True)
+mwu_res_df.drop(columns="remove", inplace=True)
+mwu_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_mwu_test_results.csv", index=False)
+
+# apply multiple-testing correction
+from statsmodels.stats.multitest import multipletests
+mwu_res_df = mwu_res_df.pivot(index=["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type"], columns="SHAP_Subset", values="pvalue")
+mwu_res_df.reset_index(inplace=True)
+
+mwu_res_df[["raw_q", "absolute_q", "positive_q", "negative_q"]] = np.nan
+for shap_type in mwu_res_df["SHAP_Type"].unique():
+	for variant_type in mwu_res_df["Variant_Type"].unique():
+		mask = (mwu_res_df["SHAP_Type"] == shap_type) & (mwu_res_df["Variant_Type"] == variant_type)
+		sub = mwu_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]]
+		sub = mwu_res_df.loc[mask, ["raw", "absolute", "positive", "negative"]].apply(lambda x:multipletests(x, alpha=0.05, method='fdr_bh')[1], axis=0)
+		mwu_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]] = sub.values
+
+mwu_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_mwu_test_results_with_qvals.csv", index=False)
+
+# Save the distribution descriptive statistics
+df_list = {k: v for k, v in stats_res.items() if not v.empty}
+stats_res_df = pd.concat(df_list)
+stats_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile", "remove", "SHAP_Subset"]
+stats_res_df.reset_index(inplace=True)
+stats_res_df.drop(columns="remove", inplace=True)
+stats_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_shap_summary_stats.csv", index=False)
+
+counts_res_df = pd.DataFrame(counts_res).T
+counts_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile"]
+counts_res_df.columns = ["Num_S288C_Bench_Genes", "Num_S288C_Bench_Features", "Num_Non_S288C_Bench_Genes", "Num_Non_S288C_Bench_Features"]
+counts_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_feature_gene_counts.csv", index=True)
+
+# Plot summary figure of ks_res_df and msu_res_df
+ks_res_df = pd.read_csv("_s288c_costanzo_benomyl_benchmark_ks_test_results.csv")
+ks_res_df = ks_res_df.pivot(index=["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type"], columns="SHAP_Subset", values="pvalue")
+ks_res_df.reset_index(inplace=True)
+
+# apply multiple testing correction to the p-values
+ks_res_df[["raw_q", "absolute_q", "positive_q", "negative_q"]] = np.nan
+for shap_type in ks_res_df["SHAP_Type"].unique():
+	for variant_type in ks_res_df["Variant_Type"].unique():
+		mask = (ks_res_df["SHAP_Type"] == shap_type) & (ks_res_df["Variant_Type"] == variant_type)
+		sub = ks_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]]
+		sub = ks_res_df.loc[mask, ["raw", "absolute", "positive", "negative"]].apply(lambda x:multipletests(x, alpha=0.05, method='fdr_bh')[1], axis=0)
+		ks_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]] = sub.values
+
+ks_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_ks_test_results_with_qvals.csv", index=False)
+
+mwu_res_df = pd.read_csv("_s288c_costanzo_benomyl_benchmark_mwu_test_results_with_qvals.csv")
+
+# plot
+def plot_ks_results(res_df, ylabel,save_name):
+	fig, ax = plt.subplots(figsize=(11, 8), nrows=3, ncols=2, sharey=True, sharex=True)
+	res_df[(res_df["SHAP_Type"] == "global") & (res_df["Variant_Type"] == "SNP")].plot(
+		x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[0, 0], title="SNP global SHAP values", linewidth=.8, ms=4, grid=True)
+	res_df[(res_df["SHAP_Type"] == "local") & (res_df["Variant_Type"] == "SNP")].plot(
+		x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[0, 1], title="SNP local SHAP values", linewidth=.8, ms=4, grid=True)
+	res_df[(res_df["SHAP_Type"] == "global") & (res_df["Variant_Type"] == "PAV")].plot(
+		x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[1, 0], title="PAV global SHAP values", linewidth=.8, ms=4, grid=True)
+	res_df[(res_df["SHAP_Type"] == "local") & (res_df["Variant_Type"] == "PAV")].plot(
+		x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[1, 1], title="PAV local SHAP values", linewidth=.8, ms=4, grid=True)
+	res_df[(res_df["SHAP_Type"] == "global") & (res_df["Variant_Type"] == "CNV")].plot(
+		x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[2, 0], title="CNV global SHAP values", linewidth=.8, ms=4, grid=True)
+	res_df[(res_df["SHAP_Type"] == "local") & (res_df["Variant_Type"] == "CNV")].plot(
+		x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[2, 1], title="CNV local SHAP values", linewidth=.8, ms=4, grid=True)
+	# plot horizontal line at y=0.05
+	for i in range(3):
+		for j in range(2):
+			ax[i, j].axhline(y=0.05, color="red", linestyle="--", linewidth=.8)
+			ax[i, j].tick_params(axis="both", labelsize=7)
+			ax[i, j].set_ylabel(ylabel)
+	plt.savefig(save_name)
+	plt.close("all")
+
+plot_ks_results(ks_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute", "negative", "positive", "raw"]], "P-value", save_name='_s288c_costanzo_benomyl_benchmark_ks_test_results_pvals.pdf')
+plot_ks_results(ks_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute_q", "negative_q", "positive_q", "raw_q"]], "Q-value", save_name='_s288c_costanzo_benomyl_benchmark_ks_test_results_qvals.pdf')
+plot_ks_results(mwu_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute", "negative", "positive", "raw"]], "P-value", save_name='_s288c_costanzo_benomyl_benchmark_mwu_test_results_pvals.pdf')
+plot_ks_results(mwu_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute_q", "negative_q", "positive_q", "raw_q"]], "Q-value", save_name='_s288c_costanzo_benomyl_benchmark_mwu_test_results_qvals.pdf')
+
+
+# ------------------------------------------------------------------------------
+# 2. To what extent do the YPD Benomyl 500 ug/ml SHAP values of SGD benchmark
+# genes agree with Costanzo et al., 2021 differential relative fitness values?
+# ------------------------------------------------------------------------------
+from glob import glob
+
+# Load feature-to-gene mapping files
+map_snps = pd.read_excel("Scripts/Data_Vis/S8_File.xlsx", engine="openpyxl")
+map_orfs = pd.read_excel("Scripts/Data_Vis/S9_File.xlsx", engine="openpyxl")
+
+# SNP identifier mapping file for fixing SNP feature IDs
+snp_id_map = pd.read_csv(
+	"Data/Peter_2018/0_raw_data/mapping_of_geno.csv_feature_names_to_actual_feature_names_09102025.csv",
+	index_col=0)
+
+# Functions to clean SNP & ORF feature IDs for comparing SHAP tables to the feature-to-gene mapping files
+def fix_snp_ids(snp_shap_cols, snp_id_map):
+	"""Fix the SNP feature names in the SHAP files to match the actual SNP
+	identifiers"""
+	return snp_shap_cols.map(snp_id_map["actual_feature"])
+
+
+def fix_orf_ids(orf_shap_cols):
+	"""Fix the ORF feature names in the SHAP files to match the actual ORF
+	identifiers"""
+	return orf_shap_cols.str.replace("^X", "", regex=True).str.replace("\.", "-", regex=True)
+
+
+# Load in SHAP values
+data_dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/"
+snp_shap_f = glob(os.path.join(data_dir, "SNP/baseline/SHAP_values_sorted_YPDBENOMYL500*.txt"))
+pav_shap_f = glob(os.path.join(data_dir, "PAV/baseline/SHAP_values_sorted_YPDBENOMYL500*.txt"))
+cnv_shap_f = glob(os.path.join(data_dir, "CNV/baseline/SHAP_values_sorted_YPDBENOMYL500*.txt"))
+snp_shap = dt.fread(snp_shap_f[0]).to_pandas().set_index("ID")
+pav_shap = pd.read_csv(pav_shap_f[0], sep="\t", index_col=0)
+cnv_shap = pd.read_csv(cnv_shap_f[0], sep="\t", index_col=0)
+snp_shap.columns = fix_snp_ids(snp_shap.columns, snp_id_map)
+pav_shap.columns = fix_orf_ids(pav_shap.columns)
+cnv_shap.columns = fix_orf_ids(cnv_shap.columns)
+
+# Load in Costanzo et al., DRF values
+drf = pd.read_excel("Data/Costanzo_2021/2021_Costanzo_Data File S1_Conditions_Strains_Fitness.xlsx",
+	engine="openpyxl", sheet_name="Diff. Mutant fitness_Conditions")
+assert drf["Strain ID"].nunique() == len(drf) # unique mutant identifiers
+drf_beno = drf.set_index("Strain ID")[["Systematic Name", "Benomyl"]]
+
+# Take the absolute value of the DRF and summarize
+drf_beno["Benomyl_abs"] = drf_beno["Benomyl"].abs()
+drf_beno_summary = drf_beno.groupby("Systematic Name").describe()
+drf_beno_summary = drf_beno_summary.dropna(thresh=7)
+from scipy.stats import pearsonr
+pearsonr(drf_beno_summary[('Benomyl', 'mean')], drf_beno_summary[('Benomyl', '50%')], alternative='two-sided')
+# PearsonRResult(statistic=0.9991982949431055, pvalue=0.0)
+pearsonr(drf_beno_summary[('Benomyl_abs', 'mean')], drf_beno_summary[('Benomyl_abs', '50%')], alternative='two-sided')
+# PearsonRResult(statistic=0.999241692975126, pvalue=0.0)
+
+# How many benchmark genes are recovered in different percentiles? ---
+# SGD benomyl benchmark genes
+sgd_benchmark = set(map_snps.loc[map_snps.Benomyl==1, "gene"]).union(set(map_orfs.loc[map_orfs.Benomyl==1, "gene"]))
+len(sgd_benchmark) # 376 (370 are SNPs, 350 are ORFs)
+len(set(drf_beno_summary.index).intersection(sgd_benchmark)) # 201 of the 376 SGD benomyl benchmark genes have DRF values
+sgd_benchmarks_common = set(map_snps.loc[map_snps.Benomyl==1, "gene"]).intersection(
+	set(map_orfs.loc[map_orfs.Benomyl==1, "gene"])).intersection(
+	set(drf_beno_summary.index))
+len(sgd_benchmarks_common) # 192 genes common to SNPs, ORFs, and Costanzo DRF
+
+
+# calculate mean and median of absolute SHAP values
+snp_shap_summary = snp_shap.abs().aggregate(["mean", "median", "max"], axis=0).T
+pav_shap_summary = pav_shap.abs().aggregate(["mean", "median", "max"], axis=0).T
+cnv_shap_summary = cnv_shap.abs().aggregate(["mean", "median", "max"], axis=0).T
+# insert the gene information
+snp_shap_summary = snp_shap_summary.merge(map_snps[["snp", "gene"]], left_index=True, right_on="snp", how="left").set_index("snp")
+pav_shap_summary.insert(3, "gene", pav_shap_summary.index.map(lambda x: map_orfs.set_index("orf")["gene"].get(x, x)))
+cnv_shap_summary.insert(3, "gene", cnv_shap_summary.index.map(lambda x: map_orfs.set_index("orf")["gene"].get(x, x)))
+
+# calculate the number of benchmark genes above the SHAP and DRF thresholds
+def calc_benchmark_threshold_counts(sgd_benchmarks_common):
+	percentiles = [99, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50] # for SHAP & DRF
+	shap_counts = []
+	drf_counts = []
+	drf_abs_counts = []
+	for value in ["mean", "median", "max"]:
+		# calculate the DRF threshold values
+		if (value == "mean") or (value == "median"):
+			if value == "median":
+				value = "50%"
+			drf_thresh_list = np.percentile(
+				drf_beno_summary.loc[drf_beno_summary[('Benomyl', value)] != 0, ('Benomyl', value)], percentiles)
+			drf_abs_thresh_list = np.percentile(
+				drf_beno_summary.loc[drf_beno_summary[("Benomyl_abs", value)] != 0, ("Benomyl_abs", value)], percentiles)
+		else:
+			drf_thresh_list = np.percentile(
+				drf_beno_summary.loc[drf_beno_summary[('Benomyl', "mean")] != 0, ('Benomyl', "mean")], percentiles)
+			drf_abs_thresh_list = np.percentile(
+				drf_beno_summary.loc[drf_beno_summary[("Benomyl_abs", "mean")] != 0, ("Benomyl_abs", "mean")], percentiles)
+		
+		# count the number of benchmark genes above the DRF thresholds
+		for i in range(len(percentiles)):
+			if (value == "mean") or (value == "50%"):
+				drf_count = len(set(drf_beno_summary.loc[
+					drf_beno_summary[('Benomyl', value)] >= drf_thresh_list[i], :].index).\
+					intersection(sgd_benchmarks_common))
+				drf_abs_count = len(set(drf_beno_summary.loc[
+					drf_beno_summary[("Benomyl_abs", value)] >= drf_abs_thresh_list[i], :].index).\
+					intersection(sgd_benchmarks_common))
+				drf_counts.append([percentiles[i], value, "DRF", drf_thresh_list[i], drf_count])
+				drf_abs_counts.append([percentiles[i], value, "absolute DRF", drf_abs_thresh_list[i], drf_abs_count])
+			else:
+				pass
+		
+		if value == "50%":
+			value = "median"
+		for vtype, shap_summary in zip(["snp", "pav", "cnv"], [snp_shap_summary, pav_shap_summary, cnv_shap_summary]):
+			# calculate the SHAP threshold values
+			shap_thresh_list = np.percentile(
+				shap_summary.loc[shap_summary[value] != 0, value], percentiles)
+			# count the number of benchmark genes above the SHAP and DRF thresholds
+			for i in range(len(percentiles)):
+				shap_count = len(set(shap_summary.loc[
+					shap_summary[value] >= shap_thresh_list[i], "gene"].unique()).\
+					intersection(sgd_benchmarks_common))
+				shap_counts.append([percentiles[i], value, f"{vtype} absolute SHAP", shap_thresh_list[i], shap_count])
+	
+	out = pd.concat([pd.DataFrame(shap_counts), pd.DataFrame(drf_counts), pd.DataFrame(drf_abs_counts)], axis=0)
+	out.columns=["percentile", "transformed value", "value category", "threshold", "benchmark_count"]
+	out["value type"] = out["transformed value"] + " " + out["value category"]
+	return out
+
+
+def plot_benchmark_threshold_counts(df, save):
+	df.plot.bar(figsize=(8, 4))
+	g.set_xlabel("Percentile", fontsize=8)
+	g.set_ylabel("Number of SGD benomyl benchmark genes", fontsize=8)
+	g.tick_params(axis="both", labelsize=7)
+	plt.savefig(save)
+	plt.close("all")
+
+
+out_sgd_common = calc_benchmark_threshold_counts(sgd_benchmarks_common)
+
+# plot the mean DRF or abs DRF counts with the mean absolute SHAP value gene counts
+plot_benchmark_threshold_counts(
+	df=out_sgd_common[out_sgd_common["transformed value"]=="mean"].pivot(
+		index="percentile", columns="value type", values="benchmark_count"),
+	save="Scripts/Data_Vis/_shap_and_drf_mean_num_common_benchmark_genes_recovered.pdf")
+
+# plot the median DRF or abs DRF counts with the median absolute SHAP value gene counts
+plot_benchmark_threshold_counts(
+	df=out_sgd_common[out_sgd_common["transformed value"].isin(["median", "50%"])].pivot(
+		index="percentile", columns="value type", values="benchmark_count"),
+	save="Scripts/Data_Vis/_shap_and_drf_median_num_common_benchmark_genes_recovered.pdf")
+
+# plot the mean DRF or abs DRF counts with the max absolute SHAP value gene counts
+subset = out_sgd_common[(out_sgd_common["transformed value"].isin(["max", "mean"])) & (
+			  ~out_sgd_common["value type"].str.contains("mean snp absolute SHAP")) & (
+			  ~out_sgd_common["value type"].str.contains("mean pav absolute SHAP")) & (
+			  ~out_sgd_common["value type"].str.contains("mean cnv absolute SHAP"))]
+plot_benchmark_threshold_counts(
+	df=subset.pivot(index="percentile", columns="value type", values="benchmark_count"),
+	save="Scripts/Data_Vis/_shap_max_and_drf_mean_num_common_benchmark_genes_recovered.pdf")
+
+# plot the mean DRF or abs DRF counts with the median absolute SHAP value gene counts
+subset = out_sgd_common[(out_sgd_common["transformed value"].isin(["median", "mean"])) & (
+			  ~out_sgd_common["value type"].str.contains("mean snp absolute SHAP")) & (
+			  ~out_sgd_common["value type"].str.contains("mean pav absolute SHAP")) & (
+			  ~out_sgd_common["value type"].str.contains("mean cnv absolute SHAP"))]
+plot_benchmark_threshold_counts(
+	df=subset.pivot(index="percentile", columns="value type", values="benchmark_count"),
+	save="Scripts/Data_Vis/_shap_median_and_drf_mean_num_common_benchmark_genes_recovered.pdf")
+
+
+
+# Compare the SHAP values of SGD benchmark genes to the DRF values ---
+# subset the SGD benchmark gene features from the non-benchmark gene features
+snp_shap_beno = snp_shap.loc[:, snp_shap.columns.isin(map_snps.loc[map_snps.Benomyl==1, "snp"])]
+snp_shap_nonb = snp_shap.loc[:, snp_shap.columns.isin(map_snps.loc[map_snps.Benomyl==0, "snp"])]
+pav_shap_beno = pav_shap.loc[:, pav_shap.columns.isin(map_orfs.loc[map_orfs.Benomyl==1, "orf"])]
+pav_shap_nonb = pav_shap.loc[:, pav_shap.columns.isin(map_orfs.loc[map_orfs.Benomyl==0, "orf"])]
+cnv_shap_beno = cnv_shap.loc[:, cnv_shap.columns.isin(map_orfs.loc[map_orfs.Benomyl==1, "orf"])]
+cnv_shap_nonb = cnv_shap.loc[:, cnv_shap.columns.isin(map_orfs.loc[map_orfs.Benomyl==0, "orf"])]
+
+
+def shap_vs_drf(df_shap_beno, df_shap_nonb, drf_beno_av, map_df, vtype="snp", ylab="SNPs", drf_type="", outf=""):
+	"""Calculate the pearson correlation between SHAP values and DRF values of:
+		- SGD benomyl benchmark genes, or
+	    - Non-benchmark genes
+	   Mean (across features) of the mean absolute SHAP values (across isolates) were estimated.
+	   Genes with zero DRF values were dropped.
+	   Args:
+		- df_shap_beno (pd.DataFrame): SHAP values of benomyl SGD benchmark gene features
+	    - df_shap_nonb (pd.DataFrame): SHAP values of non-benchmark gene features
+		- drf_beno_av (pd.DataFrame): mean DRF values per gene
+	    - map_df (pd.DataFrame): map_snps or map_orfs
+		- vtype (str): "snp" or "orf" (use "orf" for pav- and cnv-based SHAP values)
+		- ylab (str): SNPs, PAVs, or CNVs, will be used in y-axis label
+		- drf_type (str): DRF value type, will be used as x-axis label
+		- outf (str): name to save plot as
+	"""
+	
+	# get the benchmark and non-benchmark genes associated with the features
+	beno_genes = map_df.loc[map_df[vtype].isin(df_shap_beno.columns), "gene"].unique()
+	nonb_genes = map_df.loc[map_df[vtype].isin(df_shap_nonb.columns), "gene"].unique()
+	# subset the DRF dataset
+	drf_beno_genes = drf_beno_av.loc[drf_beno_av.index.isin(beno_genes)]
+	drf_nonb_genes = drf_beno_av.loc[drf_beno_av.index.isin(nonb_genes)]
+	# calculate the mean absolute SHAP value (across isolates)
+	av_shap_beno = df_shap_beno.abs().mean(axis=0)
+	av_shap_nonb = df_shap_nonb.abs().mean(axis=0)
+	av_shap_beno.name = av_shap_nonb.name = "mean_abs_shap"
+	# estimate the mean of the mean absolute SHAP values
+	y_beno = map_df[[vtype, "gene"]].merge(av_shap_beno, left_on=vtype, right_index=True, how="right")
+	y_av_beno = y_beno.groupby("gene").describe()
+	y_nonb = map_df[[vtype, "gene"]].merge(av_shap_nonb, left_on=vtype, right_index=True, how="right")
+	y_av_nonb = y_nonb.groupby("gene").describe()
+	if "intergenic" in y_av_nonb.index:
+		y_av_nonb.drop(index="intergenic", inplace=True)
+	# subset the genes represented in the SHAP datasets that have DRF values
+	x_beno = drf_beno_genes.dropna()
+	x_nonb = drf_nonb_genes.dropna()
+	# estimate the pearson correlation
+	r_beno, p_beno = pearsonr(
+		x=x_beno, y=y_av_beno.loc[x_beno.index, ("mean_abs_shap", "mean")],
+		alternative="two-sided")
+	r_nonb, p_nonb = pearsonr(
+		x=x_nonb, y=y_av_nonb.loc[x_nonb.index, ("mean_abs_shap", "mean")],
+		alternative="two-sided")
+	# density plot
+	fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(6, 3), sharey=True)
+	sns.kdeplot(x=x_beno, y=y_av_beno.loc[x_beno.index, ("mean_abs_shap", "mean")],
+		levels=50, fill=True, cmap="viridis", legend=True, ax=ax[0])
+	sns.kdeplot(x=x_nonb, y=y_av_nonb.loc[x_nonb.index, ("mean_abs_shap", "mean")],
+		levels=50, fill=True, cmap="viridis", legend=True, ax=ax[1])
+	ax[0].set_ylabel(f"mean (across {ylab}) of mean absolute SHAP", fontsize=8)
+	ax[0].set_title(f"SGD benomyl benchmark genes\nr={r_beno:.2f}, p={p_beno:.2e}, n={len(x_beno)}", fontsize=8)
+	ax[1].set_title(f"Non-benchmark genes\nr={r_nonb:.2f}, p={p_nonb:.2e}, n={len(x_nonb)}", fontsize=8)
+	for i in [0, 1]:
+		ax[i].set_xlabel(drf_type, fontsize=8)
+		ax[i].tick_params(axis="both", labelsize=7)
+	plt.tight_layout()
+	plt.savefig(outf)
+	plt.close("all")
+	gc.collect()
+	gc.collect()
+	return [len(x_beno), r_beno, p_beno, len(x_nonb), r_nonb, p_nonb]
+
+
+# Debugging args
+# df_shap_beno = pav_shap_beno.copy(deep=True)
+# df_shap_nonb = cnv_shap_nonb.copy(deep=True)
+# drf_beno_av = drf_beno_summary[("Benomyl_abs", "mean")].copy(deep=True)
+# map_df = map_orfs.copy(deep=True)
+# vtype="orf"
+# drf_type="Absolute DRF"
+# outf="Scripts/Data_Vis/_shap_vs_abs_drf_sgd_benomyl_pav.png"
+
+out_snp_shap = shap_vs_drf(snp_shap_beno, snp_shap_nonb, drf_beno_summary[("Benomyl_abs", "mean")],
+			map_snps, vtype="snp", ylab="SNPs", drf_type="Mean absolute DRF", outf="Scripts/Data_Vis/_shap_vs_abs_drf_sgd_benomyl_snp.pdf")
+out_pav_shap = shap_vs_drf(pav_shap_beno, pav_shap_nonb, drf_beno_summary[("Benomyl_abs", "mean")],
+			map_orfs, vtype="orf", ylab="PAVs", drf_type="Mean absolute DRF", outf="Scripts/Data_Vis/_shap_vs_abs_drf_sgd_benomyl_pav.pdf")
+out_cnv_shap = shap_vs_drf(cnv_shap_beno, cnv_shap_nonb, drf_beno_summary[("Benomyl_abs", "mean")],
+			map_orfs, vtype="orf", ylab="CNVs", drf_type="Mean absolute DRF", outf="Scripts/Data_Vis/_shap_vs_abs_drf_sgd_benomyl_cnv.pdf")
+out_snp_shap2 = shap_vs_drf(snp_shap_beno, snp_shap_nonb, drf_beno_summary[("Benomyl_abs", "mean")],
+			map_snps, vtype="snp", ylab="SNPs", drf_type="Mean DRF", outf="Scripts/Data_Vis/_shap_vs_drf_sgd_benomyl_snp.pdf")
+out_pav_shap2 = shap_vs_drf(pav_shap_beno, pav_shap_nonb, drf_beno_summary[("Benomyl_abs", "mean")],
+			map_orfs, vtype="orf", ylab="PAVs", drf_type="Mean DRF", outf="Scripts/Data_Vis/_shap_vs_drf_sgd_benomyl_pav.pdf")
+out_cnv_shap2 = shap_vs_drf(cnv_shap_beno, cnv_shap_nonb, drf_beno_summary[("Benomyl_abs", "mean")],
+			map_orfs, vtype="orf", ylab="CNVs", drf_type="Mean DRF", outf="Scripts/Data_Vis/_shap_vs_drf_sgd_benomyl_cnv.pdf")
+
+out = pd.DataFrame({("SNP", "mean absolute DRF", "mean of mean absolute SHAP"): out_snp_shap,
+				    ("PAV", "mean absolute DRF", "mean of mean absolute SHAP"): out_pav_shap,
+					("CNV", "mean absolute DRF", "mean of mean absolute SHAP"): out_cnv_shap,
+				    ("SNP", "mean DRF", "mean of mean absolute SHAP"): out_snp_shap2,
+				    ("PAV", "mean DRF", "mean of mean absolute SHAP"): out_pav_shap2,
+				    ("CNV", "mean DRF", "mean of mean absolute SHAP"): out_cnv_shap2}).T
+out.columns = ["num SGD benomyl benchmark genes", "r_benchmark", "pval_benchmark",
+			   "num non-benchmark genes", "r_non_benchmark", "pval_non_benchmark"]
+out.index.names = ["variant type", "DRF value", "SHAP value"]
+out.to_csv("Scripts/Data_Vis/_shap_vs_drf_sgd_benomyl_pearson.csv")				  
+
+
+# ------------------------------------------------------------------------------
+# 3. Analysis of SHAP interactions from the Figure 4A models
 # ------------------------------------------------------------------------------
 #--------------------------------------#
 # a. Integrated feature tables derived
@@ -1269,735 +2420,6 @@ pav_cnv model: 259 out of 15656 interactions have both genes in Piotrowski datas
 snp_pav_cnv model: 2290 out of 151648 interactions have both genes in Piotrowski dataset
 960 unique gene pairs
 '''
-
-# ------------------------------------------------------------------------------
-"""3. How different are the SHAP values of genes experimentally validated to
-decrease fitness in S288C or W303 from important non-experimentally validated genes?"""
-# salloc -N 1 -c 30 --mem=5GB --time=8:00:00
-# conda activate /mnt/home/seguraab/miniconda3/envs/shap
-# /mnt/home/seguraab/miniconda3/envs/shap/bin/python
-
-"""Folders:
-reviewer_1_analysis/w303_SHAP_comparisons_old/
-	- Intergenic SNPs were included. w303 benchmark genes came from SGD benomyl-
-	sensitive phenotype annotations.
-
-reviewer_1_analysis/s288c_SHAP_comparisons_intergenic_included/
-	- I forgot to exclude the intergenic SNPs from the important non-benchmark
-	gene distribution. Also, I should have excluded genes that had no experimental
-	validation in the Costanzo data, which would say they have 0 or positive DRF values.
-
-reviewer_1_analysis/s288c_SHAP_comparisons_non_exp_verified_included/
-	- Intergenic SNPs were excluded. However, I still included genes that had no
-	experimental validation in the Costanzo data, which would say they have 0 or positive DRF values.
-	- These results have a mistake.       here :
-	cnv_shap_genes.insert(2, "Benomyl_DRF", pav_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
-
-reviewer_1_analysis/s288c_SHAP_comparisons_non_exp_verified_excluded/
-	- Intergenic SNPs were excluded. Also, I excluded genes that had no experimental
-	validation in the Costanzo data. So, I compared the benchmark gene SHAP
-	distributions (have negative DRF values) to the SHAP distributions of 
-	important non-benchmark genes (which have DRF values of 0 or positive).
-	- Only the SNP SHAP datasets had enough genes with non-negative DRF values
-	to perform the comparison. I did not run the PAVs and CNVs since there were
-	so few genes with non-negative DRF values.
-
-reviewer_1_analysis_s288c_SHAP_comparisons_unimportant_non_bench_included
-	- Intergenic SNPs were excluded. Also excluded genes with no experimental
-	DRF values in Costanzo data.
-	- I use the SNP-to-gene and ORF-to-gene maps to identify the non-benchmark
-	genes (which include both important [from the optimized models], and not
-	important
-"""
-
-import os, gc
-import pandas as pd
-import datatable as dt
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from glob import glob
-from scipy.stats import ks_2samp, mannwhitneyu
-
-os.chdir("/mnt/research/glbrc_group/shiulab/kenia/Shiu_Lab/Project/Scripts/Data_Vis")
-
-# # Fitness data
-# pheno = pd.read_excel("S1_File.xlsx", engine="openpyxl")
-# pheno.set_index("ID", inplace=True)
-
-# # Genetic distance datafiles
-# dist_snp = pd.read_excel("S13_File.xlsx", engine="openpyxl")
-# dist_pav = pd.read_excel("S14_File.xlsx", engine="openpyxl")
-# dist_snp.set_index("ID", inplace=True)
-# dist_pav.set_index(dist_pav.columns[0], inplace=True)
-
-# SNP and ORF to gene map files
-snp_map = pd.read_excel("S8_File.xlsx", engine="openpyxl")
-orf_map = pd.read_excel("S9_File.xlsx", engine="openpyxl")
-snp_map[snp_map['gene'].str.contains(',')]
-orf_map[orf_map['gene'].str.contains(',')] # None
-snp_map["gene"] = snp_map["gene"].str.split(",") # split up the genes into a list
-snp_map = snp_map.explode(column="gene", ignore_index=True) # each gene gets its own row
-
-
-# S288C Costanzo benchmark genes --------------------
-# DRF: differential relative fitness values
-costanzo_drf = pd.read_excel("../../Data/Costanzo_2021/2021_Costanzo_Data File S1_Conditions_Strains_Fitness.xlsx",
-	engine="openpyxl", sheet_name="Diff. Mutant fitness_Conditions")
-assert costanzo_drf["Strain ID"].nunique() == len(costanzo_drf) # unique mutant identifiers
-costanzo_ben = costanzo_drf.set_index("Strain ID")[["Systematic Name", "Benomyl"]]
-costanzo_ben.describe().to_dict()
-# {'count': 4383.0, 'mean': -0.0430362051106548, 'std': 0.08260868299038501, 'min': -0.5325, '25%': -0.0815, '50%': -0.0385, '75%': 0.0, 'max': 0.3385}
-
-# check if there are overlapping genes for mutants whose DRF < 0 and DRF >= 0
-mask = costanzo_ben[costanzo_ben["Benomyl"] < 0]["Systematic Name"].isin(
-	costanzo_ben[costanzo_ben["Benomyl"] >= 0]["Systematic Name"])
-mask.sum() # 92 genes, calculate a median Benomyl DRF
-costanzo_ben_median = costanzo_ben.groupby("Systematic Name")["Benomyl"].median()
-costanzo_ben_median.dropna().shape # (4165,)
-# ---------------------------------------------------
-
-
-# # W303 SGD benchmark genes --------------------------
-# ben = pd.read_csv("../../Data/SGD_Experiment_Genes/benomyl_phenotype_annotations_sensitive_genes.txt", sep="\t")
-# caf = dt.fread("../../Data/SGD_Experiment_Genes/caffeine_phenotype_annotations_sensitive_genes.txt").to_pandas()
-# cuso = pd.read_csv("../../Data/SGD_Experiment_Genes/copperII_sulfate_phenotype_annotations_sensitive_genes.txt", sep="\t")
-# sma = pd.read_csv("../../Data/SGD_Experiment_Genes/sodium_arsenite_phenotype_annotations_sensitive_genes.txt", sep="\t")
-# ben_w303 = ben.loc[ben["Strain Background"] == "W303", ["Gene Systematic Name", "Chemical", "Phenotype", "Reference"]]
-# caf_w303 = caf.loc[caf["Strain Background"] == "W303", ["Gene Systematic Name", "Chemical", "Phenotype", "Reference"]]
-# cuso_w303 = cuso.loc[cuso["Strain Background"] == "W303", ["Gene Systematic Name", "Chemical", "Phenotype", "Reference"]]
-# sma_w303 = sma.loc[sma["Strain Background"] == "W303", ["Gene Systematic Name", "Chemical", "Phenotype", "Reference"]]
-
-# # Get the SNPs & ORFs that map to W303 benchmark genes
-# snp_map_ben_w303 = snp_map.loc[snp_map["gene"].isin(ben_w303["Gene Systematic Name"]), :]
-# snp_map_caf_w303 = snp_map.loc[snp_map["gene"].isin(caf_w303["Gene Systematic Name"]), :]
-# snp_map_cuso_w303 = snp_map.loc[snp_map["gene"].isin(cuso_w303["Gene Systematic Name"]), :]
-# snp_map_sma_w303 = snp_map.loc[snp_map["gene"].isin(sma_w303["Gene Systematic Name"]), :]
-
-# orf_map_ben_w303 = orf_map.loc[orf_map["gene"].isin(ben_w303["Gene Systematic Name"]), :]
-# orf_map_caf_w303 = orf_map.loc[orf_map["gene"].isin(caf_w303["Gene Systematic Name"]), :]
-# orf_map_cuso_w303 = orf_map.loc[orf_map["gene"].isin(cuso_w303["Gene Systematic Name"]), :]
-# orf_map_sma_w303 = orf_map.loc[orf_map["gene"].isin(sma_w303["Gene Systematic Name"]), :]
-# # ---------------------------------------------------
-
-
-# SNP, PAV, and CNV SHAP files ----------------------
-data_dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/"
-snp_shap_files = glob(os.path.join(data_dir, "SNP/fs/SHAP_values_sorted_Y*.txt"))
-pav_shap_files = glob(os.path.join(data_dir, "PAV/fs/SHAP_values_sorted_Y*.txt"))
-cnv_shap_files = glob(os.path.join(data_dir, "CNV/fs/SHAP_values_sorted_Y*.txt"))
-
-target_envs = ["YPDBENOMYL500", "YPDCAFEIN40", "YPDCAFEIN50", "YPDCUSO410MM", "YPDSODIUMMETAARSENITE"]
-snp_shap_files = [f for f in snp_shap_files if any(env in f for env in target_envs)]
-pav_shap_files = [f for f in pav_shap_files if any(env in f for env in target_envs)]
-cnv_shap_files = [f for f in cnv_shap_files if any(env in f for env in target_envs)]
-snp_shap_files = sorted(snp_shap_files)
-pav_shap_files = sorted(pav_shap_files)
-cnv_shap_files = sorted(cnv_shap_files)
-
-# SNP identifier mapping file
-snp_id_map = pd.read_csv(
-	"../../Data/Peter_2018/0_raw_data/mapping_of_geno.csv_feature_names_to_actual_feature_names_09102025.csv",
-	index_col=0)
-
-def fix_snp_ids(snp_shap_file):
-	"""Fix the SNP feature names in the SHAP files to match the actual SNP
-	identifiers"""
-	snp_shap = pd.read_csv(snp_shap_file, sep="\t", index_col=0)
-	snp_shap.columns = snp_shap.columns.map(snp_id_map["actual_feature"])
-	return snp_shap
-
-
-def fix_orf_ids(orf_shap_file):
-	"""Fix the ORF feature names in the SHAP files to match the actual ORF
-	identifiers"""
-	orf_shap = pd.read_csv(orf_shap_file, sep="\t", index_col=0)
-	orf_shap.columns = orf_shap.columns.str.replace("^X", "", regex=True).str.replace("\.", "-", regex=True)
-	return orf_shap
-
-# ---------------------------------------------------
-# read in SHAP files for the YPDBENOMYL500 environment
-snp_shap = fix_snp_ids(snp_shap_files[0]) # 6000 features
-pav_shap = fix_orf_ids(pav_shap_files[0]) # 128 features
-cnv_shap = fix_orf_ids(cnv_shap_files[0]) # 128 features
-
-benchmark = costanzo_ben_median[costanzo_ben_median < 0] # mutants with negative differential relative fitness (DRF)
-len(benchmark) # 3101 single mutants
-non_benchmark = costanzo_ben_median[costanzo_ben_median >= 0] # mutants with non-negative DRF values
-len(non_benchmark) # 1064 single mutants
-assert set(benchmark.index).isdisjoint(set(non_benchmark.index)) # no overlapping genes between benchmark and non-benchmark sets
-
-# how many of the optimized model features (and genes) have negative DRF values?
-snp_shap_genes = snp_map.loc[snp_map.snp.isin(snp_shap.columns), ["snp", "gene"]]
-pav_shap_genes = orf_map.loc[orf_map.orf.isin(pav_shap.columns), ["orf", "gene"]]
-cnv_shap_genes = orf_map.loc[orf_map.orf.isin(cnv_shap.columns), ["orf", "gene"]]
-
-benchmark_dict = benchmark.to_dict()
-non_benchmark_dict = non_benchmark.to_dict()
-def get_drf_value(row, benchmark=benchmark_dict):
-	if row["gene"] in benchmark.keys():
-		return benchmark[row["gene"]]
-	else:
-		return None
-
-snp_shap_genes.insert(2, "Benomyl_DRF", snp_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
-pav_shap_genes.insert(2, "Benomyl_DRF", pav_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
-cnv_shap_genes.insert(2, "Benomyl_DRF", cnv_shap_genes.apply(lambda x: get_drf_value(x), axis=1))
-snp_shap_genes.insert(3, "Non_benchmark", snp_shap_genes.apply(lambda x: get_drf_value(x, non_benchmark_dict), axis=1))
-pav_shap_genes.insert(3, "Non_benchmark", pav_shap_genes.apply(lambda x: get_drf_value(x, non_benchmark_dict), axis=1))
-cnv_shap_genes.insert(3, "Non_benchmark", cnv_shap_genes.apply(lambda x: get_drf_value(x, non_benchmark_dict), axis=1))
-
-print("Number of SNP features with negative DRF values:", snp_shap_genes.isna().value_counts())
-'''results for s288c_SHAP_comparisons_non_exp_verified_included/
-# snp    gene   Benomyl_DRF
-# False  False  True           4205    4205+1857 = 6062 SNPs, 62 SNPs mapped to multiple genes
-#               False          1857 <- have negative DRF values
-
-results for s288c_SHAP_comparisons_non_exp_verified_excluded/
-snp    gene   Benomyl_DRF  Non_benchmark
-False  False  True         True             3528    3528+677=4205
-              False        True             1857
-              True         False             677
-'''
-snp_shap_genes['snp'].duplicated().sum() # 62 snps
-print("Number of PAV features with negative DRF values:", pav_shap_genes.isna().value_counts())
-'''results for s288c_SHAP_comparisons_non_exp_verified_included/
-# orf    gene   Benomyl_DRF
-# False  False  True           21    128-21-19 = 88 ORFs do not have a gene mapping
-#               False          19 <- have negative DRF values
-
-results for s288c_SHAP_comparisons_non_exp_verified_excluded/
-orf    gene   Benomyl_DRF  Non_benchmark
-False  False  False        True             19
-              True         True             18
-                           False             3
-'''
-print("Number of CNV features with negative DRF values:", cnv_shap_genes.isna().value_counts())
-'''results for s288c_SHAP_comparisons_non_exp_verified_included/
-# orf    gene   Benomyl_DRF
-# False  False  True           43    128-43-9 = 76 ORFs do not have a gene mapping
-#               False           9 <- have negative DRF values
-
-results for s288c_SHAP_comparisons_non_exp_verified_excluded/
-orf    gene   Benomyl_DRF  Non_benchmark
-False  False  True         True             34    these numbers don't match the above because pav was used instead of cnv
-              False        True             16
-              True         False             2
-
-'''
-print("Number of unique genes represented in SNP features:", snp_shap_genes.gene.nunique()) # 2158
-print("Number of unique genes with negative DRF values:", snp_shap_genes.groupby("gene")["Benomyl_DRF"].median().isna().value_counts())
-# Benomyl_DRF
-# False    1088 <- genes that have negative DRF values
-# True     1070
-print("Number of unique genes with non-negative DRF values:", snp_shap_genes.groupby("gene")["Non_benchmark"].median().isna().value_counts())
-# Non_benchmark
-# True     1767
-# False     391  <- genes that have non-negative DRF values
-print("Number of unique genes represented in PAV features:", pav_shap_genes.gene.nunique()) # 40
-print("Number of unique genes with negative DRF values:", pav_shap_genes.groupby("gene")["Benomyl_DRF"].median().isna().value_counts())
-# Benomyl_DRF
-# True     21
-# False    19  <- genes that have negative DRF values
-print("Number of unique genes with non-negative DRF values:", pav_shap_genes.groupby("gene")["Non_benchmark"].median().isna().value_counts())
-# True     37
-# False     3  <- genes that have non-negative DRF values
-print("Number of unique genes represented in CNV features:", cnv_shap_genes.gene.nunique()) # 52
-print("Number of unique genes with negative DRF values:", cnv_shap_genes.groupby("gene")["Benomyl_DRF"].median().isna().value_counts())
-# Benomyl_DRF  <- results using the pav genes instead of cnv genes
-# True     43
-# False     9 <- genes that have negative DRF values
-# Benomyl_DRF  <- the correct result using the cnv genes
-# True     36
-# False    16
-print("Number of unique genes with non-negative DRF values:", cnv_shap_genes.groupby("gene")["Non_benchmark"].median().isna().value_counts())
-# Non_benchmark
-# True     50
-# False     2  <- genes that have non-negative DRF values
-
-
-# functions to compare local SHAP value distributions of benchmark genes to that of the important non-benchmark genes
-def plot_shap_violin(data1, data2, title, save_name, strain="W303"):
-	"""Plot a violin plot comparing the distributions of two sets of SHAP values
-	Args:
-		data1 (np.ndarray) : SHAP values of genes that map to W303 benchmark genes
-		data2 (np.ndarray): SHAP values of genes that do NOT map to W303 benchmark genes
-	Note: data1 and data2 may have different lengths.
-	"""
-	df1 = pd.DataFrame({"Gene_type": f"{strain}_genes", "SHAP_value": data1})
-	df2 = pd.DataFrame({"Gene_type": f"Non_{strain}_genes", "SHAP_value": data2})
-	df_melted = pd.concat([df1, df2], axis=0)
-	# plot distribution of values
-	fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(6, 6))
-	sns.violinplot(data=df_melted, x="Gene_type", y="SHAP_value", inner="quart", ax=ax[0, 0])
-	sns.violinplot(data=df_melted, x="Gene_type", y="SHAP_value", inner="quart", ax=ax[0, 1])
-	ax[0, 1].set_yscale("symlog", linthresh=1e-4)
-	ax[0, 1].set_ylabel("SHAP value (symlog scale)", fontsize=7)
-	fig.suptitle(title, fontsize=8)
-	ax[0, 0].set_xlabel("")
-	ax[0, 1].set_xlabel("")
-	ax[0, 0].set_ylabel("SHAP value", fontsize=7)
-	ax[0, 0].tick_params(axis="both", labelsize=6)
-	ax[0, 1].tick_params(axis="both", labelsize=6)
-	# plot CDF of values
-	sns.ecdfplot(data=df1, x="SHAP_value", ax=ax[1, 0], label=f"{strain}_genes")
-	sns.ecdfplot(data=df2, x="SHAP_value", ax=ax[1, 0], label=f"Non_{strain}_genes")
-	ax[1, 0].set_xlabel("SHAP value", fontsize=7)
-	ax[1, 0].set_ylabel("Cumulative density", fontsize=7)
-	ax[1, 0].tick_params(axis="both", labelsize=6)
-	ax[1, 0].legend(fontsize=6)
-	plt.tight_layout()
-	plt.savefig(save_name)
-	plt.close("all")
-	gc.collect()
-	gc.collect()
-
-
-def ks_2samp_shap(data1, data2, strain="w303", env="YPDBENOMYL500", vtype="SNP", tag=""):
-	# Separate SHAP values by type or use absolute values
-	if len(data1.shape) == 1: # global SHAP values
-		raw_strain = data1.copy(deep=True)
-		raw_non_strain = data2.copy(deep=True)
-		abs_strain = data1.abs()
-		abs_non_strain = data2.abs()
-		pos_strain = data1.mask(data1 <= 0, None).dropna()
-		pos_non_strain = data2.mask(data2 <= 0, None).dropna()
-		neg_strain = data1.mask(data1 >= 0, None).dropna()
-		neg_non_strain = data2.mask(data2 >= 0, None).dropna()
-	else: # local SHAP values
-		raw_strain = data1["shap_value"].copy(deep=True)
-		raw_non_strain = data2["shap_value"].copy(deep=True)
-		abs_strain = raw_strain.abs()
-		abs_non_strain = raw_non_strain.abs()
-		pos_strain = raw_strain.mask(raw_strain <= 0, None).dropna()
-		pos_non_strain = raw_non_strain.mask(raw_non_strain <= 0, None).dropna()
-		neg_strain = raw_strain.mask(raw_strain >= 0, None).dropna()
-		neg_non_strain = raw_non_strain.mask(raw_non_strain >= 0, None).dropna()
-	
-	# store results
-	out_ks = {}
-	out_stats = {}
-	if len(raw_strain) > 0:
-		# raw SHAP values
-		out_ks[("ks_test", "raw")] = list(ks_2samp(
-			data1=raw_strain, data2=raw_non_strain, alternative="greater", method="asymp"))
-		# plot
-		plot_shap_violin(data1=raw_strain, data2=raw_non_strain, strain=strain.upper(),
-			title=f"{env} {tag} {vtype} SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_raw_SHAP_violin.pdf")
-		# summary statistics
-		out_stats[("summary_stats", f"raw_{strain}")] = raw_strain.describe()
-		out_stats[("summary_stats", f"raw_non_{strain}")] = raw_non_strain.describe()
-		del raw_strain, raw_non_strain
-	if len(abs_strain) > 0:
-		# absolute SHAP values
-		out_ks[("ks_test", "absolute")] = list(ks_2samp(
-			data1=abs_strain, data2=abs_non_strain, alternative="greater", method="asymp"))
-		# plot
-		plot_shap_violin(data1=abs_strain, data2=abs_non_strain, strain=strain.upper(),
-			title=f"{env} {tag} {vtype} absolute SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_abs_SHAP_violin.pdf")
-		out_stats[("summary_stats", f"abs_{strain}")] = abs_strain.describe()
-		out_stats[("summary_stats", f"abs_non_{strain}")] = abs_non_strain.describe()
-		del abs_strain, abs_non_strain
-	if len(pos_strain) > 0:
-		# positive SHAP values only
-		out_ks[("ks_test", "positive")] = list(ks_2samp(
-			data1=pos_strain, data2=pos_non_strain, alternative="greater", method="asymp"))
-		plot_shap_violin(data1=pos_strain, data2=pos_non_strain, strain=strain.upper(),
-			title=f"{env} {tag} {vtype} Positive SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_pos_SHAP_violin.pdf")
-		out_stats[("summary_stats", f"pos_{strain}")] = pos_strain.describe()
-		out_stats[("summary_stats", f"pos_non_{strain}")] = pos_non_strain.describe()
-		del pos_strain, pos_non_strain
-	if len(neg_strain) > 0:
-		# negative SHAP values only
-		out_ks[("ks_test", "negative")] = list(ks_2samp(
-			data1=neg_strain, data2=neg_non_strain, alternative="greater", method="asymp"))
-		plot_shap_violin(data1=neg_strain, data2=neg_non_strain, strain=strain.upper(),
-			title=f"{env} {tag} {vtype} Negative SHAP values", save_name=f"_{strain}_{env}_{tag}_{vtype}_neg_SHAP_violin.pdf")
-		out_stats[("summary_stats", f"neg_{strain}")] = neg_strain.describe()
-		out_stats[("summary_stats", f"neg_non_{strain}")] = neg_non_strain.describe()
-		del neg_strain, neg_non_strain
-	gc.collect()
-	gc.collect()
-	return out_ks, out_stats
-
-
-def mwu_shap(data1, data2):
-	"""Mann-Whitney U test.
-	Null Ho: both distributions come from the same underlying distribution
-	Alt ha: values in data1 tend to be greater than values in data2
-	"""
-	# Separate SHAP values by type or use absolute values
-	if len(data1.shape) == 1: # global SHAP values
-		raw_strain = data1.copy(deep=True)
-		raw_non_strain = data2.copy(deep=True)
-		abs_strain = data1.abs()
-		abs_non_strain = data2.abs()
-		pos_strain = data1.mask(data1 <= 0, None).dropna()
-		pos_non_strain = data2.mask(data2 <= 0, None).dropna()
-		neg_strain = data1.mask(data1 >= 0, None).dropna()
-		neg_non_strain = data2.mask(data2 >= 0, None).dropna()
-	else: # local SHAP values
-		raw_strain = data1["shap_value"].copy(deep=True)
-		raw_non_strain = data2["shap_value"].copy(deep=True)
-		abs_strain = raw_strain.abs()
-		abs_non_strain = raw_non_strain.abs()
-		pos_strain = raw_strain.mask(raw_strain <= 0, None).dropna()
-		pos_non_strain = raw_non_strain.mask(raw_non_strain <= 0, None).dropna()
-		neg_strain = raw_strain.mask(raw_strain >= 0, None).dropna()
-		neg_non_strain = raw_non_strain.mask(raw_non_strain >= 0, None).dropna()
-	
-	# store results
-	out_mwu = {}
-	if len(raw_strain) > 0:
-		# raw SHAP values
-		out_mwu[("mwu_test", "raw")] = list(mannwhitneyu(
-			x=raw_strain, y=raw_non_strain, alternative="greater"))
-		del raw_strain, raw_non_strain
-	if len(abs_strain) > 0:
-		# absolute SHAP values
-		out_mwu[("mwu_test", "absolute")] = list(mannwhitneyu(
-			x=abs_strain, y=abs_non_strain, alternative="greater"))
-		del abs_strain, abs_non_strain
-	if len(pos_strain) > 0:
-		# positive SHAP values only
-		out_mwu[("mwu_test", "positive")] = list(mannwhitneyu(
-			x=pos_strain, y=pos_non_strain, alternative="greater"))
-		del pos_strain, pos_non_strain
-	if len(neg_strain) > 0:
-		# negative SHAP values only
-		out_mwu[("mwu_test", "negative")] = list(mannwhitneyu(
-			x=neg_strain, y=neg_non_strain, alternative="greater"))
-		del neg_strain, neg_non_strain
-	gc.collect()
-	gc.collect()
-	return out_mwu
-
-
-# S288C benchmark genes: compare local SHAP distributions ---------------
-def get_shap_subsets(shap_df, map_ben_s288c, map_df, vtype="snp", non_bench_map=None):
-	if vtype == "snp":
-		# SNPs that map to S288C benchmark genes
-		shap_s288c = shap_df.loc[:, shap_df.columns.isin(map_ben_s288c["snp"])]
-		n_shap_s288c_genes = map_ben_s288c.loc[map_ben_s288c["snp"].isin(shap_s288c.columns), "gene"].nunique()
-		n_shap_s288c_features = shap_s288c.shape[1]
-		# SNPs that do not map to S288C benchmark genes
-		if non_bench_map is None:
-			shap_non = shap_df.loc[:, ~shap_df.columns.isin(map_ben_s288c["snp"])] # used to get results in s288c_SHAP_comparisons_non_exp_verified_included/
-		else:
-			shap_non = shap_df.loc[:, shap_df.columns.isin(non_bench_map["snp"])] # used to get results in s288c_SHAP_comparisons_non_exp_verified_excluded/
-		# drop intergenic SNPs
-		shap_non_map = map_df.loc[map_df["snp"].isin(shap_non.columns), ["snp", "gene"]].set_index("snp")
-		shap_non = shap_non.loc[:, shap_non_map[shap_non_map.gene != "intergenic"].index.unique()]
-		n_shap_non_genes = map_df.loc[map_df["snp"].isin(shap_non.columns), "gene"].nunique()
-		n_shap_non_features = shap_non.shape[1]
-	else:
-		# ORFs that map to S288C benchmark genes
-		shap_s288c = shap_df.loc[:, shap_df.columns.isin(map_ben_s288c["orf"])]
-		n_shap_s288c_features = shap_s288c.shape[1]
-		if shap_s288c.shape[1] > 0:
-			n_shap_s288c_genes = map_ben_s288c.loc[map_ben_s288c["orf"].isin(shap_s288c.columns), "gene"].nunique()
-		else:
-			n_shap_s288c_genes = 0
-		# ORFs that do not map to S288C benchmark genes
-		shap_non = shap_df.loc[:, ~shap_df.columns.isin(map_ben_s288c["orf"])] # used to get results in s288c_SHAP_comparisons_non_exp_verified_included/
-		n_shap_non_genes = map_df.loc[map_df["orf"].isin(shap_non.columns), "gene"].nunique()
-		n_shap_non_features = shap_non.shape[1]
-	print(f"{n_shap_s288c_genes} genes with {vtype} SHAP values that map to S288C benchmark genes")
-	print(f"{n_shap_s288c_features} {vtype} features that map to S288C benchmark genes")
-	print(f"{n_shap_non_genes} genes with {vtype} SHAP values that do NOT map to S288C benchmark genes")
-	print(f"{n_shap_non_features} {vtype} features that do NOT map to S288C benchmark genes")
-	return shap_s288c, shap_non, [n_shap_s288c_genes, n_shap_s288c_features, n_shap_non_genes, n_shap_non_features]
-
-
-def get_global_shap(shap_df, map_ben_s288c, map_df, vtype="snp", is_non=False):
-	"""Calculate the global SHAP value for each feature by summing the SHAP values across all isolates"""
-	gl_shap = shap_df.sum(axis=0)
-	gl_shap = gl_shap[gl_shap != 0] # remove un-important features
-	print(f"{len(gl_shap)} {vtype} features with non-zero global SHAP values")
-	n_shap_features = gl_shap.shape[0]
-	if vtype == "snp": # re-count genes and features after removing un-important features
-		if not is_non:
-			n_shap_genes = map_ben_s288c.loc[map_ben_s288c["snp"].isin(gl_shap.index), "gene"].nunique()
-		else:
-			n_shap_genes = map_df.loc[map_df["snp"].isin(gl_shap.index), "gene"].nunique()
-	else:
-		if not is_non:
-			n_shap_genes = map_ben_s288c.loc[map_ben_s288c["orf"].isin(gl_shap.index), "gene"].nunique()
-		else:
-			n_shap_genes = map_df.loc[map_df["orf"].isin(gl_shap.index), "gene"].nunique()
-	return gl_shap, [n_shap_genes, n_shap_features]
-
-
-def reshape_local_shap(s288c_shap_df, non_shap_df, map_df, strain="s288c", map_type="orf"):
-	"""Re-arrange the local SHAP values into long format for plotting & performing ks-tests"""
-	s288c_shap_long = s288c_shap_df.reset_index().melt(id_vars="ID", var_name="feature", value_name="shap_value")
-	# s288c_shap_long["gene_type"] = f"{strain}_bench_genes"
-	non_shap_long = non_shap_df.reset_index().melt(id_vars="ID", var_name="feature", value_name="shap_value")
-	# non_shap_long["gene_type"] = f"non_{strain}_bench_genes"
-	# drop un-important local SHAP values
-	s288c_shap_long = s288c_shap_long[s288c_shap_long["shap_value"] != 0]
-	non_shap_long = non_shap_long[non_shap_long["shap_value"] != 0]
-	n_shap_s288c_genes = map_df.loc[map_df[map_type].isin(s288c_shap_long["feature"].unique()), "gene"].nunique()
-	n_shap_non_genes = map_df.loc[map_df[map_type].isin(non_shap_long["feature"].unique()), "gene"].nunique()
-	return s288c_shap_long, non_shap_long, [n_shap_s288c_genes, s288c_shap_long["feature"].nunique(), n_shap_non_genes, non_shap_long["feature"].nunique()]
-
-
-ks_res = {}
-mwu_res = {}
-stats_res = {}
-counts_res = {}
-for q in [1, .0005, .005, .01, .025, .05, .1, .2, .3, .4, .5, .6, .7, .8, .9]:
-	# Get the SNPs & ORFs that map to S288C benchmark genes
-	# benchmark genes are those whose mutants have decreased fitness in benomyl compared to the reference condition
-	# use the quantile to define mutants that are sufficiently negatively affected by benomyl
-	print()
-	if q == 1:
-		print("Using all negative Benomyl DRF values to define benchmark genes")
-		snp_map_ben_s288c = snp_map.loc[snp_map["gene"].isin(benchmark.index), :] # SNP benchmark genes
-		# orf_map_ben_s288c = orf_map.loc[orf_map["gene"].isin(benchmark.index), :] # ORF benchmark genes
-	else:
-		drf_thresh = benchmark.quantile(q, interpolation="linear")
-		print(f"Benomyl DRF threshold for top {q*100}% of mutants: {drf_thresh}")
-		benchmark_q = benchmark[benchmark <= drf_thresh] # the top q (%) of mutants most negatively affected by benomyl
-		snp_map_ben_s288c = snp_map.loc[snp_map["gene"].isin(benchmark_q.index), :] # SNP benchmark genes
-		# orf_map_ben_s288c = orf_map.loc[orf_map["gene"].isin(benchmark_q.index), :] # ORF benchmark genes
-	
-	# subset the SHAP values of S288C benchmark genes and non-benchmark genes
-	non_bench_map = snp_map.loc[snp_map["gene"].isin(non_benchmark.index), :]
-	snp_shap_s288c, snp_shap_non, snp_shap_counts = get_shap_subsets(snp_shap, snp_map_ben_s288c, snp_map, vtype="snp", non_bench_map=non_bench_map)
-	# pav_shap_s288c, pav_shap_non, pav_shap_counts = get_shap_subsets(pav_shap, orf_map_ben_s288c, orf_map, vtype="pav")
-	# cnv_shap_s288c, cnv_shap_non, cnv_shap_counts = get_shap_subsets(cnv_shap, orf_map_ben_s288c, orf_map, vtype="cnv")
-	
-	# calculate the global SHAP value (sum across isolates); drop un-important features
-	snp_gl_shap_s288c, snp_gl_shap_s288c_counts = get_global_shap(snp_shap_s288c, snp_map_ben_s288c, snp_map, vtype="snp", is_non=False)
-	snp_gl_shap_non, snp_gl_shap_non_counts = get_global_shap(snp_shap_non, snp_map_ben_s288c, snp_map, vtype="snp", is_non=True)
-	# pav_gl_shap_s288c, pav_gl_shap_s288c_counts = get_global_shap(pav_shap_s288c, orf_map_ben_s288c, orf_map, vtype="pav", is_non=False)
-	# pav_gl_shap_non, pav_gl_shap_non_counts = get_global_shap(pav_shap_non, orf_map_ben_s288c, orf_map, vtype="pav", is_non=True)
-	# cnv_gl_shap_s288c, cnv_gl_shap_s288c_counts = get_global_shap(cnv_shap_s288c, orf_map_ben_s288c, orf_map, vtype="cnv", is_non=False)
-	# cnv_gl_shap_non, cnv_gl_shap_non_counts = get_global_shap(cnv_shap_non, orf_map_ben_s288c, orf_map, vtype="cnv", is_non=True)
-	
-	# re-arrange the local SHAP values into long format for plotting & performing ks-tests
-	snp_lc_shap_s288c, snp_lc_shap_non, snp_lc_shap_counts = reshape_local_shap(snp_shap_s288c, snp_shap_non, snp_map, strain="s288c", map_type="snp")
-	# pav_lc_shap_s288c, pav_lc_shap_non, pav_lc_shap_counts = reshape_local_shap(pav_shap_s288c, pav_shap_non, orf_map, strain="s288c", map_type="orf")
-	# cnv_lc_shap_s288c, cnv_lc_shap_non, cnv_lc_shap_counts = reshape_local_shap(cnv_shap_s288c, cnv_shap_non, orf_map, strain="s288c", map_type="orf")
-	
-	# perform the ks test and plot distributions
-	ks_snp_gl, stats_snp_gl = ks_2samp_shap(snp_gl_shap_s288c, snp_gl_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="SNP", tag=f"top_{q*100}pct_global")
-	# ks_pav_gl, stats_pav_gl = ks_2samp_shap(pav_gl_shap_s288c, pav_gl_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="PAV", tag=f"top_{q*100}pct_global")
-	# ks_cnv_gl, stats_cnv_gl = ks_2samp_shap(cnv_gl_shap_s288c, cnv_gl_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="CNV", tag=f"top_{q*100}pct_global")
-	ks_snp_lc, stats_snp_lc = ks_2samp_shap(snp_lc_shap_s288c, snp_lc_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="SNP", tag=f"top_{q*100}pct_local")
-	# ks_pav_lc, stats_pav_lc = ks_2samp_shap(pav_lc_shap_s288c, pav_lc_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="PAV", tag=f"top_{q*100}pct_local")
-	# ks_cnv_lc, stats_cnv_lc = ks_2samp_shap(cnv_lc_shap_s288c, cnv_lc_shap_non, strain="s288c", env="YPDBENOMYL500", vtype="CNV", tag=f"top_{q*100}pct_local")
-	
-	# perform mann-whitney u test
-	mwu_snp_gl = mwu_shap(snp_gl_shap_s288c, snp_gl_shap_non)
-	# mwu_pav_gl = mwu_shap(pav_gl_shap_s288c, pav_gl_shap_non)
-	# mwu_cnv_gl = mwu_shap(cnv_gl_shap_s288c, cnv_gl_shap_non)
-	mwu_snp_lc = mwu_shap(snp_lc_shap_s288c, snp_lc_shap_non)
-	# mwu_pav_lc = mwu_shap(pav_lc_shap_s288c, pav_lc_shap_non)
-	# mwu_cnv_lc = mwu_shap(cnv_lc_shap_s288c, cnv_lc_shap_non)
-	
-	# store results
-	ks_res[("SNP", "global", q)] = pd.DataFrame.from_dict(ks_snp_gl, orient="index", columns=["statistic", "pvalue"])
-	stats_res[("SNP", "global", q)] = pd.DataFrame.from_dict(stats_snp_gl, orient="index")
-	# ks_res[("PAV", "global", q)] = pd.DataFrame.from_dict(ks_pav_gl, orient="index", columns=["statistic", "pvalue"])
-	# stats_res[("PAV", "global", q)] = pd.DataFrame.from_dict(stats_pav_gl, orient="index")
-	# ks_res[("CNV", "global", q)] = pd.DataFrame.from_dict(ks_cnv_gl, orient="index", columns=["statistic", "pvalue"])
-	# stats_res[("CNV", "global", q)] = pd.DataFrame.from_dict(stats_cnv_gl, orient="index")
-	
-	ks_res[("SNP", "local", q)] = pd.DataFrame.from_dict(ks_snp_lc, orient="index", columns=["statistic", "pvalue"])
-	stats_res[("SNP", "local", q)] = pd.DataFrame.from_dict(stats_snp_lc, orient="index")
-	# ks_res[("PAV", "local", q)] = pd.DataFrame.from_dict(ks_pav_lc, orient="index", columns=["statistic", "pvalue"])
-	# stats_res[("PAV", "local", q)] = pd.DataFrame.from_dict(stats_pav_lc, orient="index")
-	# ks_res[("CNV", "local", q)] = pd.DataFrame.from_dict(ks_cnv_lc, orient="index", columns=["statistic", "pvalue"])
-	# stats_res[("CNV", "local", q)] = pd.DataFrame.from_dict(stats_cnv_lc, orient="index")
-	
-	mwu_res[("SNP", "global", q)] = pd.DataFrame.from_dict(mwu_snp_gl, orient="index", columns=["statistic", "pvalue"])
-	# mwu_res[("PAV", "global", q)] = pd.DataFrame.from_dict(mwu_pav_gl, orient="index", columns=["statistic", "pvalue"])
-	# mwu_res[("CNV", "global", q)] = pd.DataFrame.from_dict(mwu_cnv_gl, orient="index", columns=["statistic", "pvalue"])
-	mwu_res[("SNP", "local", q)] = pd.DataFrame.from_dict(mwu_snp_lc, orient="index", columns=["statistic", "pvalue"])
-	# mwu_res[("PAV", "local", q)] = pd.DataFrame.from_dict(mwu_pav_lc, orient="index", columns=["statistic", "pvalue"])
-	# mwu_res[("CNV", "local", q)] = pd.DataFrame.from_dict(mwu_cnv_lc, orient="index", columns=["statistic", "pvalue"])
-	
-	counts_res[("SNP", "before_filtering", q)] = snp_shap_counts
-	# counts_res[("PAV", "before_filtering", q)] = pav_shap_counts
-	# counts_res[("CNV", "before_filtering", q)] = cnv_shap_counts
-	counts_res[("SNP", "global", q)] = snp_gl_shap_s288c_counts + snp_gl_shap_non_counts
-	# counts_res[("PAV", "global", q)] = pav_gl_shap_s288c_counts + pav_gl_shap_non_counts
-	# counts_res[("CNV", "global", q)] = cnv_gl_shap_s288c_counts + cnv_gl_shap_non_counts
-	counts_res[("SNP", "local", q)] = snp_lc_shap_counts
-	# counts_res[("PAV", "local", q)] = pav_lc_shap_counts
-	# counts_res[("CNV", "local", q)] = cnv_lc_shap_counts
-	del snp_shap_s288c, snp_shap_non, snp_shap_counts, snp_gl_shap_s288c, snp_gl_shap_non, snp_gl_shap_s288c_counts, snp_gl_shap_non_counts, snp_lc_shap_s288c, snp_lc_shap_non, snp_lc_shap_counts, mwu_snp_gl, mwu_snp_lc #, ks_snp_lc, stats_snp_lc, ks_snp_gl, stats_snp_gl
-	# del pav_shap_s288c, pav_shap_non, pav_shap_counts, pav_gl_shap_s288c, pav_gl_shap_non, pav_gl_shap_s288c_counts, pav_gl_shap_non_counts, pav_lc_shap_s288c, pav_lc_shap_non, pav_lc_shap_counts, mwu_pav_gl, mwu_pav_lc #, ks_pav_lc, stats_pav_lc, ks_pav_gl, stats_pav_gl
-	# del cnv_shap_s288c, cnv_shap_non, cnv_shap_counts, cnv_gl_shap_s288c, cnv_gl_shap_non, cnv_gl_shap_s288c_counts, cnv_gl_shap_non_counts, cnv_lc_shap_s288c, cnv_lc_shap_non, cnv_lc_shap_counts, mwu_cnv_gl, mwu_cnv_lc #, ks_cnv_lc, stats_cnv_lc, ks_cnv_gl, stats_cnv_gl
-
-# Save the KS-test results
-df_list = []
-num_empty = 0
-for key in ks_res.keys():
-	if key == ('CNV', 'local', 0.95):
-		continue
-	if not ks_res[key].empty:
-		new_idx = [list(key) + list(x) for x in ks_res[key].reset_index()["index"]]
-		ks_res[key].index = pd.MultiIndex.from_tuples(new_idx)
-		df_list.append(ks_res[key])
-	else:
-		num_empty += 1
-
-ks_res_df = pd.concat(df_list)
-ks_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile", "remove", "SHAP_Subset"]
-ks_res_df.reset_index(inplace=True)
-ks_res_df.drop(columns="remove", inplace=True)
-ks_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_ks_test_results.csv", index=False)
-
-assert len(df_list) + num_empty == len(ks_res.keys()) # pass!
-
-# Save the Mann-Whitney U test results
-df_list = []
-num_empty = 0
-for key in mwu_res.keys():
-	if not mwu_res[key].empty:
-		new_idx = [list(key) + list(x) for x in mwu_res[key].reset_index()["index"]]
-		mwu_res[key].index = pd.MultiIndex.from_tuples(new_idx)
-		df_list.append(mwu_res[key])
-	else:
-		num_empty += 1
-
-mwu_res_df = pd.concat(df_list)
-mwu_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile", "remove", "SHAP_Subset"]
-mwu_res_df.reset_index(inplace=True)
-mwu_res_df.drop(columns="remove", inplace=True)
-mwu_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_mwu_test_results.csv", index=False)
-
-# apply multiple-testing correction
-from statsmodels.stats.multitest import multipletests
-mwu_res_df = mwu_res_df.pivot(index=["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type"], columns="SHAP_Subset", values="pvalue")
-mwu_res_df.reset_index(inplace=True)
-
-mwu_res_df[["raw_q", "absolute_q", "positive_q", "negative_q"]] = np.nan
-for shap_type in mwu_res_df["SHAP_Type"].unique():
-	for variant_type in mwu_res_df["Variant_Type"].unique():
-		mask = (mwu_res_df["SHAP_Type"] == shap_type) & (mwu_res_df["Variant_Type"] == variant_type)
-		sub = mwu_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]]
-		sub = mwu_res_df.loc[mask, ["raw", "absolute", "positive", "negative"]].apply(lambda x:multipletests(x, alpha=0.05, method='fdr_bh')[1], axis=0)
-		mwu_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]] = sub.values
-
-mwu_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_mwu_test_results_with_qvals.csv", index=False)
-
-# Save the distribution descriptive statistics
-df_list = {k: v for k, v in stats_res.items() if not v.empty}
-stats_res_df = pd.concat(df_list)
-stats_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile", "remove", "SHAP_Subset"]
-stats_res_df.reset_index(inplace=True)
-stats_res_df.drop(columns="remove", inplace=True)
-stats_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_shap_summary_stats.csv", index=False)
-
-counts_res_df = pd.DataFrame(counts_res).T
-counts_res_df.index.names = ["Variant_Type", "SHAP_Type", "Benomyl_DRF_Quantile"]
-counts_res_df.columns = ["Num_S288C_Bench_Genes", "Num_S288C_Bench_Features", "Num_Non_S288C_Bench_Genes", "Num_Non_S288C_Bench_Features"]
-counts_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_feature_gene_counts.csv", index=True)
-
-# Plot summary figure of ks_res_df and msu_res_df
-ks_res_df = pd.read_csv("_s288c_costanzo_benomyl_benchmark_ks_test_results.csv")
-ks_res_df = ks_res_df.pivot(index=["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type"], columns="SHAP_Subset", values="pvalue")
-ks_res_df.reset_index(inplace=True)
-
-# apply multiple testing correction to the p-values
-ks_res_df[["raw_q", "absolute_q", "positive_q", "negative_q"]] = np.nan
-for shap_type in ks_res_df["SHAP_Type"].unique():
-	for variant_type in ks_res_df["Variant_Type"].unique():
-		mask = (ks_res_df["SHAP_Type"] == shap_type) & (ks_res_df["Variant_Type"] == variant_type)
-		sub = ks_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]]
-		sub = ks_res_df.loc[mask, ["raw", "absolute", "positive", "negative"]].apply(lambda x:multipletests(x, alpha=0.05, method='fdr_bh')[1], axis=0)
-		ks_res_df.loc[mask, ["raw_q", "absolute_q", "positive_q", "negative_q"]] = sub.values
-
-ks_res_df.to_csv("_s288c_costanzo_benomyl_benchmark_ks_test_results_with_qvals.csv", index=False)
-
-mwu_res_df = pd.read_csv("_s288c_costanzo_benomyl_benchmark_mwu_test_results_with_qvals.csv")
-
-# plot
-def plot_ks_results(res_df, ylabel,save_name):
-	fig, ax = plt.subplots(figsize=(11, 8), nrows=3, ncols=2, sharey=True, sharex=True)
-	res_df[(res_df["SHAP_Type"] == "global") & (res_df["Variant_Type"] == "SNP")].plot(
-		x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[0, 0], title="SNP global SHAP values", linewidth=.8, ms=4, grid=True)
-	res_df[(res_df["SHAP_Type"] == "local") & (res_df["Variant_Type"] == "SNP")].plot(
-		x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[0, 1], title="SNP local SHAP values", linewidth=.8, ms=4, grid=True)
-	# res_df[(res_df["SHAP_Type"] == "global") & (res_df["Variant_Type"] == "PAV")].plot(
-	# 	x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[1, 0], title="PAV global SHAP values", linewidth=.8, ms=4, grid=True)
-	# res_df[(res_df["SHAP_Type"] == "local") & (res_df["Variant_Type"] == "PAV")].plot(
-	# 	x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[1, 1], title="PAV local SHAP values", linewidth=.8, ms=4, grid=True)
-	# res_df[(res_df["SHAP_Type"] == "global") & (res_df["Variant_Type"] == "CNV")].plot(
-	# 	x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[2, 0], title="CNV global SHAP values", linewidth=.8, ms=4, grid=True)
-	# res_df[(res_df["SHAP_Type"] == "local") & (res_df["Variant_Type"] == "CNV")].plot(
-	# 	x="Benomyl_DRF_Quantile", kind="line", marker="o", ax=ax[2, 1], title="CNV local SHAP values", linewidth=.8, ms=4, grid=True)
-	# plot horizontal line at y=0.05
-	for i in range(3):
-		for j in range(2):
-			ax[i, j].axhline(y=0.05, color="red", linestyle="--", linewidth=.8)
-			ax[i, j].tick_params(axis="both", labelsize=7)
-			ax[i, j].set_ylabel(ylabel)
-	plt.savefig(save_name)
-	plt.close("all")
-
-plot_ks_results(ks_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute", "negative", "positive", "raw"]], "P-value", save_name='_s288c_costanzo_benomyl_benchmark_ks_test_results_pvals.pdf')
-plot_ks_results(ks_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute_q", "negative_q", "positive_q", "raw_q"]], "Q-value", save_name='_s288c_costanzo_benomyl_benchmark_ks_test_results_qvals.pdf')
-plot_ks_results(mwu_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute", "negative", "positive", "raw"]], "P-value", save_name='_s288c_costanzo_benomyl_benchmark_mwu_test_results_pvals.pdf')
-plot_ks_results(mwu_res_df[["SHAP_Type", "Benomyl_DRF_Quantile", "Variant_Type", "absolute_q", "negative_q", "positive_q", "raw_q"]], "Q-value", save_name='_s288c_costanzo_benomyl_benchmark_mwu_test_results_qvals.pdf')
-
-
-# W303 benchmark genes: compare local SHAP distributions ---------------
-snp_ben_w303_list = [snp_map_ben_w303["snp"].tolist(), snp_map_caf_w303["snp"].tolist(), 
-					 snp_map_caf_w303["snp"].tolist(), snp_map_cuso_w303["snp"].tolist(),
-					 snp_map_sma_w303["snp"].tolist()]
-orf_ben_w303_list = [orf_map_ben_w303["orf"].tolist(), orf_map_caf_w303["orf"].tolist(), 
-					 orf_map_caf_w303["orf"].tolist(), orf_map_cuso_w303["orf"].tolist(),
-					 orf_map_sma_w303["orf"].tolist()]
-
-corr_res = {}
-for i in range(5):
-	print(snp_shap_files[i])
-	print(pav_shap_files[i])
-	print(cnv_shap_files[i])
-	snp_shap = fix_snp_ids(snp_shap_files[i])
-	pav_shap = fix_orf_ids(pav_shap_files[i])
-	cnv_shap = fix_orf_ids(cnv_shap_files[i])
-	
-	# Subset the SHAP matrices to only include features that map to W303 benchmark genes
-	snp_shap_w303 = snp_shap.loc["SACE_GAV", snp_shap.columns.isin(snp_ben_w303_list[i])]
-	pav_shap_w303 = pav_shap.loc["SACE_GAV", pav_shap.columns.isin(orf_ben_w303_list[i])]
-	cnv_shap_w303 = cnv_shap.loc["SACE_GAV", cnv_shap.columns.isin(orf_ben_w303_list[i])]
-	
-	# Are the SHAP values of W303 genes greater than those of non-W303 genes?
-	if len(snp_shap_w303) > 0:
-		# Subset the SHAP matrices to only include features that do NOT map to W303 genes
-		snp_shap_non = snp_shap.loc["SACE_GAV", ~snp_shap.columns.isin(snp_ben_w303_list[i])]
-		corr_res[(target_envs[i], "SNP")] = ks_2samp_shap(snp_shap_w303, snp_shap_non, env=target_envs[i])
-	if len(pav_shap_w303) > 0:
-		pav_shap_non = pav_shap.loc["SACE_GAV", ~pav_shap.columns.isin(orf_ben_w303_list[i])]
-		corr_res[(target_envs[i], "PAV")] = ks_2samp_shap(pav_shap_w303, pav_shap_non, env=target_envs[i])
-	if len(cnv_shap_w303) > 0:
-		cnv_shap_non = cnv_shap.loc["SACE_GAV", ~cnv_shap.columns.isin(orf_ben_w303_list[i])]
-		corr_res[(target_envs[i], "CNV")] = ks_2samp_shap(cnv_shap_w303, cnv_shap_non, env=target_envs[i])
-	
-	# # Calculate the pearson correlation between SHAP values and fitness values of W303 benchmark genes
-	# if len(snp_shap_w303.columns) > 0:
-	# 	corr_res[(target_envs[i], "SNP")] = snp_shap_w303.apply(
-	# 		lambda col: col.corr(pheno.loc[col.index, f"{target_envs[i]}"], method="pearson"))
-	# if len(pav_shap_w303.columns) > 0:
-	# 	corr_res[(target_envs[i], "PAV")] = pav_shap_w303.apply(
-	# 		lambda col: col.corr(pheno.loc[col.index, f"{target_envs[i]}"], method="pearson"))
-	# if len(cnv_shap_w303.columns) > 0:
-	# 	corr_res[(target_envs[i], "CNV")] = cnv_shap_w303.apply(
-	# 		lambda col: col.corr(pheno.loc[col.index, f"{target_envs[i]}"], method="pearson"))
-	del snp_shap_w303, pav_shap_w303, cnv_shap_w303, snp_shap, pav_shap, cnv_shap
-
-# Store KS test results
-pd.DataFrame.from_dict({tuple(list(k)+list(i)): j for i,j in v.items() for k, v in corr_res.items()}, orient="index")
-
-
-# Store the pearson correlations between SHAP values and fitness values of W303 benchmark genes
-# pd.DataFrame(corr_res).to_csv("_w303_benchmark_genes_shap_fitness_corr.csv")
 
 # ------------------------------------------------------------------------------
 """4. Analyze the fitness effects in S288C (Costanzo et al. 2016) of genes with
