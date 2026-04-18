@@ -11,6 +11,8 @@
 
 3. How much genetic variation do the benchmark genes have?
 	- Compare the amount of genetic variation to that of the important non-benchmark genes
+	- Lack of genetic variation can come in two forms: Are the benchmark genes
+	present in most or less isolates than the important non-benchmark genes?
 """
 
 import os, gc
@@ -272,11 +274,6 @@ snp_counts.drop("intergenic").describe()
 
 snp_counts.drop("intergenic").var() # 133.902565
 
-# map SNPs to mRNA of each gene (to update SNP to gene map file: S8 File)
-
-# count the number of SNPs per gene ("mRNA" region, can also accomodate promoters & other cis-regulatory elements)
-
-
 # calculate CNV frequency per gene --------------------------------
 # Number of ORFs per gene
 orf_map = pd.read_excel("Scripts/Data_Vis/S9_File.xlsx", engine="openpyxl") # ORF to gene mapping
@@ -365,6 +362,7 @@ plt.close("all")
 gc.collect()
 
 # calculate PAV percent presence ----------------------------------
+orf_map = pd.read_excel("Scripts/Data_Vis/S9_File.xlsx", engine="openpyxl") # ORF to gene mapping
 pav = pd.read_excel("Scripts/Data_Vis/S5_File.xlsx", engine="openpyxl") # pav data
 pav.set_index("ID", inplace=True)
 pav = fix_orf_ids(pav)
@@ -394,6 +392,89 @@ pav_presence["percent_presence"].describe()
 # 75%         1.000000
 # max         1.000000
 pav_presence["percent_presence"].var() # 0.16
+
+# How does the percent presence of benchmark genes compare to that of important non-benchmark genes?
+target_envs = ["YPDBENOMYL500", "YPDCAFEIN40", "YPDCAFEIN50", "YPDCUSO410MM", "YPDSODIUMMETAARSENITE"]
+
+# read in the feature tables from Fig4A to get the benchmark and important non-benchmark feature sets
+from glob import glob
+data_dir = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/"
+snp_shap_files = glob(os.path.join(data_dir, "SNP/fs/SHAP_values_sorted_Y*.txt"))
+pav_shap_files = glob(os.path.join(data_dir, "PAV/fs/SHAP_values_sorted_Y*.txt"))
+cnv_shap_files = glob(os.path.join(data_dir, "CNV/fs/SHAP_values_sorted_Y*.txt"))
+snp_shap_file = [f for f in snp_shap_files if any(env in f for env in target_envs)]
+pav_shap_file = [f for f in pav_shap_files if any(env in f for env in target_envs)]
+cnv_shap_file = [f for f in cnv_shap_files if any(env in f for env in target_envs)]
+
+# subset the PAV matrix to only include the training isolates
+test = pd.read_csv("Data/Peter_2018/Test.txt", header=None)
+pav_train = pav[~pav.index.isin(test[0])]
+
+# subset
+results = []
+for env, bench_env in [("YPDBENOMYL500", "Benomyl"), ("YPDCAFEIN40", "Caffeine"),
+					   ("YPDCAFEIN50", "Caffeine"), ("YPDCUSO410MM", "CuSO4"),
+					   ("YPDSODIUMMETAARSENITE", "Sodium_meta-arsenite")]:
+	for vtype in ["pav", "cnv"]:
+		# Load Figure 4A feature lists
+		d = "/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP_Interaction/RF"
+		orf = pd.read_csv(f"{d}/Features_important_non_bench_plus_bench_genes_{env}_{vtype}.txt", header=None)
+		orf["clean_id"] = fix_orf_ids(orf[0])
+		
+		# subset benchmark gene features and non-benchmark features
+		feat1_bench = orf_map[(orf_map.orf.isin(orf["clean_id"])) & (orf_map[bench_env] == 1)]
+		allfeat_bench = orf_map.loc[orf_map.gene.isin(feat1_bench.gene.unique()),:]
+		feat1_non_bench = orf_map[(orf_map.orf.isin(orf["clean_id"])) & (orf_map[bench_env] == 0)]
+		
+		# subset the genotype matrices
+		feat1_bench_df = pav_train.loc[:, fix_orf_ids(feat1_bench.orf, clean=False)]
+		allfeat_bench_df = pav_train.loc[:, fix_orf_ids(allfeat_bench.orf, clean=False)]
+		feat1_non_bench_df = pav_train.loc[:, fix_orf_ids(feat1_non_bench.orf, clean=False)]
+		
+		# calculate percent presence for each feature set
+		feat1_bench_percent_presence = feat1_bench_df.sum(axis=0)/625
+		allfeat_bench_percent_presence = allfeat_bench_df.sum(axis=0)/625
+		feat1_non_bench_percent_presence = feat1_non_bench_df.sum(axis=0)/625
+		
+		# statistically estimate how different the mean percent presence values are between the feature sets using a Welch's t-test
+		from scipy.stats import ttest_ind
+		t_stat_g_feat1, p_val_g_feat1 = ttest_ind(
+			feat1_bench_percent_presence, feat1_non_bench_percent_presence,
+			equal_var=False, alternative="greater")
+		t_stat_l_feat1, p_val_l_feat1 = ttest_ind(
+			feat1_bench_percent_presence, feat1_non_bench_percent_presence,
+			equal_var=False, alternative="less")
+		t_stat_g_all, p_val_g_all = ttest_ind(
+			allfeat_bench_percent_presence, feat1_non_bench_percent_presence,
+			equal_var=False, alternative="greater")
+		t_stat_l_all, p_val_l_all = ttest_ind(
+			allfeat_bench_percent_presence, feat1_non_bench_percent_presence,
+			equal_var=False, alternative="less")
+		
+		results.append([env, vtype, feat1_bench_percent_presence.mean(),
+					feat1_bench_percent_presence.std(),
+					feat1_bench_percent_presence.var(),
+					feat1_non_bench_percent_presence.mean(),
+					feat1_non_bench_percent_presence.std(),
+					feat1_non_bench_percent_presence.var(),
+					allfeat_bench_percent_presence.mean(),
+					allfeat_bench_percent_presence.std(),
+					allfeat_bench_percent_presence.var(),
+					t_stat_g_feat1, p_val_g_feat1, t_stat_l_feat1, p_val_l_feat1,
+					t_stat_g_all, p_val_g_all, t_stat_l_all, p_val_l_all])
+
+
+results_df = pd.DataFrame(results, columns=[
+	"environment", "variant_type",
+	"feat1_bench_mean_percent_presence", "feat1_bench_std_percent_presence",
+	"feat1_bench_var_percent_presence", "feat1_non_bench_mean_percent_presence",
+	"feat1_non_bench_std_percent_presence", "feat1_non_bench_var_percent_presence",
+	"allfeat_bench_mean_percent_presence", "allfeat_bench_std_percent_presence",
+	"allfeat_bench_var_percent_presence", "t_stat_g_feat1", "p_val_g_feat1",
+	"t_stat_l_feat1", "p_val_l_feat1", "t_stat_g_all", "p_val_g_all", "t_stat_l_all",
+	"p_val_l_all"])
+results_df.to_csv("Scripts/Data_Vis/reviewer_2_analysis/_benchmark_vs_non_bench_percent_presence_stats.csv", index=False)
+
 
 # 2. Diploid isolate clade representation --------------------------------------
 pheno = pd.read_excel("S1_File.xlsx", engine="openpyxl")

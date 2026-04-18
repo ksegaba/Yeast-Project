@@ -3,6 +3,8 @@
 Data/
 External_software/
 Results/
+.ipynb_checkpoints/
+Scripts/Data_Vis/.ipynb_checkpoints/
 Scripts/Data_Vis/_umap_default/
 Scripts/Data_Vis/old_ORF_CNV_Figures/
 Scripts/Data_Vis/old_Pheno_Figures/
@@ -14,6 +16,8 @@ Scripts/Data_Vis/Section_3/
 Scripts/Data_Vis/Section_4/
 Scripts/Data_Vis/Section_5/
 Scripts/Data_Vis/Section_6/
+Scripts/Data_Vis/reviewer_1_analysis/
+Scripts/Data_Vis/reviewer_2_analysis/
 Scripts/Genomic_Prediction_rrBLUP/rrBLUP_Figures_64k_geno/
 Scripts/Genomic_Prediction_RF/GO_Enrichment_wrong_geno.csv_results/
 Scripts/Genomic_Prediction_RF/PWY_Enrichment_wrong_geno.csv_results/
@@ -102,6 +106,7 @@ Scripts/Data_Vis/*.csv
 Scripts/Data_Vis/*.pdf
 Scripts/Data_Vis/*.txt
 Scripts/Data_Vis/*.tsv
+Scripts/Data_Vis/*.pkl
 Scripts/Data_Vis/Data_Vis_Figures_64k_geno.tar.gz
 
 Results/*.csv
