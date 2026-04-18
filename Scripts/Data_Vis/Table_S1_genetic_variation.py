@@ -1,7 +1,6 @@
 """
 1. Estimate the amount of genetic variation
 	- bi-allelic SNP allele and genotype frequencies
-	- Map SNPs to mRNA of each gene
 	- CNV frequency per gene
 	- PAV frequency per gene
 	- Number of variants per gene
