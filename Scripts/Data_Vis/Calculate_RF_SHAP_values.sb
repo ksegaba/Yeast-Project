@@ -101,11 +101,11 @@ echo "SNPs RF baseline -----------------"
 cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/SNP/baseline
 scratch=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/SNP_yeast_RF_results/baseline
 python ${shap}/SHAP_training_saving_interaction.py \
-    -df ${data}/geno.csv \
-    -df2 ${data}/pheno.csv \
+    -df ${data}/geno.csv \          # S2 File
+    -df2 ${data}/pheno.csv \        # S1 File
     -y_name ${snp_trait} \
-    -sep , -test ${data}/Test.txt -feat all \
-    -model ${scratch}/${snp_mod} \
+    -sep , -test ${data}/Test.txt -feat all \   # provided in GitHub repo at Models/Test.txt
+    -model ${scratch}/${snp_mod} \              # trained RF model. Example file provided in GitHub repo at Models/_example/
     -top 20 -interaction n -interaction_score n \
     -save ${snp_trait}_snp_rf_baseline
 
@@ -114,7 +114,7 @@ echo "PAVs RF baseline -----------------"
 cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/PAV/baseline
 scratch=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/baseline
 python ${shap}/SHAP_training_saving_interaction.py \
-    -df ${data}/ORFs_pres_abs.csv \
+    -df ${data}/ORFs_pres_abs.csv \       # S5 File
     -df2 ${data}/pheno.csv \
     -y_name ${pav_trait} \
     -sep , -test ${data}/Test.txt -feat all \
@@ -127,7 +127,7 @@ echo "CNVs RF baseline -----------------"
 cd /mnt/research/glbrc_group/shiulab/kenia/yeast_project/SHAP/CNV/baseline
 scratch=/mnt/research/glbrc_group/shiulab/kenia/yeast_project/ORF_yeast_RF_results/baseline
 python ${shap}/SHAP_training_saving_interaction.py \
-    -df ${data}/ORFs_no_NA.csv \
+    -df ${data}/ORFs_no_NA.csv \        # S6 File
     -df2 ${data}/pheno.csv \
     -y_name ${cnv_trait} \
     -sep , -test ${data}/Test.txt -feat all \
