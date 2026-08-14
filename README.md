@@ -1,4 +1,4 @@
-# Predictive models of the genetic bases underlying budding yeast fitness
+# Predictive models of the genetic bases underlying budding yeast fitness in multiple environments
 The project has been published at NAR Genomics and Bioinformatics (https://doi.org/10.1093/nargab/lqag084). All final codes have been moved to a new repository at https://github.com/ksegaba/2026_yeast_fitness_gxe_manuscript.
 
 ## Project Resources
